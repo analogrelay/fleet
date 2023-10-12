@@ -1,0 +1,5 @@
+- name: Enable SSHD
+  include_tasks: "sshd.{{ ansible_distribution | lower }}.yml"
+
+- name: Install base package management
+  include_tasks: "packages.{{ ansible_distribution | lower }}.yml"

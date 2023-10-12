@@ -1,0 +1,28 @@
+- name: Install Homebrew
+  become: true
+  when: homebrew_present is not defined or not homebrew_present
+  block:
+    - name: Install Homebrew
+      ansible.builtin.shell: NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      args:
+        creates: /opt/homebrew
+    
+    - name: Set fact
+      ansible.builtin.set_fact:
+        homebrew_present: true
+
+- name: Ensure ZSH profile up to date
+  ansible.builtin.lineinfile:
+    path: "{{ lookup('env', 'HOME') }}/.zprofile"
+    line: 'eval "$(/opt/homebrew/bin/brew shellenv)"'
+
+- name: Update Homebrew
+  community.general.homebrew:
+    update_homebrew: true
+  
+- name: Install base packages
+  community.general.homebrew:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "jq"

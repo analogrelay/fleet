@@ -1,0 +1,27 @@
+#!/bin/bash
+root="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
+cd $root
+source "$root/script/helpers/_utils.sh"
+
+set -euo pipefail
+
+# Check for python
+if ! type python3 >/dev/null 2>&1; then
+    echo "You gotta install Python manually, sorry."
+    exit 1
+fi
+
+# Set up the venv
+echo "Venving..."
+python3 -m venv .venv
+echo "Venved."
+
+# Enter the venv and install packages
+echo "Installing packages..."
+source ./.venv/bin/activate
+pip install -r requirements.txt
+
+echo "Ready to roll. Python virtual environment configured in '.venv'"
+echo "Make sure 'inventory.yaml' and 'fleet.yaml' are up to date with this machine's roles"
+echo "Then run 'script/apply me' to apply those roles to this machine"
+

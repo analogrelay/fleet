@@ -1,0 +1,10 @@
+all:
+  vars:
+    ansible_user: anurse
+    analogfleet: 1
+  children:
+    workstations:
+      hosts:
+        aerith.home.analogrelay.net:
+          ansible_host: 192.168.3.3
+

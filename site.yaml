@@ -1,0 +1,14 @@
+---
+- name: Apply base role for all nodes
+  hosts: all
+  roles:
+    - role: base
+  tags:
+    - bootstrap
+
+- name: Apply workstation role for workstation nodes
+  hosts: workstations
+  roles:
+    - role: workstation
+  tags:
+    - bootstrap

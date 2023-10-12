@@ -1,0 +1,21 @@
+- name: Homebrew Missing
+  when: homebrew_present is not defined or not homebrew_present
+  ansible.builtin.fail: 
+    msg: "Expected homebrew to be configured."
+
+# - name: Install Workstation Packages
+#   community.general.homebrew:
+#     name: "{{ item }}"
+#     state: present
+
+- name: Install Workstation Casks
+  community.general.homebrew_cask:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "visual-studio-code"
+    - "microsoft-edge"
+    - "1password"
+    - "spotify"
+    - "homebrew/cask-fonts/font-victor-mono"
+    - "homebrew/cask-fonts/font-victor-mono-nerd-font"
