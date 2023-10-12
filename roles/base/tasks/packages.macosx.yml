@@ -26,3 +26,6 @@
     state: present
   with_items:
     - "jq"
+    - "chezmoi"
+    - "gh"
+    - "lazygit"
