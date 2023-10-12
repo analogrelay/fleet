@@ -11,11 +11,6 @@
       ansible.builtin.set_fact:
         homebrew_present: true
 
-- name: Ensure ZSH profile up to date
-  ansible.builtin.lineinfile:
-    path: "{{ lookup('env', 'HOME') }}/.zprofile"
-    line: 'eval "$(/opt/homebrew/bin/brew shellenv)"'
-
 - name: Update Homebrew
   community.general.homebrew:
     update_homebrew: true
@@ -29,3 +24,5 @@
     - "chezmoi"
     - "gh"
     - "lazygit"
+    - "fzf"
+    - "starship"

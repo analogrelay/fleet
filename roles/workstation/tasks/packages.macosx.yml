@@ -7,6 +7,7 @@
 #   community.general.homebrew:
 #     name: "{{ item }}"
 #     state: present
+#   with_items:
 
 - name: Install Workstation Casks
   community.general.homebrew_cask:
@@ -17,5 +18,24 @@
     - "microsoft-edge"
     - "1password"
     - "spotify"
+    - "hammerspoon"
+    - "iterm2"
     - "homebrew/cask-fonts/font-victor-mono"
     - "homebrew/cask-fonts/font-victor-mono-nerd-font"
+
+- name: Prep Hammerspoon Directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ lookup('env', 'HOME') }}/.hammerspoon"
+    - "{{ lookup('env', 'HOME') }}/.hammerspoon/Spoons"
+
+- name: Install Hammerspoon Spoons
+  ansible.builtin.unarchive:
+    src: "{{ item.src }}"
+    dest: "{{ lookup('env', 'HOME') }}/.hammerspoon/Spoons" 
+    remote_src: true
+  with_items:
+    - name: MiroWindowsManager.spoon
+      src: https://github.com/miromannino/miro-windows-manager/raw/faa6f5f0bc025cc2465f3198609d2123d86101c2/MiroWindowsManager.spoon.zip
