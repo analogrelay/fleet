@@ -3,29 +3,37 @@
   ansible.builtin.fail: 
     msg: "Expected homebrew to be configured."
 
-# - name: Install Workstation Packages
-#   community.general.homebrew:
-#     name: "{{ item }}"
-#     state: present
-#   with_items:
+- name: Install Workstation Packages
+  community.general.homebrew:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "azure-cli"
 
 - name: Install Workstation Casks
   community.general.homebrew_cask:
     name: "{{ item }}"
     state: present
   with_items:
-    - "visual-studio-code"
-    - "microsoft-edge"
     - "1password"
-    - "spotify"
     - "hammerspoon"
+    - "homebrew/cask-fonts/font-monaspace-nerd-font"
+    - "homebrew/cask-fonts/font-monaspace"
+    - "homebrew/cask-fonts/font-victor-mono-nerd-font"
+    - "homebrew/cask-fonts/font-victor-mono-nerd-font"
+    - "homebrew/cask-fonts/font-victor-mono"
+    - "homebrew/cask-fonts/font-victor-mono"
     - "iterm2"
     - "jetbrains-toolbox"
+    - "linear-linear"
+    - "loom"
+    - "microsoft-edge"
+    - "miro"
+    - "notion"
     - "raycast"
-    - "homebrew/cask-fonts/font-monaspace"
-    - "homebrew/cask-fonts/font-monaspace-nerd-font"
-    - "homebrew/cask-fonts/font-victor-mono"
-    - "homebrew/cask-fonts/font-victor-mono-nerd-font"
+    - "spotify"
+    - "visual-studio-code"
+    - "zoom"
 
 - name: Prep Hammerspoon Directories
   ansible.builtin.file:
