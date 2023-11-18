@@ -19,6 +19,7 @@ echo "Venved."
 # Enter the venv and install packages
 echo "Installing packages..."
 source ./.venv/bin/activate
+pip install --upgrade pip
 pip install -r requirements.txt
 
 echo "Ready to roll. Python virtual environment configured in '.venv'"

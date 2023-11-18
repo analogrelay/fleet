@@ -22,6 +22,7 @@
     - "iterm2"
     - "jetbrains-toolbox"
     - "raycast"
+    - "homebrew/cask-fonts/font-monaspace"
     - "homebrew/cask-fonts/font-victor-mono"
     - "homebrew/cask-fonts/font-victor-mono-nerd-font"
 

@@ -7,4 +7,6 @@ all:
       hosts:
         aerith.home.analogrelay.net:
           ansible_host: 192.168.3.3
+        sephiroth.home.analogrelay.net:
+          ansible_host: 192.168.3.2
 
