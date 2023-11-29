@@ -23,4 +23,4 @@ echo "Applying configuration for host '$fleet_target_host'"
 
 source .venv/bin/activate
 ansible-galaxy install -r requirements.yaml
-ansible-playbook -K -i inventory.yaml "${fleet_ansible_args[@]}" --limit "$fleet_target_host" fleet.yaml
+ansible-playbook -K -i inventory.yaml "${fleet_ansible_args[@]}" --limit "$fleet_target_host" fleet.ansible.yaml

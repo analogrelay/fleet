@@ -6,15 +6,12 @@
       ansible.builtin.shell: NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
       args:
         creates: /opt/homebrew
-    
     - name: Set fact
       ansible.builtin.set_fact:
         homebrew_present: true
-
 - name: Update Homebrew
   community.general.homebrew:
     update_homebrew: true
-  
 - name: Install base packages
   community.general.homebrew:
     name: "{{ item }}"

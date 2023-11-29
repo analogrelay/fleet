@@ -26,7 +26,7 @@ debug() {
 select_host() {
     fleet_target_host="$1"
     if [ -z "$fleet_target_host" ]; then
-        echo "No host specified. Usage: 'script/apply [host]|me'"
+        echo "No host specified."
         exit 1
     fi
 
