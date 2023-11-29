@@ -9,6 +9,7 @@
     state: present
   with_items:
     - "azure-cli"
+    - "asdf"
 
 - name: Install Workstation Casks
   community.general.homebrew_cask:
@@ -16,6 +17,8 @@
     state: present
   with_items:
     - "1password"
+    - "discord"
+    - "docker"
     - "hammerspoon"
     - "homebrew/cask-fonts/font-monaspace-nerd-font"
     - "homebrew/cask-fonts/font-monaspace"
