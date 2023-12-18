@@ -11,12 +11,13 @@
       url = "github:msteen/nixos-vscode-server";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    agenix.url = "github:ryantm/agenix";
   };
 
   outputs = { self, nixpkgs, ... }@inputs :
     let
       overlays = [
-
+        inputs.agenix.overlays.default
       ];
       defaultModules = [
       ];

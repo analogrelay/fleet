@@ -12,7 +12,7 @@
       ../../modules/users.nix
       ../../modules/base.nix
       ../../modules/server.nix
-      ../../modules/k3s.nix
+      ../../modules/k3s-server.nix
       ../../modules/tailnet.nix
     ];
 
