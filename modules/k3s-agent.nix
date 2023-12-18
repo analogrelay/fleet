@@ -7,11 +7,8 @@
 
   services.k3s = {
     enable = true;
-    role = "server";
+    role = "agent";
     tokenFile = config.sops.secrets.k3s_token.path;
-    extraFlags = toString [
-      "--disable=local-storage"
-    ];
   };
 
   networking.firewall.allowedTCPPorts = [

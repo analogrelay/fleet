@@ -11,11 +11,11 @@
       ../../modules/users.nix
       ../../modules/base.nix
       ../../modules/server.nix
-      ../../modules/k3s-server.nix
+      ../../modules/k3s-agent.nix
       ../../modules/tailnet.nix
     ];
 
-  networking.hostName = "avalanche";
+  networking.hostName = "shinra";
   networking.domain = "home.analogrelay.net";
 
   time.timeZone = "America/Vancouver";
