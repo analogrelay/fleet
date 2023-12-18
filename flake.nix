@@ -11,15 +11,15 @@
       url = "github:msteen/nixos-vscode-server";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    agenix.url = "github:ryantm/agenix";
+    sops-nix.url = "github:Mic92/sops-nix";
   };
 
   outputs = { self, nixpkgs, ... }@inputs :
     let
       overlays = [
-        inputs.agenix.overlays.default
       ];
       defaultModules = [
+        inputs.sops-nix.nixosModules.sops
       ];
       mkPkgs = system:
         import nixpkgs {
