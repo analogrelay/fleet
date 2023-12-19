@@ -43,6 +43,11 @@
           inputs.vscode-server.nixosModule
           ({config, pkgs, ...}: {services.vscode-server.enable = true;})
         ];
+        shinra = mkSystem "x86_64-linux" [
+          ./hosts/shinra
+          inputs.vscode-server.nixosModule
+          ({config, pkgs, ...}: {services.vscode-server.enable = true;})
+        ];
       };
     };
 }
