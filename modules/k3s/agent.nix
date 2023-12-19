@@ -3,7 +3,7 @@
 {
   import = [
     ./_base.nix
-  ]
+  ];
 
   services.k3s = {
     role = "agent";
