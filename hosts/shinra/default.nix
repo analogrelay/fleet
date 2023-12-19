@@ -11,7 +11,7 @@
       ../../modules/users.nix
       ../../modules/base.nix
       ../../modules/server.nix
-      ../../modules/k3s-agent.nix
+      ../../modules/k3s/agent.nix
       ../../modules/tailnet.nix
     ];
 
