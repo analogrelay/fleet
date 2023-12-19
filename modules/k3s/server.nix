@@ -1,9 +1,9 @@
 { config, lib, pkgs, inputs, ... }:
 
 {
-  import = [
-    ./_base.nix
-  ];
+  imports = 
+    [ ./_base.nix
+    ];
 
   services.k3s = {
     role = "server";
