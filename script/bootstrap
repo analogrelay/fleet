@@ -1,4 +1,0 @@
-#!/bin/bash
-root="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
-cd $root
-source "$root/script/helpers/_utils.sh"

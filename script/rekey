@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+#/ Usage: script/rekey [<secret file>]
+#/ Adds a new system's SSH key to the .sops.yaml file and rekeys all secrets.
+#/
+#/ OPTIONS
+#/   -h, --help   Display this help message.
+#/
+#/ ARGUMENTS
+#/   <secret file>   The specific secret file to rekey. If not specified, rekeys all secrets in 'secrets/'.
+script_dir=$(dirname $(readlink -f $0))
+repo_root=$(dirname $script_dir)
+
+if [ "$FLEET_IN_SHELL" != "1" ]; then
+    echo "WARNING: This script is intended to be run from within the Fleet shell, run 'nix develop' first." 1>&2
+fi
+
+set -euo pipefail
+
+# Parse arguments
+secret_file=""
+while [[ $# -gt 0 ]]; do
+  key="$1"
+  shift
+  case "$key" in
+    -h|--help)
+      # Print usage information
+      grep '^#/' "$0" | cut -c4-
+      exit 0
+      ;;
+    *)
+      secret_file="$key"
+      ;;
+  esac
+done
+
+rekey_file() {
+    local file="$1"
+    echo "Rekeying $file"
+    sops updatekeys "$file"
+}
+
+if [ -z "$secret_file" ]; then
+  for secret_file in $(find "$repo_root/secrets" -type f); do
+    rekey_file "$secret_file"
+  done
+else
+  rekey_file "$secret_file"
+fi

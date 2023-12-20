@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+#/ Usage: script/add-system <hostname>
+#/ Adds a new system's SSH key to the .sops.yaml file and rekeys all secrets.
+#/
+#/ OPTIONS
+#/   -h, --help   Display this help message.
+#/
+#/ ARGUMENTS
+#/   <hostname>   The hostname of the system to add.
+# Resolve the absolute path of this script's directory.
+script_dir=$(dirname $(readlink -f $0))
+repo_root=$(dirname $script_dir)
+
+if [ "$FLEET_IN_SHELL" != "1" ]; then
+    echo "WARNING: This script is intended to be run from within the Fleet shell, run 'nix develop' first." 1>&2
+fi
+
+set -euo pipefail
+
+# Parse arguments
+hostname=""
+while [[ $# -gt 0 ]]; do
+  key="$1"
+  shift
+  case "$key" in
+    -h|--help)
+      # Print usage information
+      grep '^#/' "$0" | cut -c4-
+      exit 0
+      ;;
+    *)
+      hostname="$key"
+      ;;
+  esac
+done
+
+if [ -z "$hostname" ]; then
+  echo "USAGE: script/add-system <hostname>" 1>&2
+  exit 1
+fi
+
+# Parse the hostname out of an fqdn
+short_hostname=$(echo "$hostname" | cut -d. -f1)
+echo "Adding system $short_hostname"
+
+# Keyscan the system to get the SSH key
+ssh_key=$(ssh-keyscan -t ed25519 -H "$hostname")
+
+# Convert to age
+age_key=$(echo "$ssh_key" | ssh-to-age)
+
+echo "Adding public key for $short_hostname to .sops.yaml"
+cat "$repo_root/.sops.yaml" | sed "/^creation_rules:/i \ \ - &system_${short_hostname} ${age_key}" > "$repo_root/.sops.yaml.tmp"
+mv "$repo_root/.sops.yaml.tmp" "$repo_root/.sops.yaml"
+
+# Rekeying secrets
+script/rekey

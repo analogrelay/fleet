@@ -1,9 +1,8 @@
-keys:
+keys: &all_keys
   - &user_ashley age1an5cnl74gg6le3rr7jzfc07slzfaketcs2vv6t7fl7vxxrn6cs4qxf60gh
   - &system_avalanche age1zwy2y4rf62r4udmprr6f2hvs0vpw3e38dh3p0hqsj2jlyt0n5gls20r6aj
+  - &system_shinra age12hg08zmusx69d70462ec7qq9ch974rw4p08c6e49rak0hqc7leesuadtvg
 creation_rules:
   - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
     key_groups:
-      - age:
-          - *user_ashley
-          - *system_avalanche
+      - age: *all_keys

@@ -11,10 +11,12 @@
       url = "github:msteen/nixos-vscode-server";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    flake-utils.url = "github:numtide/flake-utils";
     sops-nix.url = "github:Mic92/sops-nix";
+    ssh-to-age.url = "github:stephenandary/nix-ssh-to-age";
   };
 
-  outputs = { self, nixpkgs, ... }@inputs :
+  outputs = { self, nixpkgs, flake-utils, ssh-to-age, ... }@inputs :
     let
       overlays = [
       ];
@@ -49,5 +51,21 @@
           ({config, pkgs, ...}: {services.vscode-server.enable = true;})
         ];
       };
-    };
+    } // flake-utils.lib.eachDefaultSystem (system: 
+      let pkgs = nixpkgs.legacyPackages.${system}; in
+      {
+        devShells.default = pkgs.mkShell {
+          packages = [
+            ssh-to-age.packages.${system}.ssh-to-age
+            pkgs.bashInteractive
+            pkgs.nix
+            pkgs.sops
+            pkgs.yq
+          ];
+
+          shellHook = ''
+            export FLEET_IN_SHELL=1
+          '';
+      };
+    });
 }
