@@ -5,10 +5,9 @@
 { config, lib, pkgs, ... }:
 
 {
-
   imports =
     [ ./hardware-configuration.nix
-      ../../modules/users.nix
+      ../../modules/users/ashley.nix
       ../../modules/base.nix
       ../../modules/server.nix
       ../../modules/k3s/agent.nix
@@ -16,9 +15,6 @@
     ];
 
   networking.hostName = "shinra";
-  networking.domain = "home.analogrelay.net";
-
-  time.timeZone = "America/Vancouver";
 
   system.stateVersion = "23.11";
 }

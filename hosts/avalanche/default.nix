@@ -7,17 +7,16 @@
 {
   imports =
     [ ./hardware-configuration.nix
-      ../../modules/users.nix
+      ../../modules/users/ashley.nix
+      ../../modules/users/mary.nix
       ../../modules/base.nix
       ../../modules/server.nix
+      ../../modules/nas.nix
       ../../modules/k3s/server.nix
       ../../modules/tailnet.nix
     ];
 
   networking.hostName = "avalanche";
-  networking.domain = "home.analogrelay.net";
-
-  time.timeZone = "America/Vancouver";
 
   system.stateVersion = "23.11";
 

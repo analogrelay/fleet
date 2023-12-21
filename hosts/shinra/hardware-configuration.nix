@@ -13,6 +13,9 @@
   boot.kernelModules = [ "kvm-intel" "wl" ];
   boot.extraModulePackages = [ config.boot.kernelPackages.broadcom_sta ];
 
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
   fileSystems."/" =
     { device = "/dev/disk/by-label/NIXROOT";
       fsType = "ext4";

@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+#/ Usage: script/rebuild [<hostname>]
+#/ Rebuild the current system using the latest configuration.
+#/
+#/ OPTIONS
+#/   -h, --help   Display this help message.
+#/
+#/ ARGUMENTS
+#/   <hostname>   The hostname of the configuration to use. By default, the value of the `hostname` command is used.
+# Resolve the absolute path of this script's directory.
+script_dir=$(dirname $(readlink -f $0))
+repo_root=$(dirname $script_dir)
+
+if [ "$FLEET_IN_SHELL" != "1" ]; then
+    echo "WARNING: This script is intended to be run from within the Fleet shell, run 'nix develop' first." 1>&2
+fi
+
+set -euo pipefail
+
+# Parse arguments
+hostname=""
+while [[ $# -gt 0 ]]; do
+  key="$1"
+  shift
+  case "$key" in
+    -h|--help)
+      # Print usage information
+      grep '^#/' "$0" | cut -c4-
+      exit 0
+      ;;
+    *)
+      hostname="$key"
+      ;;
+  esac
+done
+
+if [ -z "$hostname" ]; then
+  hostname=$(hostname)
+fi
+
+echo "Rebuilding system from configuration for $hostname"
+echo "Continue? [y/N]"
+read -r answer
+if [ "$answer" != "y" ]; then
+  echo "Aborting"
+  exit 1
+fi
+
+echo "You may be prompted for your sudo password to run the rebuild script."
+sudo nixos-rebuild switch --flake "$repo_root#$hostname"
