@@ -2,6 +2,7 @@
 
 {
     users.users.ashley = {
+        uid = 1000;
         description = "Ashley Stanton-Nurse";
         shell = pkgs.zsh;
         isNormalUser = true;

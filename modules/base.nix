@@ -24,10 +24,10 @@
 
   users.groups = {
     share = {
-      gid: 992;
+      gid = 992;
     };
     family = {
-      gid: 993; 
+      gid = 993; 
     };
   };
 
