@@ -98,6 +98,8 @@ kind: Ingress
 metadata:
   name: hass-ingress
   namespace: homeassistant
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
 spec:
   ingressClassName: traefik
   rules:
@@ -111,6 +113,10 @@ spec:
             name: hass-svc
             port:
               number: 80
+  tls:
+    - hosts:
+        - home.analogrelay.net
+      secretName: hass-ingress-cert
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

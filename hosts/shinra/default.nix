@@ -8,7 +8,7 @@
   imports =
     [ ./hardware-configuration.nix
       ../../modules/users/ashley.nix
-      ../../modules/base.nix
+      ../../modules/nixos.nix
       ../../modules/server.nix
       ../../modules/k3s/agent.nix
       ../../modules/tailnet.nix

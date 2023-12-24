@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-#/ Usage: script/rebuild [<hostname>]
+#/ Usage: script/rebuild [<hostname>] [--test]
 #/ Rebuild the current system using the latest configuration.
 #/
 #/ OPTIONS
 #/   -h, --help   Display this help message.
+#/   --test       Run a 'nixos-rebuild test' instead of a 'nixos-rebuild switch'.
 #/
 #/ ARGUMENTS
 #/   <hostname>   The hostname of the configuration to use. By default, the value of the `hostname` command is used.
@@ -19,10 +20,14 @@ set -euo pipefail
 
 # Parse arguments
 hostname=""
+nixos_rebuild_command="switch"
 while [[ $# -gt 0 ]]; do
   key="$1"
   shift
   case "$key" in
+    --test)
+      nixos_rebuild_command="test"
+      ;;
     -h|--help)
       # Print usage information
       grep '^#/' "$0" | cut -c4-
@@ -46,5 +51,13 @@ if [ "$answer" != "y" ]; then
   exit 1
 fi
 
-echo "You may be prompted for your sudo password to run the rebuild script."
-sudo nixos-rebuild switch --flake "$repo_root#$hostname"
+if [ "$(uname)" = "Darwin" ]; then
+  if [ "$nixos_rebuild_command" = "test" ]; then
+    echo "Running 'nixos-rebuild test' on macOS is not supported."
+    exit 1
+  fi
+  darwin-rebuild switch --flake "$repo_root#$hostname"
+else
+  echo "You may be prompted for your sudo password to run the rebuild script."
+  sudo nixos-rebuild switch --flake "$repo_root#$hostname"
+fi

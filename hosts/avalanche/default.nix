@@ -9,7 +9,7 @@
     [ ./hardware-configuration.nix
       ../../modules/users/ashley.nix
       ../../modules/users/mary.nix
-      ../../modules/base.nix
+      ../../modules/nixos.nix
       ../../modules/server.nix
       ../../modules/nas.nix
       ../../modules/k3s/server.nix

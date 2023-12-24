@@ -34,6 +34,8 @@ kind: Ingress
 metadata:
   name: traefik-dashboard-in
   namespace: kube-system
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
 spec:
   ingressClassName: traefik
   rules:
@@ -47,6 +49,10 @@ spec:
             name: traefik-dashboard
             port:
               number: 80
+  tls:
+    - hosts:
+        - traefik.home.analogrelay.net
+      secretName: traefik-ingress-cert
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

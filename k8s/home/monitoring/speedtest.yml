@@ -1,0 +1,41 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: speedtest
+  name: speedtest
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: speedtest
+  template:
+    metadata:
+      labels:
+        app: speedtest
+    spec:
+      containers:
+        - name: speedtest
+          image: billimek/prometheus-speedtest-exporter:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9469
+              name: speedtest
+              protocol: TCP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: speedtest-svc
+  namespace: monitoring
+spec:
+  type: ClusterIP
+  ports:
+  - name: speedtest
+    port: 80
+    targetPort: speedtest
+    protocol: TCP
+  selector:
+    app: speedtest
