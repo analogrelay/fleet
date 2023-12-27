@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-server-conf
+  labels:
+    name: prometheus-server-conf
+  namespace: monitoring
+data:
+  prometheus.yml: |-
+    global:
+      scrape_interval: 5s
+      evaluation_interval: 5s
+    scrape_configs:
+      - job_name: 'node-exporter'
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_endpoints_name]
+          regex: 'node-exporter'
+          action: keep
+        - source_labels: [__meta_kubernetes_endpoint_node_name]
+          target_label: instance
+          action: replace
+      - job_name: 'speed-test'
+        scrape_interval: 5m
+        scrape_timeout: 90s
+        metrics_path: /probe
+        params:
+          script: [speedtest]
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_endpoints_name]
+          regex: 'speedtest-svc'
+          action: keep
+        - source_labels: [__meta_kubernetes_endpoint_node_name]
+          target_label: instance
+          action: replace

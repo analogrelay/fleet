@@ -1,0 +1,55 @@
+target=$1
+
+# Collect all the candidates
+candidates=$(find $HOME/code -maxdepth 2 -mindepth 2 -type d)
+
+if [ "$(uname)" = "Darwin" ]; then
+    candidates=$(cat <<EOF
+$candidates
+$HOME/Downloads
+$HOME/Desktop
+$HOME/Documents
+EOF
+)
+
+fi
+
+candidates=$(cat <<EOF
+$candidates
+$DOTFILES_ROOT
+$HOME/kb
+$HOME/code
+EOF
+)
+
+# Some useful aliases
+aliases=(
+    [dotcom]="$HOME/code/github/github"
+)
+
+for alias in "${(k)aliases}"; do
+    candidates=$(cat <<EOF
+$candidates
+$alias
+EOF
+)
+done
+
+if [ "$DEBUG" = "1" ]; then
+    echo "Candidates: $candidates"
+else
+    qry_arg=()
+    if [ -n "$1" ]; then
+        qry_arg=("--query" "$1" "--select-1" "--exit-0")
+    fi
+    target=$(echo "$candidates" | fzf ${qry_arg[@]})
+    if [ $? != 0 ]; then
+        echo "failed to find target to goto" 1>&2
+        return
+    else
+        if [ -n "${aliases[$target]}" ]; then
+            target=${aliases[$target]}
+        fi
+        cd $target
+    fi
+fi
