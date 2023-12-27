@@ -15,6 +15,10 @@
           "StrictHostKeyChecking" = "yes";
         };
       };
+      "avalanche.home.analogrelay.net" = {};
+      "avalanche.bicorn-bebop.ts.net" = {};
+      "shinra.home.analogrelay.net" = {};
+      "shinra.bicorn-bebop.ts.net" = {};
     };
   };
 }

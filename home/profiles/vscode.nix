@@ -5,9 +5,12 @@ let
     vscodevim.vim
     github.copilot
     jnoortheen.nix-ide
+    ms-vscode-remote.remote-ssh
   ];
   marketplace-extensions = with pkgs.vscode-marketplace; [
     robbowen.synthwave-vscode
+    ms-vscode.remote-explorer
+    ms-vscode-remote.remote-ssh-edit
   ];
 in
 {
