@@ -8,6 +8,7 @@
 
     ./profiles/git.nix
     ./profiles/vim.nix
+    ./profiles/ssh.nix
   ];
 
   home.stateVersion = "23.11";
