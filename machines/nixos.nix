@@ -7,6 +7,12 @@
   # This can be overridden on a per-host basis
   time.timeZone = "America/Vancouver";
 
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 30d";
+  };
+
   security.sudo.wheelNeedsPassword = false;
 
   services.openssh.enable = true;
