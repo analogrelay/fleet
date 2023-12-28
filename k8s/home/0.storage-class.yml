@@ -13,7 +13,7 @@ metadata:
   name: nfs-avalanche
 provisioner: nfs.csi.k8s.io
 parameters:
-  server: avalanche.home.analogrelay.net
+  server: avalanche.node.analogrelay.net
   share: /mnt/data/k3s/shares
   subDir: "${pvc.metadata.namespace}.${pvc.metadata.name}"
   onDelete: retain

@@ -81,7 +81,7 @@ spec:
           volumes:
             - name: target
               nfs:
-                server: avalanche.home.analogrelay.net
+                server: avalanche.node.analogrelay.net
                 path: /mnt/data/shares/public/clouds/onedrive-ashley
             - name: config-file
               persistentVolumeClaim:
@@ -124,7 +124,7 @@ spec:
           volumes:
             - name: target
               nfs:
-                server: avalanche.home.analogrelay.net
+                server: avalanche.node.analogrelay.net
                 path: /mnt/data/shares/public/clouds/google-ashley
             - name: config-file
               persistentVolumeClaim:
@@ -167,7 +167,7 @@ spec:
           volumes:
             - name: target
               nfs:
-                server: avalanche.home.analogrelay.net
+                server: avalanche.node.analogrelay.net
                 path: /mnt/data/shares/public/clouds/onedrive-mary
             - name: config-file
               persistentVolumeClaim:
@@ -210,7 +210,7 @@ spec:
           volumes:
             - name: target
               nfs:
-                server: avalanche.home.analogrelay.net
+                server: avalanche.node.analogrelay.net
                 path: /mnt/data/shares/public/clouds/google-mary
             - name: config-file
               persistentVolumeClaim:

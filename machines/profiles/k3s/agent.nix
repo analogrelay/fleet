@@ -7,6 +7,6 @@
 
   services.k3s = {
     role = "agent";
-    serverAddr = "https://avalanche.home.analogrelay.net:6443";
+    serverAddr = "https://avalanche.node.analogrelay.net:6443";
   };
 }

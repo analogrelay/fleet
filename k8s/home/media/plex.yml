@@ -98,7 +98,7 @@ spec:
             claimName: plex-transcode
         - name: plex-media
           nfs:
-            server: avalanche.home.analogrelay.net
+            server: avalanche.node.analogrelay.net
             path: /mnt/data/shares/public/media
 
 ---

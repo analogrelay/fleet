@@ -10,5 +10,6 @@
     microsoft-edge-stable
     kubectl
     k9s
+    azure-cli
   ];
 }
