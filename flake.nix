@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     mac-app-util.url = "github:hraban/mac-app-util";
     home-manager = {
       url = "github:nix-community/home-manager/release-23.11";
@@ -25,6 +26,7 @@
   outputs = { 
     self, 
     nixpkgs, 
+    nixpkgs-unstable, 
     flake-utils, 
     ssh-to-age, 
     nix-darwin, 
@@ -109,7 +111,10 @@
 
       overlays = import ./overlays {inherit inputs;};
     } // flake-utils.lib.eachDefaultSystem (system: 
-      let pkgs = nixpkgs.legacyPackages.${system}; in
+      let 
+        pkgs = nixpkgs.legacyPackages.${system};
+        pkgs-unstable = nixpkgs-unstable.legacyPackages.${system};
+      in
       {
         packages = import ./pkgs {pkgs = nixpkgs.legacyPackages.${system}; };
 

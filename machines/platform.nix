@@ -7,7 +7,11 @@
 
   nix.gc = {
     automatic = true;
-    dates = "weekly";
+    interval = {
+      Weekday = 0;
+      Hour = 0;
+      Minute = 0;
+    };
     options = "--delete-older-than 30d";
   };
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
@@ -17,8 +21,6 @@
     useUserPackages = true;
   };
 
-  environment.localBinInPath = true;
-  
   programs.zsh.enable = true;
 
   environment.systemPackages = with pkgs; [

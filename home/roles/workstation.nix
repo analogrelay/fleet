@@ -8,5 +8,7 @@
 
   home.packages = with pkgs; [
     microsoft-edge-stable
+    kubectl
+    k9s
   ];
 }

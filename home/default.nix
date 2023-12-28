@@ -17,8 +17,6 @@
   programs.ssh.enable = true;
   programs.fzf.enable = true;
 
-  services.ssh-agent.enable = true;
-
   home.packages = with pkgs; [
     dos2unix
   ];
