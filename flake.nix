@@ -128,6 +128,7 @@
             pkgs.nix
             pkgs.sops
             pkgs.git
+            pkgs.jq
           ] ++ (pkgs.lib.lists.optional (pkgs.lib.strings.hasSuffix "-darwin" "${system}") [
             nix-darwin.packages.${system}.darwin-rebuild
           ]);
