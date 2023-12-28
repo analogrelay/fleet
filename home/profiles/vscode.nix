@@ -6,6 +6,7 @@ let
     github.copilot
     jnoortheen.nix-ide
     ms-vscode-remote.remote-ssh
+    editorconfig.editorconfig
   ];
   marketplace-extensions = with pkgs.vscode-marketplace; [
     robbowen.synthwave-vscode
