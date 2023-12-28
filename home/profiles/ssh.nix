@@ -4,7 +4,7 @@
   programs.ssh = {
     enable = true;
     matchBlocks = {
-      "*.home.analogrelay.net" = {
+      "*.node.analogrelay.net" = {
         user = "ashley";
       };
       "*.bicorn-bebop.ts.net" = {
@@ -15,9 +15,9 @@
           "StrictHostKeyChecking" = "yes";
         };
       };
-      "avalanche.home.analogrelay.net" = {};
+      "avalanche.node.analogrelay.net" = {};
       "avalanche.bicorn-bebop.ts.net" = {};
-      "shinra.home.analogrelay.net" = {};
+      "shinra.node.analogrelay.net" = {};
       "shinra.bicorn-bebop.ts.net" = {};
     };
   };
