@@ -1,7 +1,7 @@
 { pkgs, ... }:
 
 {
-  networking.domain = "home.analogrelay.net";
+  networking.domain = "node.analogrelay.net";
   networking.networkmanager.enable = true;
 
   # This can be overridden on a per-host basis
