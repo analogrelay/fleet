@@ -1,4 +1,4 @@
-{ role, os, ... }:
+{ pkgs, role, os, ... }:
 
 {
   imports = [
@@ -15,4 +15,18 @@
 
   programs.home-manager.enable = true;
   programs.ssh.enable = true;
+  programs.fzf.enable = true;
+
+  services.ssh-agent.enable = true;
+
+  home.packages = with pkgs; [
+    dos2unix
+  ];
+
+  home.file.".local/bin" = {
+    source = ../bin;
+    recursive = true;
+    executable = true;
+  };
+  home.sessionPath = [ "$HOME/.local/bin" ];
 }

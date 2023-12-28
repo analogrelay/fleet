@@ -6,6 +6,10 @@
         nfs-utils
     ];
 
+    users.groups.share = {
+        gid = 1001;
+    };
+
     users.users.share = {
         uid = 1002;
         description = "Share User";
@@ -28,6 +32,7 @@
     services.samba = {
         enable = true;
         securityType = "user";
+        openFirewall = true;
         extraConfig = ''
             workgroup = GAIA
             server string = ${config.networking.hostName}

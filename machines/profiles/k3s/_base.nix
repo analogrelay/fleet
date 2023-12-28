@@ -1,7 +1,7 @@
 { config, pkgs, ... }:
 
 {
-  sops.secrets.k3s_token.sopsFile = ../../secrets/secrets.yaml;
+  sops.secrets.k3s_token.sopsFile = ../../../secrets/secrets.yaml;
 
   environment.systemPackages = [ pkgs.k3s ];
 

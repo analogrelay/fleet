@@ -11,9 +11,8 @@
     };
     extraConfig = {
       gpg.format = "ssh";
-      "gpg \"ssh\"".program = if pkgs.stdenv.isDarwin 
-        then "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
-        else throw "Not supported on non-Darwin platforms yet!";
-    };
+    } // (if pkgs.stdenv.isDarwin then {
+      "gpg \"ssh\"".program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+    } else {});
   };
 }

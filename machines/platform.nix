@@ -5,12 +5,19 @@
     ./${platform}.nix
   ];
 
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 30d";
+  };
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
   };
+
+  environment.localBinInPath = true;
   
   programs.zsh.enable = true;
 

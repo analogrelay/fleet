@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+if [ -f ~/.ssh/git_signing ]; then
+  echo "The signing key already exists at ~/.ssh/git_signing"
+  echo "If you want to replace it, delete it first"
+  exit 0
+fi
+
+echo "Installing SSH Git Signing Private Key"
+echo "You will be prompted to log in to 1Password!"
+access_token=$(op signin --raw)
+op --session $access_token item get "Git Signing" --fields "private key" --reveal | dos2unix | tail -n +2 | head -n -1 > ~/.ssh/git_signing
+op --session $access_token item get "Git Signing" --fields "public key" > ~/.ssh/git_signing.pub
+
+chmod 600 ~/.ssh/git_signing

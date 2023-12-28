@@ -66,8 +66,14 @@
           modules = defaultDarwinModules ++ extraModules;
           specialArgs = { inherit inputs outputs; platform = "darwin"; };
         };
+      mkImage = system: extraModules:
+        nixpkgs.lib.nixosSystem {
+          inherit system;
+          modules = defaultModules ++ extraModules;
+          specialArgs = {inherit inputs outputs; platform = "nixos"; };
+        };
     in
-    {
+    rec {
       lib = { inherit mkSystem; };
 
       nixosConfigurations = {
@@ -81,11 +87,24 @@
           inputs.vscode-server.nixosModule
           ({config, pkgs, ...}: {services.vscode-server.enable = true;})
         ];
+        rpi4 = mkImage "aarch64-linux" [
+          "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+          {
+            nixpkgs.config.allowUnsupportedSystem = true;
+            nixpkgs.hostPlatform.system = "aarch64-linux";
+            nixpkgs.buildPlatform.system = "x86_64-linux";
+          }
+          ./machines/images/rpi4
+        ];
       };
       darwinConfigurations = {
         sephiroth = mkDarwinSystem "aarch64-darwin" [
           ./machines/hosts/sephiroth
         ];
+      };
+
+      images = {
+        rpi4 = nixosConfigurations.rpi4.config.system.build.sdImage;
       };
 
       overlays = import ./overlays {inherit inputs;};
@@ -104,8 +123,9 @@
             pkgs.nix
             pkgs.sops
             pkgs.git
+          ] ++ (pkgs.lib.lists.optional (pkgs.lib.strings.hasSuffix "-darwin" "${system}") [
             nix-darwin.packages.${system}.darwin-rebuild
-          ];
+          ]);
 
           shellHook = ''
             export FLEET_IN_SHELL=1

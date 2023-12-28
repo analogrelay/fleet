@@ -17,6 +17,11 @@
       for func in $FUNCS_TO_AUTOLOAD; do
           autoload $func
       done
+
+      # Load Git keys
+      if [ -f ~/.ssh/git_signing ]; then
+        ssh-add ~/.ssh/git_signing
+      fi
     '';
 
     profileExtra = ''
