@@ -19,6 +19,7 @@ let
       "docker"
       "share"
       "family"
+      "parents"
     ];
   };
   darwinUser = defaultConfig // {

@@ -9,6 +9,7 @@
         extraGroups = [ 
             "share"
             "family"
+            "parents"
         ];
         initialPassword = "pw123";
         openssh.authorizedKeys.keyFiles = [

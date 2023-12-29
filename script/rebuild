@@ -14,9 +14,7 @@
 script_dir=$(dirname $(readlink -f $0))
 repo_root=$(dirname $script_dir)
 
-if [ "$FLEET_IN_SHELL" != "1" ]; then
-    echo "WARNING: This script is intended to be run from within the Fleet shell, run 'nix develop' first." 1>&2
-fi
+# This script is designed to not require the nix shell.
 
 set -euo pipefail
 

@@ -6,26 +6,12 @@
         nfs-utils
     ];
 
-    users.groups.share = {
-        gid = 1001;
-    };
-
-    users.users.share = {
-        uid = 1002;
-        description = "Share User";
-        shell = pkgs.zsh;
-        isNormalUser = true;
-        extraGroups = [ 
-            "share"
-        ];
-    };
-
     # Create share directories
     systemd.tmpfiles.rules = [
         "d /mnt/data/k3s/shares 2770 share share - -"
         "d /mnt/data/shares/public 2770 share share - -"
-        "d /mnt/data/shares/homes/ashley 2770 share share - -"
-        "d /mnt/data/shares/homes/mary 2770 share share - -"
+        "d /mnt/data/shares/homes/ashley 2750 ashley share - -"
+        "d /mnt/data/shares/homes/mary 2750 mary share - -"
     ];
 
     # Configure samba
@@ -73,8 +59,8 @@
     services.nfs.server = {
         enable = true;
         exports = ''
-            /mnt/data/shares/public 127.0.0.1(rw,all_squash,anonuid=1003,anongid=1000) 192.168.0.0/16(rw,all_squash,anonuid=1002,anongid=1003) 100.64.0.0/10(rw,all_squash,anonuid=1003,anongid=1000)
-            /mnt/data/k3s/shares 127.0.0.1(rw,all_squash,anonuid=1003,anongid=1000) 192.168.0.0/16(rw,all_squash,anonuid=1002,anongid=1003) 100.64.0.0/10(rw,all_squash,anonuid=1003,anongid=1000)
+            /mnt/data/shares/public *(rw,all_squash,anonuid=${builtins.toString config.users.users.share.uid},anongid=${builtins.toString config.users.groups.share.gid})
+            /mnt/data/k3s/shares *(rw,all_squash,anonuid=${builtins.toString config.users.users.share.uid},anongid=${builtins.toString config.users.groups.share.gid})
         '';
     };
 }

@@ -19,13 +19,8 @@
     8472 # flannel
   ];
 
-  # Create groups and users for k8s services
+  # Create user for non-root k8s services
   users = {
-    groups = {
-      k8s = {
-        gid = 1000;
-      };
-    };
     users = {
       k8s = {
         uid = 1003;
@@ -33,7 +28,6 @@
         shell = pkgs.zsh;
         isNormalUser = true;
         extraGroups = [ 
-            "k8s"
             "share"
         ];
       };
