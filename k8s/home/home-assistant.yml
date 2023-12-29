@@ -6,37 +6,12 @@ metadata:
 
 ---
 apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: hass-volume
-  namespace: homeassistant
-spec:
-  capacity:
-    storage: 1Gi
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: existing-local-volume
-  local:
-    path: /mnt/data/k3s/volumes/homeassistant
-  nodeAffinity:
-    required:
-      nodeSelectorTerms:
-        - matchExpressions:
-          - key: kubernetes.io/hostname
-            operator: In
-            values:
-              - avalanche
----
-apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: hass-pvc
+  name: homeassistant
   namespace: homeassistant
 spec:
-  storageClassName: existing-local-volume
-  volumeName: hass-volume
+  storageClassName: nfs-avalanche
   accessModes:
     - ReadWriteOnce
   resources:
@@ -74,7 +49,7 @@ spec:
       volumes:
         - name: hass-pvc
           persistentVolumeClaim:
-            claimName: hass-pvc
+            claimName: homeassistant
 
 ---
 apiVersion: v1
@@ -100,6 +75,7 @@ metadata:
   namespace: homeassistant
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-production
+    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:

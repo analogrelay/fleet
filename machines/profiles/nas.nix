@@ -73,8 +73,8 @@
     services.nfs.server = {
         enable = true;
         exports = ''
-            /mnt/data/shares/public 127.0.0.1(rw,all_squash,anonuid=1002,anongid=992) 192.168.0.0/16(rw,all_squash,anonuid=1002,anongid=992) 100.64.0.0/10(rw,all_squash,anonuid=1002,anongid=992)
-            /mnt/data/k3s/shares 127.0.0.1(rw,all_squash,anonuid=1002,anongid=992) 192.168.0.0/16(rw,all_squash,anonuid=1002,anongid=992) 100.64.0.0/10(rw,all_squash,anonuid=1002,anongid=992)
+            /mnt/data/shares/public 127.0.0.1(rw,all_squash,anonuid=1003,anongid=1000) 192.168.0.0/16(rw,all_squash,anonuid=1002,anongid=1003) 100.64.0.0/10(rw,all_squash,anonuid=1003,anongid=1000)
+            /mnt/data/k3s/shares 127.0.0.1(rw,all_squash,anonuid=1003,anongid=1000) 192.168.0.0/16(rw,all_squash,anonuid=1002,anongid=1003) 100.64.0.0/10(rw,all_squash,anonuid=1003,anongid=1000)
         '';
     };
 }

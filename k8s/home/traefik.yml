@@ -36,6 +36,7 @@ metadata:
   namespace: kube-system
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-production
+    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:
@@ -69,3 +70,14 @@ spec:
   tls:
     - hosts:
         - traefik
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect
+  namespace: kube-system
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true

@@ -125,6 +125,7 @@ metadata:
   namespace: media
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-production
+    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:
