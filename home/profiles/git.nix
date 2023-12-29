@@ -10,6 +10,7 @@
       signByDefault = true;
     };
     extraConfig = {
+      pull.rebase = true;
       gpg.format = "ssh";
     } // (if pkgs.stdenv.isDarwin then {
       "gpg \"ssh\"".program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
