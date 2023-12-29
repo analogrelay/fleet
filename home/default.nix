@@ -9,6 +9,7 @@
     ./profiles/git.nix
     ./profiles/vim.nix
     ./profiles/ssh.nix
+    ./profiles/tmux.nix
   ];
 
   home.stateVersion = "23.11";
@@ -19,6 +20,7 @@
 
   home.packages = with pkgs; [
     dos2unix
+    eza
   ];
 
   home.file.".local/bin" = {

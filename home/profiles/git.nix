@@ -10,6 +10,8 @@
       signByDefault = true;
     };
     extraConfig = {
+      init.defaultBranch = "main";
+      color.ui = true;
       pull.rebase = true;
       gpg.format = "ssh";
     } // (if pkgs.stdenv.isDarwin then {

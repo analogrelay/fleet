@@ -7,6 +7,7 @@ let
     jnoortheen.nix-ide
     ms-vscode-remote.remote-ssh
     editorconfig.editorconfig
+    rust-lang.rust-analyzer
   ];
   marketplace-extensions = with pkgs.vscode-marketplace; [
     robbowen.synthwave-vscode
