@@ -6,8 +6,7 @@
       ../../platform.nix
       ../../roles/server.nix
 
-      ../../users/ashley.nix
-      ../../users/mary.nix
+      ../../users
 
       ../../profiles/nas.nix
       ../../profiles/k3s/server.nix

@@ -5,7 +5,7 @@
     [ ./hardware-configuration.nix
       ../../platform.nix
 
-      ../../users/ashley.nix
+      ../../users
 
       ../../roles/server.nix
 
