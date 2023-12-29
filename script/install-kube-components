@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+#/ Usage: script/install-kube-plugins <components...> [--force] [-n|--dry-run]
+#/ Usage: script/install-kube-plugins -A|--all [--force] [-n|--dry-run]
+#/ Usage: script/install-kube-plugins --list
+#/ Install all the kubernetes components we use
+#/
+#/ OPTIONS
+#/   -h, --help   Display this help message.
+#/   --list       List all available components
+#/   -A, --all    Install all components
+#/   -f, --force  Force reinstallation of components
+#/   -n, --dry-run  Print the commands that would be executed, but do not execute them.
+#/
+#/ ARGUMENTS
+#/   components   The components to install.
+# Resolve the absolute path of this script's directory.
+script_dir=$(dirname $(readlink -f $0))
+repo_root=$(dirname $script_dir)
+
+# This script is designed to not require the nix shell.
+
+set -euo pipefail
+
+all_components=(
+  "cert-manager"
+  "nfs-csi"
+  "kubevirt"
+)
+
+# Parse arguments
+to_install=()
+force=false
+dry_run=false
+while [[ $# -gt 0 ]]; do
+  key="$1"
+  shift
+  case "$key" in
+    -A|--all)
+      to_install=${all_components[@]}
+      ;;
+    -f|--force)
+      force=true
+      ;;
+    -n|--dry-run)
+      dry_run=true
+      ;;
+    --list)
+      echo "Available components:"
+      for component in ${all_components[@]}; do
+        echo "  $component"
+      done
+      exit 0
+      ;;
+    -h|--help)
+      # Print usage information
+      grep '^#/' "$0" | cut -c4-
+      exit 0
+      ;;
+    *)
+      # Check if the argument is a valid component
+      if [[ " ${all_components[@]} " =~ " ${key} " ]]; then
+        to_install+=("$key")
+      else
+        echo "Unknown component: $key"
+        exit 1
+      fi
+      ;;
+  esac
+done
+
+if [[ ${#to_install[@]} -eq 0 ]]; then
+  echo "No components specified"
+  exit 1
+fi
+
+c_cert-manager() {
+  if kubectl get ns cert-manager > /dev/null 2>&1; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+i_cert-manager() {
+  kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.3/cert-manager.yaml
+  return 0
+}
+
+c_nfs-csi() {
+  if kubectl get deployment --namespace kube-system csi-nfs-controller > /dev/null 2>&1; then
+    return 0
+  else
+    return 1
+  fi
+
+}
+
+i_nfs-csi() {
+  nfs_ver="v4.5.0"
+  nfs_repo="https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/$ver/deploy/$ver"
+  kubectl apply -f $nfs_repo/rbac-csi-nfs.yaml
+  kubectl apply -f $nfs_repo/csi-nfs-driverinfo.yaml
+  kubectl apply -f $nfs_repo/csi-nfs-controller.yaml
+  kubectl apply -f $nfs_repo/csi-nfs-node.yaml
+  return 0
+}
+
+c_kubevirt() {
+  if kubectl get ns kubevirt > /dev/null 2>&1; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+i_kubevirt() {
+  kubevirt_release="v1.1.1"
+  kubectl apply -f https://github.com/kubevirt/kubevirt/releases/download/${kubevirt_release}/kubevirt-operator.yaml
+  kubectl apply -f https://github.com/kubevirt/kubevirt/releases/download/${kubevirt_release}/kubevirt-cr.yaml
+  echo "Waiting for kubevirt to be available"
+  kubectl -n kubevirt wait kv kubevirt --for condition=Available
+}
+
+for component in ${to_install[@]}; do
+  if ! c_$component; then
+    if $dry_run; then
+      echo "Would install $component"
+    else
+      echo "Installing $component"
+      i_$component
+    fi
+  elif $force; then
+    if $dry_run; then
+      echo "Would reinstall $component"
+    else
+      echo "Reinstalling $component"
+      i_$component
+    fi
+  else
+    echo "$component already installed"
+  fi
+done

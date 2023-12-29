@@ -5,20 +5,6 @@ metadata:
   name: homeassistant
 
 ---
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: homeassistant
-  namespace: homeassistant
-spec:
-  storageClassName: nfs-avalanche
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
-
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -41,15 +27,16 @@ spec:
             - name: TZ
               value: "America/Vancouver"
           volumeMounts:
-            - name: hass-pvc
+            - name: hass
               mountPath: /config
           ports:
             - name: hass
               containerPort: 8123
       volumes:
-        - name: hass-pvc
-          persistentVolumeClaim:
-            claimName: homeassistant
+        - name: hass
+          nfs:
+            server: avalanche.node.analogrelay.net
+            path: /mnt/data/k3s/shares/homeassistant.hass-pvc
 
 ---
 apiVersion: v1

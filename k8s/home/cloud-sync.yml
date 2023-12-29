@@ -56,6 +56,8 @@ spec:
     spec:
       template:
         spec:
+          securityContext:
+            fsGroup: 5000
           containers:
           - name: rclone
             image: rclone/rclone:beta
@@ -99,6 +101,8 @@ spec:
     spec:
       template:
         spec:
+          securityContext:
+            fsGroup: 5000
           containers:
           - name: rclone
             image: rclone/rclone:beta
@@ -142,6 +146,8 @@ spec:
     spec:
       template:
         spec:
+          securityContext:
+            fsGroup: 5000
           containers:
           - name: rclone
             image: rclone/rclone:beta
@@ -185,6 +191,8 @@ spec:
     spec:
       template:
         spec:
+          securityContext:
+            fsGroup: 5000
           containers:
           - name: rclone
             image: rclone/rclone:beta
