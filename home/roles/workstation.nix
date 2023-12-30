@@ -11,5 +11,6 @@
     kubectl
     k9s
     azure-cli
+    spotify
   ];
 }
