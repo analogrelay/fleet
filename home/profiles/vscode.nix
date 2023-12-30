@@ -8,11 +8,14 @@ let
     ms-vscode-remote.remote-ssh
     editorconfig.editorconfig
     rust-lang.rust-analyzer
+    tamasfe.even-better-toml
   ];
   marketplace-extensions = with pkgs.vscode-marketplace; [
     robbowen.synthwave-vscode
     ms-vscode.remote-explorer
     ms-vscode-remote.remote-ssh-edit
+    peterj.proto
+    rubymaniac.vscode-direnv
   ];
 in
 {

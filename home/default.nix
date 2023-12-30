@@ -21,6 +21,7 @@
   home.packages = with pkgs; [
     dos2unix
     eza
+    direnv
   ];
 
   home.file.".local/bin" = {
