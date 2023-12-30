@@ -2,6 +2,7 @@
 
 let 
   defaultConfig = {
+    uid = 1000;
     description = "Ashley Stanton-Nurse";
     shell = pkgs.zsh;
     openssh.authorizedKeys.keyFiles = [
