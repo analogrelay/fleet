@@ -56,11 +56,14 @@
     };
 
     # Configure nfs
-    services.nfs.server = {
+    services.nfs.server = let
+        exportOptions = "rw,all_squash,anonuid=${builtins.toString config.users.users.share.uid},anongid=${builtins.toString config.users.groups.share.gid}";
+        exportConfigs = "127.0.0.1/8(${exportOptions}) 10.0.0.0/8(${exportOptions}) 192.168.0.0/16(${exportOptions})";
+    in {
         enable = true;
         exports = ''
-            /mnt/data/shares/public *(rw,all_squash,anonuid=${builtins.toString config.users.users.share.uid},anongid=${builtins.toString config.users.groups.share.gid})
-            /mnt/data/k3s/shares *(rw,all_squash,anonuid=${builtins.toString config.users.users.share.uid},anongid=${builtins.toString config.users.groups.share.gid})
+            /mnt/data/shares/public ${exportConfigs}
+            /mnt/data/k3s/shares ${exportConfigs}
         '';
     };
 }
