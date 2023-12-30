@@ -16,5 +16,10 @@
   networking.hostName = "shinra";
 
   system.stateVersion = "23.11";
+
+  # Create volumes for Kubernetes
+  systemd.tmpfiles.rules = [
+      "d /var/volumes/postgres 2775 k8s share - -"
+  ];
 }
 
