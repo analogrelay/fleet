@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   services.nix-daemon.enable = true;
@@ -18,6 +18,9 @@
   home-manager.extraSpecialArgs = {
     os = "darwin";
   };
+
+  environment.systemPackages = with pkgs; [
+  ];
 
   # macOS apps expect to be in /Applications
   # Nix tries to symlink them, but it doesn't really work out well.

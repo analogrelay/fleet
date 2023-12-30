@@ -12,5 +12,7 @@
     k9s
     azure-cli
     spotify
+    jetbrains.datagrip
+    jetbrains.rider
   ];
 }

@@ -1,0 +1,206 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: paperless
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis
+  namespace: paperless
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: nfs-avalanche
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: redis
+  name: redis
+  namespace: paperless
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7.2.3-alpine
+          imagePullPolicy: IfNotPresent
+          command: ["redis-server", "--save", "1800", "1"]
+          volumeMounts:
+            - name: redis-storage
+              mountPath: /data
+          ports:
+            - name: redis
+              containerPort: 6379
+      volumes:
+        - name: redis-storage
+          persistentVolumeClaim:
+            claimName: redis
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-svc
+  namespace: paperless
+spec:
+  type: ClusterIP
+  ports:
+  - name: redis
+    port: 6379
+    targetPort: redis
+    protocol: TCP
+  selector:
+    app: redis
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: paperless
+  name: paperless
+  namespace: paperless
+spec:
+  selector:
+    matchLabels:
+      app: paperless
+  template:
+    metadata:
+      labels:
+        app: paperless
+    spec:
+      containers:
+        - name: paperless
+          image: ghcr.io/paperless-ngx/paperless-ngx:latest
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: cabinet
+              mountPath: /opt/paperless
+          env:
+            - name: PAPERLESS_REDIS
+              value: "redis://redis-svc.paperless.svc.cluster.local:6379"
+            - name: PAPERLESS_DBHOST
+              value: "postgres-svc.postgres.svc.cluster.local"
+            - name: PAPERLESS_DBNAME
+              value: "paperless"
+            - name: PAPERLESS_DBUSER
+              value: "paperless"
+            - name: PAPERLESS_DBPASS
+              valueFrom:
+                secretKeyRef:
+                  name: paperless
+                  key: db-password
+            - name: PAPERLESS_CONSUMPTION_DIR
+              value: "/opt/paperless/consume"
+            - name: PAPERLESS_DATA_DIR
+              value: "/opt/paperless/data"
+            - name: PAPERLESS_TRASH_DIR
+              value: "/opt/paperless/trash"
+            - name: PAPERLESS_MEDIA_DIR
+              value: "/opt/paperless/media"
+            - name: PAPERLESS_ADMIN_USER
+              value: "ashley"
+            - name: PAPERLESS_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: paperless
+                  key: admin-password
+            - name: PAPERLESS_USE_X_FORWARDED_HOST
+              value: "true"
+            - name: PAPERLESS_USE_X_FORWARDED_PORT
+              value: "true"
+            - name: PAPERLESS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: paperless
+                  key: cookie-secret
+            - name: PAPERLESS_CSRF_TRUSTED_ORIGINS
+              value: "https://cabinet.home.analogrelay.net,https://cabinet.bicorn-bebop.ts.net"
+            - name: PAPERLESS_ALLOWED_HOSTS
+              value: "cabinet.home.analogrelay.net,cabinet.bicorn-bebop.ts.net"
+            - name: PAPERLESS_CORS_ALLOWED_HOSTS
+              value: "https://cabinet.home.analogrelay.net,https://cabinet.bicorn-bebop.ts.net"
+          ports:
+            - name: paperless
+              containerPort: 8000
+      volumes:
+        - name: cabinet
+          nfs:
+            server: avalanche.node.analogrelay.net
+            path: /mnt/data/shares/public/cabinet
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paperless-svc
+  namespace: paperless
+spec:
+  type: ClusterIP
+  ports:
+  - name: paperless
+    port: 80
+    targetPort: paperless
+    protocol: TCP
+  selector:
+    app: paperless
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: paperless-ingress
+  namespace: paperless
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: cabinet.home.analogrelay.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: paperless-svc
+            port:
+              number: 80
+  tls:
+    - hosts:
+        - cabinet.home.analogrelay.net
+      secretName: paperless-ingress-cert
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: paperless-ingress-ts
+  namespace: paperless
+  annotations:
+    tailscale.com/funnel: "true"
+spec:
+  ingressClassName: tailscale
+  defaultBackend:
+    service:
+      name: paperless-svc
+      port:
+        number: 80
+  tls:
+    - hosts:
+        - cabinet

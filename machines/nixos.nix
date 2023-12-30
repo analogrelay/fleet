@@ -17,6 +17,8 @@
 
   services.openssh.enable = true;
 
+  virtualization.docker.enable = true;
+
   environment.localBinInPath = true;
   environment.systemPackages = with pkgs; [
     cifs-utils
