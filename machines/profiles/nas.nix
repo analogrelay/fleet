@@ -58,12 +58,19 @@
     # Configure nfs
     services.nfs.server = let
         exportOptions = "rw,all_squash,anonuid=${builtins.toString config.users.users.share.uid},anongid=${builtins.toString config.users.groups.share.gid}";
-        exportConfigs = "127.0.0.1/8(${exportOptions}) 10.0.0.0/8(${exportOptions}) 192.168.0.0/16(${exportOptions})";
     in {
         enable = true;
         exports = ''
-            /mnt/data/shares/public ${exportConfigs}
-            /mnt/data/k3s/shares ${exportConfigs}
+            /mnt/data/shares/public 127.0.0.1/8(${exportOptions})
+            /mnt/data/shares/public 10.0.0.0/8(${exportOptions})
+            /mnt/data/shares/public 192.168.0.0/16(${exportOptions})
+            /mnt/data/k3s/shares 127.0.0.1/8(${exportOptions})
+            /mnt/data/k3s/shares 10.0.0.0/8(${exportOptions})
+            /mnt/data/k3s/shares 192.168.0.0/16(${exportOptions})
         '';
     };
+    networking.firewall.allowedTCPPorts = [
+        # We're supporting NFSv4 only for now.
+        2049 # nfsd
+    ];
 }
