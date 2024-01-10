@@ -21,6 +21,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-vscode-extensions.url = "github:nix-community/nix-vscode-extensions";
+    nixos-wsl = {
+      url = "github:nix-community/NixOS-WSL";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "flake-utils";
+    };
   };
 
   outputs = { 
@@ -34,6 +39,8 @@
     home-manager, 
     mac-app-util, 
     nix-vscode-extensions,
+    nixos-wsl,
+    vscode-server,
     ... }@inputs: let
       inherit (self) outputs;
 
@@ -45,6 +52,8 @@
       defaultModules = [
         sops-nix.nixosModules.sops
         home-manager.nixosModules.home-manager
+        vscode-server.nixosModule
+        ({config, pkgs, ...}: {services.vscode-server.enable = true;})
       ];
       defaultDarwinModules = [
         home-manager.darwinModules.home-manager
@@ -60,6 +69,15 @@
           pkgs = mkPkgs system;
           modules = defaultModules ++ extraModules;
           specialArgs = {inherit inputs outputs; platform = "nixos"; };
+        };
+      mkWslSystem = system: extraModules:
+        nixpkgs.lib.nixosSystem rec {
+          inherit system;
+          pkgs = mkPkgs system;
+          modules = defaultModules ++ [
+            nixos-wsl.nixosModules.wsl
+          ] ++ extraModules;
+          specialArgs = {inherit inputs outputs; platform = "wsl"; };
         };
       mkDarwinSystem = system: extraModules:
         nix-darwin.lib.darwinSystem rec {
@@ -79,16 +97,9 @@
       lib = { inherit mkSystem; };
 
       nixosConfigurations = {
-        avalanche = mkSystem "x86_64-linux" [
-          ./machines/hosts/avalanche
-          inputs.vscode-server.nixosModule
-          ({config, pkgs, ...}: {services.vscode-server.enable = true;})
-        ];
-        shinra = mkSystem "x86_64-linux" [
-          ./machines/hosts/shinra
-          inputs.vscode-server.nixosModule
-          ({config, pkgs, ...}: {services.vscode-server.enable = true;})
-        ];
+        avalanche = mkSystem "x86_64-linux" [ ./machines/hosts/avalanche ];
+        shinra = mkSystem "x86_64-linux" [ ./machines/hosts/shinra ];
+        zach = mkWslSystem "x86_64-linux" [ ./machines/hosts/zach ];
         rpi4 = mkImage "aarch64-linux" [
           "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
           {

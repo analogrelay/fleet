@@ -7,6 +7,10 @@
 
   home.packages = with pkgs; [
     defaultbrowser
+    microsoft-edge-stable
+    jetbrains.datagrip
+    jetbrains.rider
+    spotify
   ];
 
   home.activation.defaultBrowser = lib.hm.dag.entryAfter ["installPackages"] ''

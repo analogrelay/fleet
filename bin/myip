@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# TODO: This only works for WSL2 today!
+ip addr show eth0 | grep "inet " | awk '{ print $2 }' | sed 's!/.*!!g'
