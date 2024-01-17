@@ -19,6 +19,14 @@
       "avalanche.bicorn-bebop.ts.net" = {};
       "shinra.node.analogrelay.net" = {};
       "shinra.bicorn-bebop.ts.net" = {};
+      "zach.node.analogrelay.net" = {
+        hostname = "cloud.node.analogrelay.net";
+        port = 2222;
+      };
+      "zach.bicorn-bebop.ts.net" = {
+        hostname = "cloud.bicorn-bebop.ts.net";
+        port = 2222;
+      };
     };
   };
 }

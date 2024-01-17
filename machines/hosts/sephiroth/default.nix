@@ -2,7 +2,7 @@
 
 {
   imports = [
-      ../../platform.nix
+    ../../platform.nix
     ../../roles/workstation.nix
 
     ../../users/ashley.nix

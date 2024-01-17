@@ -19,10 +19,6 @@ let
   ];
 in
 {
-  home.packages = with pkgs; [
-    nil
-  ];
-
   programs.vscode = {
     enable = true;
     extensions = nixpkgs-extensions ++ marketplace-extensions;

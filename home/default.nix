@@ -1,4 +1,4 @@
-{ pkgs, role, os, wsl, lib, ... }:
+{ pkgs, role, os, wsl, ... }:
 
 let
   commonImports = [

@@ -32,6 +32,7 @@
   home-manager.extraSpecialArgs = {
     os = "linux";
     distro = "nixos";
+    wsl = false;
   };
 
   # Create fleet-wide groups and users, which all have consistent GIDs/UIDs which start with 5000
