@@ -33,6 +33,7 @@ in
     dos2unix
     eza
     direnv
+    _1password
   ];
 
   home.file.".local/bin" = {
