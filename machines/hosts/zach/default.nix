@@ -5,6 +5,8 @@
     ../../platform.nix
     ../../roles/workstation.nix
 
+    ../../profiles/k3s/agent.nix
+
     ../../users/ashley.nix
   ];
 
