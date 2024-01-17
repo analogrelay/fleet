@@ -427,16 +427,16 @@
         "nixpkgs": "nixpkgs_5"
       },
       "locked": {
-        "lastModified": 1702336389,
-        "narHash": "sha256-/QcqLWxPBQLEz060pXojAiT5jodJe77MoZ+U5ZO3jTI=",
-        "owner": "stephenandary",
-        "repo": "nix-ssh-to-age",
-        "rev": "e2bfd18138b696c4c4cadbfc776153cc0a031754",
+        "lastModified": 1705311900,
+        "narHash": "sha256-vtiiPwSa/kTEnUtx1LRNp8DQzQGjPpPz08jjou0jexs=",
+        "owner": "Mic92",
+        "repo": "ssh-to-age",
+        "rev": "460a2109aaf0b20fe5027367d39f870aec4bcf91",
         "type": "github"
       },
       "original": {
-        "owner": "stephenandary",
-        "repo": "nix-ssh-to-age",
+        "owner": "Mic92",
+        "repo": "ssh-to-age",
         "type": "github"
       }
     },

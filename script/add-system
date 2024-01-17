@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-#/ Usage: script/add-system <hostname>
+#/ Usage: script/add-system <hostname> [-p <port>] [-n <name>]
 #/ Adds a new system's SSH key to the .sops.yaml file and rekeys all secrets.
 #/
 #/ OPTIONS
 #/   -h, --help   Display this help message.
+#/   -P, --port   The port to use for SSH keyscanning.
+#/   -n, --name   The name of the host, defaults to the hostname
 #/
 #/ ARGUMENTS
 #/   <hostname>   The hostname of the system to add.
@@ -19,6 +21,8 @@ set -euo pipefail
 
 # Parse arguments
 hostname=""
+port=22
+name=
 while [[ $# -gt 0 ]]; do
   key="$1"
   shift
@@ -27,6 +31,14 @@ while [[ $# -gt 0 ]]; do
       # Print usage information
       grep '^#/' "$0" | cut -c4-
       exit 0
+      ;;
+    -p|--port)
+      port="$1"
+      shift
+      ;;
+    -n|--name)
+      name="$1"
+      shift
       ;;
     *)
       hostname="$key"
@@ -41,16 +53,19 @@ fi
 
 # Parse the hostname out of an fqdn
 short_hostname=$(echo "$hostname" | cut -d. -f1)
-echo "Adding system $short_hostname"
+if [ -z "$name" ]; then
+  name=$short_hostname
+fi
+echo "Adding system $name"
 
 # Keyscan the system to get the SSH key
-ssh_key=$(ssh-keyscan -t ed25519 -H "$hostname")
+ssh_key=$(ssh-keyscan -p "$port" -t ed25519 -H "$hostname")
 
 # Convert to age
 age_key=$(echo "$ssh_key" | ssh-to-age)
 
-echo "Adding public key for $short_hostname to .sops.yaml"
-cat "$repo_root/.sops.yaml" | sed "/^creation_rules:/i \ \ - &system_${short_hostname} ${age_key}" > "$repo_root/.sops.yaml.tmp"
+echo "Adding public key for $name to .sops.yaml"
+cat "$repo_root/.sops.yaml" | sed "/^creation_rules:/i \ \ - &system_${name} ${age_key}" > "$repo_root/.sops.yaml.tmp"
 mv "$repo_root/.sops.yaml.tmp" "$repo_root/.sops.yaml"
 
 # Rekeying secrets

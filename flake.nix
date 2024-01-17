@@ -15,7 +15,7 @@
     };
     flake-utils.url = "github:numtide/flake-utils";
     sops-nix.url = "github:Mic92/sops-nix";
-    ssh-to-age.url = "github:stephenandary/nix-ssh-to-age";
+    ssh-to-age.url = "github:Mic92/ssh-to-age";
     nix-darwin = {
       url = "github:LnL7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
