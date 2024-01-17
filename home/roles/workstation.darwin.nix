@@ -11,6 +11,7 @@
     jetbrains.datagrip
     jetbrains.rider
     spotify
+    zoom-us
   ];
 
   home.activation.defaultBrowser = lib.hm.dag.entryAfter ["installPackages"] ''

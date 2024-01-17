@@ -111,7 +111,7 @@ spec:
               value: "/opt/paperless/data"
             - name: PAPERLESS_TRASH_DIR
               value: "/opt/paperless/trash"
-            - name: PAPERLESS_MEDIA_DIR
+            - name: PAPERLESS_MEDIA_ROOT
               value: "/opt/paperless/media"
             - name: PAPERLESS_ADMIN_USER
               value: "ashley"
@@ -135,6 +135,20 @@ spec:
               value: "cabinet.home.analogrelay.net,cabinet.bicorn-bebop.ts.net"
             - name: PAPERLESS_CORS_ALLOWED_HOSTS
               value: "https://cabinet.home.analogrelay.net,https://cabinet.bicorn-bebop.ts.net"
+            - name: PAPERLESS_CONSUMER_POLLING
+              value: "30"
+            - name: PAPERLESS_CONSUMER_ENABLE_BARCODES
+              value: "true"
+            - name: PAPERLESS_CONSUMER_ENABLE_ASN_BARCODES
+              value: "true"
+            - name: PAPERLESS_OCR_USER_ARGS
+              value: '{"invalidate_digital_signatures": true}'
+            - name: PAPERLESS_CONSUMER_ENABLE_BARCODES
+              value: "true"
+            - name: PAPERLESS_CONSUMER_ENABLE_ASN_BARCODE
+              value: "true"
+            - name: PAPERLESS_CONSUMER_ASN_BARCODE_PREFIX
+              value: "ASN"
           ports:
             - name: paperless
               containerPort: 8000
