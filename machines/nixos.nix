@@ -16,6 +16,10 @@
   security.sudo.wheelNeedsPassword = false;
 
   services.openssh.enable = true;
+  services.iperf3 = {
+    enable = true;
+    openFirewall = true;
+  };
 
   virtualisation.docker.enable = true;
 

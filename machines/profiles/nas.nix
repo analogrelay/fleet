@@ -6,6 +6,14 @@
         nfs-utils
     ];
 
+    networking.firewall.allowedTCPPorts = [
+        # We're supporting NFSv4 only for now.
+        2049 # nfsd
+
+        # Open the FTP port for the cabinet.
+        21 # ftp
+    ];
+
     # Create share directories
     systemd.tmpfiles.rules = [
         "d /mnt/data/k3s/shares 2770 share share - -"
@@ -31,8 +39,8 @@
                 path = "/mnt/data/shares/public";
                 browsable = true;
                 "read only" = false;
-                "create mask" = "0770";
-                "directory mask" = "0770";
+                "create mask" = "0775";
+                "directory mask" = "0775";
                 "force user" = "share";
                 "force group" = "share";
             };
@@ -69,8 +77,22 @@
             /mnt/data/k3s/shares 192.168.0.0/16(${exportOptions})
         '';
     };
-    networking.firewall.allowedTCPPorts = [
-        # We're supporting NFSv4 only for now.
-        2049 # nfsd
-    ];
+
+    # Configure an FTP server that can only write to the cabinet consume directory
+    # Start with a bind mount to create a directory that can be written to by the anonymous user
+    fileSystems."/var/ftp/anon/consume" = {
+        device = "/mnt/data/shares/public/cabinet/consume";
+        options = [ "bind" ];
+    };
+    services.vsftpd = {
+        enable = true;
+        localUsers = false;
+        writeEnable = true;
+        anonymousUser = true;
+        anonymousUmask = "000";
+        anonymousUserHome = "/var/ftp/anon";
+        anonymousUserNoPassword = true;
+        anonymousUploadEnable = true;
+        allowWriteableChroot = true;
+    };
 }
