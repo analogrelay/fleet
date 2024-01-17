@@ -21,4 +21,9 @@
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "23.11"; # Did you read the comment?
+
+  services.k3s = {
+    # Mark this node so that it isn't scheduled on by default.
+    extraArgs = "--node-label transient=true:NoSchedule";
+  };
 }
