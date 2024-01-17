@@ -16,10 +16,6 @@
       gpg.format = "ssh";
     } // (if pkgs.stdenv.isDarwin then {
       "gpg \"ssh\"".program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
-    } else {}) // (if wsl then {
-      # Use the Windows SSH executable.
-      core.sshCommand = "ssh.exe";
-      "gpg \"ssh\"".program = "/mnt/c/Users/ashley/AppData/Local/1Password/app/8/op-ssh-sign.exe";
     } else {});
   };
 }
