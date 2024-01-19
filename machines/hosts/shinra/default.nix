@@ -9,6 +9,7 @@
 
       ../../roles/server.nix
 
+      ../../profiles/syncthing.nix
       ../../profiles/k3s/agent.nix
       ../../profiles/tailnet.nix
     ];

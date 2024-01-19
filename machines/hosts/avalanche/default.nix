@@ -8,6 +8,7 @@
 
       ../../users
 
+      ../../profiles/syncthing.nix
       ../../profiles/nas.nix
       ../../profiles/k3s/server.nix
       ../../profiles/tailnet.nix
