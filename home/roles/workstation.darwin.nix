@@ -1,5 +1,10 @@
 { pkgs, lib, ... }:
 
+let
+  rust-rover = pkgs.jetbrains.rust-rover.overrideAttrs {
+    buildNumber = "233.13135.116";
+  };
+in
 {
   imports = [
     ../profiles/iterm2.nix
@@ -8,8 +13,6 @@
   home.packages = with pkgs; [
     defaultbrowser
     microsoft-edge-stable
-    jetbrains.datagrip
-    jetbrains.rider
     spotify
     zoom-us
   ];
@@ -25,5 +28,6 @@
 
   home.sessionPath = [
     "$HOME/.local/bin"
+    "$HOME/Library/Application Support/JetBrains/Toolbox/scripts"
   ];
 }

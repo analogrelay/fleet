@@ -5,6 +5,8 @@
     ../../platform.nix
     ../../roles/workstation.nix
 
+    ../../profiles/tailnet.darwin.nix
+
     ../../users/ashley.nix
   ];
 

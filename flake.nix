@@ -89,7 +89,11 @@
       mkImage = system: extraModules:
         nixpkgs.lib.nixosSystem {
           inherit system;
-          modules = defaultModules ++ extraModules;
+          pkgs = mkPkgs system;
+          modules = [
+            "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+            { sdImage.compressImage = false; }
+          ] ++ defaultModules ++ extraModules;
           specialArgs = {inherit inputs outputs; platform = "nixos"; };
         };
     in
@@ -99,16 +103,8 @@
       nixosConfigurations = {
         avalanche = mkSystem "x86_64-linux" [ ./machines/hosts/avalanche ];
         shinra = mkSystem "x86_64-linux" [ ./machines/hosts/shinra ];
+        biggs = mkImage "aarch64-linux" [ ./machines/hosts/biggs ];
         zach = mkWslSystem "x86_64-linux" [ ./machines/hosts/zach ];
-        rpi4 = mkImage "aarch64-linux" [
-          "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
-          {
-            nixpkgs.config.allowUnsupportedSystem = true;
-            nixpkgs.hostPlatform.system = "aarch64-linux";
-            nixpkgs.buildPlatform.system = "x86_64-linux";
-          }
-          ./machines/images/rpi4
-        ];
       };
       darwinConfigurations = {
         sephiroth = mkDarwinSystem "aarch64-darwin" [

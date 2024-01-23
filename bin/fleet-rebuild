@@ -8,4 +8,4 @@ if [ ! -d "$fleet_repo" ]; then
 fi
 
 cd $fleet_repo
-script/rebuild
+script/rebuild "$@"

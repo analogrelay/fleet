@@ -7,6 +7,7 @@
 #/   --test       Run a 'nixos-rebuild test' instead of a 'nixos-rebuild switch'.
 #/   --dry-run    Conduct a dry run and don't actually modify anything.
 #/   --show-trace Show a trace whenever there's a Nix error.
+#/   --update     Update the flake lockfile before rebuilding.
 #/
 #/ ARGUMENTS
 #/   <hostname>   The hostname of the configuration to use. By default, the value of the `hostname` command is used.
@@ -22,6 +23,7 @@ set -euo pipefail
 hostname=""
 nixos_rebuild_command="switch"
 rebuild_args=()
+update=false
 while [[ $# -gt 0 ]]; do
   key="$1"
   shift
@@ -36,6 +38,9 @@ while [[ $# -gt 0 ]]; do
       # Print usage information
       grep '^#/' "$0" | cut -c4-
       exit 0
+      ;;
+    --update)
+      update=true
       ;;
     *)
       hostname="$key"
@@ -53,6 +58,11 @@ read -r answer
 if [ "$answer" != "y" ]; then
   echo "Aborting"
   exit 1
+fi
+
+if $update; then
+  echo "Updating flake lockfile"
+  nix flake update
 fi
 
 if [ "$(uname)" = "Darwin" ]; then

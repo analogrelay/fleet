@@ -6,7 +6,7 @@ let
     description = "Ashley Stanton-Nurse";
     shell = pkgs.zsh;
     openssh.authorizedKeys.keyFiles = [
-        ../../keys/1password.pub
+      ../../keys/1password.pub
         ../../keys/jenova.pub
     ];
   };
