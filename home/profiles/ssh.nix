@@ -31,6 +31,20 @@
         hostname = "cloud.bicorn-bebop.ts.net";
         port = 2222;
       };
+
+      # The TP-Link Access Points use ssh-rsa host keys
+      "wutai.node.analogrelay.net" = {
+        extraOptions = {
+          "PubkeyAcceptedAlgorithms" = "+ssh-rsa";
+          "HostkeyAlgorithms" = "+ssh-rsa";
+        };
+      };
+      "midgar.node.analogrelay.net" = {
+        extraOptions = {
+          "PubkeyAcceptedAlgorithms" = "+ssh-rsa";
+          "HostkeyAlgorithms" = "+ssh-rsa";
+        };
+      };
     };
   };
 }

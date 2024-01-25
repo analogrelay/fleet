@@ -6,6 +6,7 @@ metadata:
 spec:
   valuesContent: |-
     additionalArguments:
+      - "--serverstransport.insecureskipverify=true"
       - "--entrypoints.mqtt.address=:1883/tcp"
       - "--entrypoints.mqttws.address=:9001/tcp"
       - "--entrypoints.postgres.address=:5432/tcp"

@@ -1,0 +1,178 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: omada
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: omada
+  namespace: omada
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: omada
+  template:
+    metadata:
+      labels: 
+        app: omada
+    spec:
+      containers:
+        - name: omada-container
+          image: mbentley/omada-controller:5.13
+          volumeMounts:
+            - name: omada-data
+              mountPath: /opt/tplink/EAPController/data
+          env:
+            - name: PUID
+              value: "5000"
+            - name: PGID
+              value: "5003"
+          ports:
+            - name: http
+              containerPort: 8088
+            - name: https
+              containerPort: 8843
+            - name: mgmt-https
+              containerPort: 8043
+            - name: app-disco
+              containerPort: 27001
+              protocol: UDP
+            - name: discovery
+              containerPort: 29810
+              protocol: UDP
+            - name: manager-v1
+              containerPort: 29811
+            - name: adopt-v1
+              containerPort: 29812
+            - name: upgrade-v1
+              containerPort: 29813
+            - name: manager-v2
+              containerPort: 29814
+            - name: transfer-v2
+              containerPort: 29815
+            - name: rtty
+              containerPort: 29816
+      volumes:
+        - name: omada-data
+          nfs:
+            server: avalanche.node.analogrelay.net
+            path: /mnt/data/k3s/shares/omada.omada-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: omada-adopt-svc
+  namespace: omada
+spec:
+  type: LoadBalancer
+  ports:
+  - name: app-disco
+    port: 27001
+    targetPort: app-disco
+    protocol: UDP
+  - name: discovery
+    port: 29810
+    targetPort: discovery
+    protocol: UDP
+  - name: manager-v1
+    port: 29811
+    targetPort: manager-v1
+    protocol: TCP
+  - name: adopt-v1
+    port: 29812
+    targetPort: adopt-v1
+    protocol: TCP
+  - name: upgrade-v1
+    port: 29813
+    targetPort: upgrade-v1
+    protocol: TCP
+  - name: manager-v2
+    port: 29814
+    targetPort: manager-v2
+    protocol: TCP
+  - name: transfer-v2
+    port: 29815
+    targetPort: transfer-v2
+    protocol: TCP
+  - name: rtty
+    port: 29816
+    targetPort: rtty
+    protocol: TCP
+  selector:
+    app: omada
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: omada-mgmt-svc
+  namespace: omada
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+    protocol: TCP
+  - name: https
+    port: 443
+    targetPort: mgmt-https
+    protocol: TCP
+  selector:
+    app: omada
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect
+  namespace: omada
+spec:
+  redirectRegex:
+    regex: "^https:\\/\\/([^\\/]+)\\/?$"
+    replacement: "https://$1/7a04474df8db1f73fc2fc7738b3bd915/login"
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: headers
+  namespace: omada
+spec:
+  headers:
+    customRequestHeaders:
+      host: "omada.home.analogrelay.net:8043"
+    customResponseHeaders:
+      host: "omada.home.analogrelay.net"
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: omada-ingress
+  namespace: omada
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    traefik.ingress.kubernetes.io/router.middlewares: omada-redirect@kubernetescrd,omada-headers@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: omada.home.analogrelay.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: omada-mgmt-svc
+            port:
+              number: 443
+  tls:
+    - hosts:
+        - omada.home.analogrelay.net
+      secretName: omada-ingress-cert
