@@ -8,5 +8,6 @@
     kubectl
     k9s
     azure-cli
+    rustup
   ];
 }
