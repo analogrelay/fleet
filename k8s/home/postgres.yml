@@ -97,3 +97,37 @@ spec:
     protocol: TCP
   selector:
     app: postgres
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-paperless
+  namespace: postgres
+spec:
+  # Backup the database every day at 2AM
+  schedule: "0 2 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: postgres-backup
+            image: postgres:16.1
+            command: ["/bin/bash"]
+            args: ["-c", 'pg_dump --file="/var/backups/paperless.$(date +"%m-%d-%Y-%H-%M").backup" --username=postgres --host=postgres-svc.postgres.svc.cluster.local --format=directory paperless']
+            env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: root-password
+            volumeMounts:
+            - mountPath: /var/backups
+              name: target
+          restartPolicy: Never
+          volumes:
+            - name: target
+              nfs:
+                server: avalanche.node.analogrelay.net
+                path: /mnt/data/shares/public/backups/postgres

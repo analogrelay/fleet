@@ -5,20 +5,6 @@ metadata:
   name: paperless
 
 ---
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: redis
-  namespace: paperless
-spec:
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 1Gi
-  storageClassName: nfs-avalanche
-
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -50,6 +36,11 @@ spec:
         - name: redis-storage
           persistentVolumeClaim:
             claimName: redis
+      volumes:
+        - name: redis-storage
+          nfs:
+            server: avalanche.node.analogrelay.net
+            path: /mnt/data/k3s/shares/paperless.redis
 
 ---
 apiVersion: v1
@@ -143,10 +134,6 @@ spec:
               value: "true"
             - name: PAPERLESS_OCR_USER_ARGS
               value: '{"invalidate_digital_signatures": true}'
-            - name: PAPERLESS_CONSUMER_ENABLE_BARCODES
-              value: "true"
-            - name: PAPERLESS_CONSUMER_ENABLE_ASN_BARCODE
-              value: "true"
             - name: PAPERLESS_CONSUMER_ASN_BARCODE_PREFIX
               value: "ASN"
           ports:
