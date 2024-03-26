@@ -108,3 +108,24 @@ properties:
       settings:
         id: Microsoft.OpenSSH.Beta
         source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives:
+        description: Install Gum
+        allowPrerelease: true
+      settings:
+        id: charmbracelet.gum
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives:
+        description: Install bat
+        allowPrerelease: true
+      settings:
+        id: sharkdp.bat
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives:
+        description: Install eza
+        allowPrerelease: true
+      settings:
+        id: eza-community.eza
+        source: winget

@@ -1,13 +1,10 @@
-
+$FleetRoot = (Get-Item $PSScriptRoot).Parent.FullName
 
 # Initialize Oh My Posh
-$theme = "blue-owl"
-$themesDir = Join-Path $env:LOCALAPPDATA "Programs" "oh-my-posh" "themes"
-$configFile = Join-Path $themesDir "$theme.omp.json"
+$configFile = Join-Path $FleetRoot "powershell" "analogposh.omp.json"
 (@(& oh-my-posh.exe init pwsh --config="$configFile" --print) -join "`n") | Invoke-Expression
 
 # Make sure we know where the code is
-$FleetRoot = (Get-Item $PSScriptRoot).Parent.FullName
 $GeneralCodePath = Join-Path $env:USERPROFILE "Code"
 $PersonalCodePath = $GeneralCodePath
 $WorkCodePath = $GeneralCodePath
@@ -25,4 +22,11 @@ if (Get-Command fnm -ErrorAction SilentlyContinue) {
 
 Get-ChildItem (Join-Path $PSScriptRoot "functions") -Filter '*.ps1' | ForEach-Object {
   . $_
+}
+
+if (Get-Command bat -ErrorAction SilentlyContinue) {
+  Set-Alias cat bat
+}
+if (Get-Command eza -ErrorAction SilentlyContinue) {
+  Set-Alias ls eza
 }
