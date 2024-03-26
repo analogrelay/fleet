@@ -87,3 +87,24 @@ properties:
       settings:
         id: Microsoft.VisualStudioCode
         source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives:
+        description: Install FNM
+        allowPrerelease: true
+      settings:
+        id: Schniz.fnm
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives:
+        description: Install fzf
+        allowPrerelease: true
+      settings:
+        id: junegunn.fzf
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives:
+        description: Install OpenSSH Beta
+        allowPrerelease: true
+      settings:
+        id: Microsoft.OpenSSH.Beta
+        source: winget
