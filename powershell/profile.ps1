@@ -1,7 +1,10 @@
 
 
 # Initialize Oh My Posh
-(@(& oh-my-posh.exe init pwsh --config='' --print) -join "`n") | Invoke-Expression
+$theme = "blue-owl"
+$themesDir = Join-Path $env:LOCALAPPDATA "Programs" "oh-my-posh" "themes"
+$configFile = Join-Path $themesDir "$theme.omp.json"
+(@(& oh-my-posh.exe init pwsh --config="$configFile" --print) -join "`n") | Invoke-Expression
 
 # Make sure we know where the code is
 $FleetRoot = (Get-Item $PSScriptRoot).Parent.FullName
