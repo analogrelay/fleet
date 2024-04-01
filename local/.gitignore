@@ -1,0 +1,4 @@
+# This directory contains machine-local config content.
+
+*
+!.gitignore

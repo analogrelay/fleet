@@ -37,3 +37,21 @@ if ($ExpectedMachineName -ne $CurrentMachineName) {
   Write-Host "Renaming machine..."
   Start-Process powershell -Verb Runas -ArgumentList @("-Command", "Rename-Computer -NewName $ExpectedMachineName")
 }
+
+$gitConfigFile = Join-Path $env:USERPROFILE ".gitconfig"
+$fleetGitConfigFile = Join-Path $RepoRoot "gitconfig"
+if(Test-Path $fleetGitConfigFile) {
+  if (Test-Path $gitConfigFile) {
+    Remove-Item -Path $gitConfigFile
+  }
+  New-Item -Path $gitConfigFile -ItemType SymbolicLink -Value $fleetGitConfigFile
+}
+
+$gitLocalConfigFile = Join-Path $env:USERPROFILE ".gitlocal"
+if(-not (Test-Path $gitLocalConfigFile)) {
+  $emailAddress = Read-Host "Please enter your git email address"
+  $userName = Read-Host "Please enter your git user name"
+
+  git config --file "$gitLocalConfigFile" user.email "$emailAddress"
+  git config --file "$gitLocalConfigFile" user.name "$userName"
+}

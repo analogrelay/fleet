@@ -1,3 +1,5 @@
+$env:HOME = $env:USERPROFILE
+
 $FleetRoot = (Get-Item $PSScriptRoot).Parent.FullName
 
 # Initialize Oh My Posh
