@@ -31,9 +31,9 @@ if (-not (Test-Path $wtSettingsFile)) {
 }
 
 # Check the machine name
-$ExpectedMachineName = "ashleyst-alpha"
+$ExpectedMachineName = "ashleyst-delta"
 $CurrentMachineName = & hostname
 if ($ExpectedMachineName -ne $CurrentMachineName) {
   Write-Host "Renaming machine..."
-  Rename-Computer -NewName $ExpectedMachineName
+  Start-Process powershell -Verb Runas -ArgumentList @("-Command", "Rename-Computer -NewName $ExpectedMachineName")
 }
