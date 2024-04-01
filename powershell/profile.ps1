@@ -4,6 +4,8 @@ $FleetRoot = (Get-Item $PSScriptRoot).Parent.FullName
 $configFile = Join-Path $FleetRoot "powershell" "analogposh.omp.json"
 (@(& oh-my-posh.exe init pwsh --config="$configFile" --print) -join "`n") | Invoke-Expression
 
+oh
+
 # Make sure we know where the code is
 $GeneralCodePath = Join-Path $env:USERPROFILE "Code"
 $PersonalCodePath = $GeneralCodePath
@@ -30,3 +32,5 @@ if (Get-Command bat -ErrorAction SilentlyContinue) {
 if (Get-Command eza -ErrorAction SilentlyContinue) {
   Set-Alias ls eza
 }
+
+oh-my-posh completion powershell | Out-String | Invoke-Expression
