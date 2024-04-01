@@ -7,10 +7,12 @@
 [gpg]
 	format = ssh
 [gpg "ssh"]
-	program = C:/Program Files/1Password/app/8/op-ssh-sign.exe
+	program = "C:/Program Files/1Password/app/8/op-ssh-sign.exe"
 [commit]
 	gpgsign = true
 [user]
 	signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEjRwisd5P4UEZtXMO19uk+ly2Jbu9LgLmGmlmWz7Mbh
 [include]
 	path = ./.gitlocal
+[core]
+	sshCommand = "C:/Program\\ Files/OpenSSH/ssh.exe"
