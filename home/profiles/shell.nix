@@ -24,6 +24,11 @@
       fi
     '';
 
+    shellAliases = {
+      ls = "eza";
+      cat = "bat";
+    };
+
     profileExtra = ''
     '';
   };

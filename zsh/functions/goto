@@ -1,7 +1,16 @@
 target=$1
 
+orgs=$(find $HOME/code -maxdepth 1 -mindepth 1 -type d)
+
+github_repos=$(echo $orgs | grep "^/home/ashleyst/code/[^@]*$" | xargs -I ORG find "ORG" -maxdepth 1 -mindepth 1 -type d)
+ado_repos=$(echo $orgs | grep "^/home/ashleyst/code/[^@]*@[^@]*$" | xargs -I ORG find "ORG" -maxdepth 2 -mindepth 2 -type d)
+
 # Collect all the candidates
-candidates=$(find $HOME/code -maxdepth 2 -mindepth 2 -type d)
+candidates=$(cat <<EOF
+$github_repos
+$ado_repos
+EOF
+)
 
 if [ "$(uname)" = "Darwin" ]; then
     candidates=$(cat <<EOF
@@ -16,21 +25,19 @@ fi
 
 candidates=$(cat <<EOF
 $candidates
-$DOTFILES_ROOT
 $HOME/kb
 $HOME/code
 EOF
 )
 
 # Some useful aliases
-aliases=(
-    [dotcom]="$HOME/code/github/github"
+goto_aliases=(
 )
 
-for alias in "${(k)aliases}"; do
+for goto_alias in "${(k)goto_aliases}"; do
     candidates=$(cat <<EOF
 $candidates
-$alias
+$goto_alias
 EOF
 )
 done
