@@ -9,5 +9,6 @@
     k9s
     azure-cli
     rustup
+    git-credential-manager
   ];
 }

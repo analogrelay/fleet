@@ -11,6 +11,8 @@ let
     ./profiles/vim.nix
     ./profiles/ssh.nix
     ./profiles/tmux.nix
+    
+    ./users/${username}.nix
   ];
   nonWslImports = if (!wsl) then [
     ./profiles/vscode.nix
@@ -30,6 +32,8 @@ in
   programs.home-manager.enable = true;
   programs.ssh.enable = true;
   programs.fzf.enable = true;
+  programs.gpg.enable = true;
+  programs.password-store.enable = true;
 
   home.packages = with pkgs; [
     dos2unix

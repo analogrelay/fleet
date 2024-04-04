@@ -9,39 +9,59 @@ fi
 local PATH_SEGMENT="[-a-zA-Z0-9_\.]+"
 
 # Detect input types.
-if [[ $repo =~ "^(ssh://)?git@ssh.dev.azure.com:v3/($PATH_SEGMENT)/$PATH_SEGMENT/($PATH_SEGMENT)/?$" ]]; then
-    owner=$match[2]
-    repoName=$match[3]
-elif [[ $repo =~ "^(ssh://)?[A-Za-z]@vs-ssh.visualstudio.com:v3/($PATH_SEGMENT)/$PATH_SEGMENT/($PATH_SEGMENT)/?$" ]]; then
-    owner=$match[2]
-    repoName=$match[3]
+if [[ $repo =~ "^(ssh://)?git@ssh.dev.azure.com:v3/($PATH_SEGMENT)/($PATH_SEGMENT)/($PATH_SEGMENT)/?$" ]]; then
+    owner="${match[2]}@dev.azure.com"
+    project=$match[3]
+    repoName=$match[4]
+    subPath="$owner/$project/$repoName"
+elif [[ $repo =~ "^(ssh://)?[A-Za-z]@vs-ssh.visualstudio.com:v3/($PATH_SEGMENT)/($PATH_SEGMENT)/($PATH_SEGMENT)/?$" ]]; then
+    owner="${match[2]}@dev.azure.com"
+    project=$match[3]
+    repoName=$match[4]
+    subPath="$owner/$project/$repoName"
+elif [[ $repo =~ "https://($PATH_SEGMENT)@dev.azure.com/($PATH_SEGMENT)/($PATH_SEGMENT)/_git/($PATH_SEGMENT)" ]]; then
+    org=$match[1]
+    owner="${match[2]}@dev.azure.com"
+    project=$match[3]
+    repoName=$match[4]
+    subPath="$owner/$project/$repoName"
 # It is important that '-' be first in the '[]'s below because that means it will be treated literally.
 elif [[ $repo =~ "^($PATH_SEGMENT)/($PATH_SEGMENT)$" ]]; then
     echo "MATCHES: ${match[@]}"
     owner=$match[1]
     repoName=$match[2]
     repo="git@github.com:$owner/$repoName.git"
+    subPath="$owner/$repoName"
 elif [[ $repo =~ "^(ssh://)git@github.com/($PATH_SEGMENT)/($PATH_SEGMENT)\.git/?$" ]]; then
     owner=$match[2]
     repoName=$match[3]
+    subPath="$owner/$repoName"
 elif [[ $repo =~ "^(ssh://)git@github.com/($PATH_SEGMENT)/($PATH_SEGMENT)/?$" ]]; then
     owner=$match[2]
     repoName=$match[3]
+    subPath="$owner/$repoName"
 elif [[ $repo =~ "^https://(www\.)?github.com/($PATH_SEGMENT)/($PATH_SEGMENT)\.git/?$" ]]; then
     owner=$match[2]
     repoName=$match[3]
+    subPath="$owner/$repoName"
 elif [[ $repo =~ "^https://(www\.)?github.com/($PATH_SEGMENT)/($PATH_SEGMENT)/?$" ]]; then
     owner=$match[2]
     repoName=$match[3]
+    subPath="$owner/$repoName"
 else
     echo "This script can only be used with 'ssh://' URLs or GitHub owner/repo references" 1>&2
     return 1
 fi
 
-dest=~/code/$owner/$repoName
+dest=~/code/$subPath
+dest_parent=$(dirname $dest)
 
 if [ ! -d $dest ]; then
-    echo "Cloning $repo into $dest"
+    if [ -n "$project" ]; then
+        echo "Cloning $owner / $project / $repoName into $dest"
+    else
+        echo "Cloning $owner / $repo into $dest"
+    fi
     git clone $repo $dest
 fi
 
