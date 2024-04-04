@@ -72,6 +72,13 @@ if [ "$(uname)" = "Darwin" ]; then
   fi
   darwin-rebuild switch "${rebuild_args[@]}" --flake "$repo_root#$hostname"
 else
-  echo "You may be prompted for your sudo password to run the rebuild script."
-  sudo nixos-rebuild switch "${rebuild_args[@]}" --flake "$repo_root#$hostname"
+  distro_id=$(cat /etc/os-release | grep '^ID=' | cut -d'=' -f2)
+  if [ "$distro_id" == "nixos" ]; then
+    echo "You may be prompted for your sudo password to run the rebuild script."
+    sudo nixos-rebuild switch "${rebuild_args[@]}" --flake "$repo_root#$hostname"
+  else
+    # Non-nixos configuration. We support home-manager only.
+    nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
+    nix-channel --update
+  fi
 fi

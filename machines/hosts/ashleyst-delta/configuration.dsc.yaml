@@ -159,6 +159,13 @@ properties:
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       directives:
+        description: Install WSL from Store
+        allowPrerelease: true
+      settings:
+        id: 9P9TQF7MRM4R
+        source: msstore
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives:
         description: Install Ubuntu 22.04 WSL
         allowPrerelease: true
       settings:
