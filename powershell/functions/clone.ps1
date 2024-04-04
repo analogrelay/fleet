@@ -10,7 +10,8 @@ function clone([string]$RepoSpec) {
     $org = $Matches["org"]
     $project = $Matches["project"]
     $repo = $Matches["repo"]
-    $url = "git@ssh.dev.azure.com:v3/$org/$project/$repo"
+    $username = $Matches["username"]
+    $url = "https://$username@dev.azure.com/$org/$project/_git/$repo"
     $subpath = Join-Path $org $project $repo
   } elseif ($RepoSpec -match "git@ssh.dev.azure.com:v3/(?<org>[^/]+)/(?<project>[^/]+)/(?<repo>[^/]+)") {
     $org = $Matches["org"]
@@ -37,6 +38,7 @@ function clone([string]$RepoSpec) {
   if (Test-Path $destination) {
     Write-Host "Destination $destination already exists. Changing directory."
     Set-Location $destination
+    return
   }
 
   Write-Host "Cloning $org / $repo from $url to $destination ..."
@@ -49,4 +51,7 @@ function clone([string]$RepoSpec) {
 
   # Clone!
   git clone $url $destination
+
+  # And go there.
+  Set-Location $destination
 }

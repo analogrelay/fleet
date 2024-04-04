@@ -9,6 +9,10 @@ param(
 )
 
 $RepoRoot = (Get-Item -Path $PSScriptRoot).Parent.FullName
+$InternalRepoRoot = Join-Path (Get-Item -Path $RepoRoot).Parent.FullName "fleet-internal"
+if(-not (Test-Path $InternalRepoRoot)) {
+  Write-Warning "fleet-internal repository not found at $InternalRepoRoot."
+}
 
 if (!$IsCoreCLR) {
   throw "This script is only supported in PowerShell Core."
@@ -29,29 +33,36 @@ if ($continue -ne "Y" -and $continue -ne "y") {
   exit 1
 }
 
-# Find the host in 'machines/hosts'
-$hostConfigDir = Join-Path $RepoRoot "machines" "hosts" $HostName
-if (-not (Test-Path $hostConfigDir)) {
-  throw "No configuration found for host $HostName found at $hostConfigDir."
+function _buildhost($rootPath, $hostname) {
+  # Find the host in 'machines/hosts'
+  $hostConfigDir = Join-Path $rootPath "machines" "hosts" $hostname
+  if (-not (Test-Path $hostConfigDir)) {
+    throw "No configuration found for host $hostname found at $hostConfigDir."
+  }
+
+  # First, run a 'preconfigure.ps1' script if it exists
+  $preconfigureScript = Join-Path $hostConfigDir "preconfigure.ps1"
+  if (Test-Path $preconfigureScript) {
+    Write-Host "Running preconfigure script..."
+    & $preconfigureScript
+  }
+
+  # Now, run the DSC configuration
+  $dscConfig = Join-Path $hostConfigDir "configuration.dsc.yaml"
+  if (Test-Path $dscConfig) {
+    Write-Host "Applying WinGet configuration..."
+    winget configure --file "$dscConfig"
+  }
+
+  # Now, run a 'postconfigure.ps1' script if it exists
+  $configureScript = Join-Path $hostConfigDir "postconfigure.ps1"
+  if (Test-Path $configureScript) {
+    Write-Host "Running postconfigure script..."
+    & $configureScript
+  }
 }
 
-# First, run a 'preconfigure.ps1' script if it exists
-$preconfigureScript = Join-Path $hostConfigDir "preconfigure.ps1"
-if (Test-Path $preconfigureScript) {
-  Write-Host "Running preconfigure script..."
-  & $preconfigureScript
-}
-
-# Now, run the DSC configuration
-$dscConfig = Join-Path $hostConfigDir "configuration.dsc.yaml"
-if (Test-Path $dscConfig) {
-  Write-Host "Applying WinGet configuration..."
-  winget configure --file "$dscConfig"
-}
-
-# Now, run a 'postconfigure.ps1' script if it exists
-$configureScript = Join-Path $hostConfigDir "postconfigure.ps1"
-if (Test-Path $configureScript) {
-  Write-Host "Running postconfigure script..."
-  & $configureScript
+_buildhost $RepoRoot $HostName
+if(Test-Path $InternalRepoRoot) {
+  _buildhost $InternalRepoRoot $HostName
 }
