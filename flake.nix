@@ -112,6 +112,22 @@
         ];
       };
 
+      homeConfigurations = {
+        "ashleyst@ashleyst-delta" = home-manager.lib.homeManagerConfiguration {
+          pkgs = mkPkgs "x86_64-linux";
+          extraSpecialArgs = {
+            username = "ashleyst";
+            os = "linux";
+            distro = "ubuntu";
+            role = "workstation";
+            wsl = true;
+          };
+          modules = [
+            ./home
+          ];
+        };
+      };
+
       images = {
         rpi4 = nixosConfigurations.rpi4.config.system.build.sdImage;
       };

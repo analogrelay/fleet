@@ -1,4 +1,4 @@
-{ pkgs, wsl, ... }:
+{ pkgs, ... }:
 
 {
   programs.git = {

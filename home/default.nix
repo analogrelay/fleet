@@ -1,4 +1,4 @@
-{ pkgs, role, os, wsl, ... }:
+{ pkgs, role, os, wsl, username, ... }:
 
 let
   commonImports = [
@@ -24,6 +24,8 @@ in
   imports = allImports;
 
   home.stateVersion = "23.11";
+  home.username = username;
+  home.homeDirectory = /home/${username};
 
   programs.home-manager.enable = true;
   programs.ssh.enable = true;
