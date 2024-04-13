@@ -63,6 +63,89 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
+    app: tika
+  name: tika
+  namespace: paperless
+spec:
+  selector:
+    matchLabels:
+      app: tika
+  template:
+    metadata:
+      labels:
+        app: tika
+    spec:
+      containers:
+        - name: tika
+          image: ghcr.io/paperless-ngx/tika:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: tika
+              containerPort: 9998
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tika-svc
+  namespace: paperless
+spec:
+  type: ClusterIP
+  ports:
+  - name: tika
+    port: 9998
+    targetPort: tika
+    protocol: TCP
+  selector:
+    app: tika
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: gotenberg
+  name: gotenberg
+  namespace: paperless
+spec:
+  selector:
+    matchLabels:
+      app: gotenberg
+  template:
+    metadata:
+      labels:
+        app: gotenberg
+    spec:
+      containers:
+        - name: gotenberg
+          image: docker.io/gotenberg/gotenberg:7.10
+          imagePullPolicy: IfNotPresent
+          command: ["gotenberg", "--chromium-disable-javascript=true", "--chromium-allow-list=file:///tmp/.*"]
+          ports:
+            - name: gotenberg
+              containerPort: 3000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gotenberg-svc
+  namespace: paperless
+spec:
+  type: ClusterIP
+  ports:
+  - name: gotenberg
+    port: 3000
+    targetPort: gotenberg
+    protocol: TCP
+  selector:
+    app: gotenberg
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
     app: paperless
   name: paperless
   namespace: paperless
@@ -77,12 +160,18 @@ spec:
     spec:
       containers:
         - name: paperless
-          image: ghcr.io/paperless-ngx/paperless-ngx:latest
+          image: ghcr.io/paperless-ngx/paperless-ngx:2.6.3
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: cabinet
               mountPath: /opt/paperless
           env:
+            - name: PAPERLESS_TIKA_ENABLED
+              value: "1"
+            - name: PAPERLESS_TIKA_GOTENBERG_ENDPOINT
+              value: "http://gotenberg-svc.paperless.svc.cluster.local:3000"
+            - name: PAPERLESS_TIKA_ENDPOINT
+              value: "http://tika-svc.paperless.svc.cluster.local:9998"
             - name: PAPERLESS_REDIS
               value: "redis://redis-svc.paperless.svc.cluster.local:6379"
             - name: PAPERLESS_DBHOST

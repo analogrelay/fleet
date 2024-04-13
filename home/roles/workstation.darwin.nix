@@ -15,6 +15,7 @@ in
     microsoft-edge-stable
     spotify
     zoom-us
+    slack
   ];
 
   home.activation.defaultBrowser = lib.hm.dag.entryAfter ["installPackages"] ''
