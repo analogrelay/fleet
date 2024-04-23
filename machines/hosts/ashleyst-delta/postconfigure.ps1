@@ -55,3 +55,5 @@ if(-not (Test-Path $gitLocalConfigFile)) {
   git config --file "$gitLocalConfigFile" user.email "$emailAddress"
   git config --file "$gitLocalConfigFile" user.name "$userName"
 }
+
+Install-Module VSSetup -Scope CurrentUser
