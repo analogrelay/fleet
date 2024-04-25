@@ -2,7 +2,11 @@ function devshell {
   [CmdletBinding(DefaultParameterSetName = "List")]
   param(
     [Parameter(ParameterSetName = "Enter", Position = 0)]
-    [string]$Instance
+    [string]$Instance,
+
+    [Parameter(ParameterSetName = "Enter", Position = 1)]
+    [Alias("Arch")]
+    [string]$Architecture
   )
 
   if ($PSCmdlet.ParameterSetName -eq "List") {
@@ -40,6 +44,10 @@ function devshell {
     }
   }
   elseif ($PSCmdlet.ParameterSetName -eq "Enter") {
+    if(!$Architecture) {
+      $Architecture = $env:PROCESSOR_ARCHITECTURE ?? "Default"
+    }
+    
     $vsInstance = switch ($Instance) {
       "latest" { Get-VSSetupInstance -All -Prerelease | Select-VSSetupInstance -Latest }
       "stable" { Get-VSSetupInstance -All | Select-VSSetupInstance -Latest }
@@ -53,7 +61,7 @@ function devshell {
     }
     if ($vsInstance) {
       Write-Host "Entering DevShell for $($vsInstance.Product.Id) instance '$($vsInstance.InstanceId)'..."
-      Enter-VsDevShell -VsInstanceId $vsInstance.InstanceId
+      Enter-VsDevShell -VsInstanceId $vsInstance.InstanceId -Arch $Architecture
     }
     else {
       Write-Error "No instance found with id '$Instance'"
