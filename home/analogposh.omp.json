@@ -12,7 +12,7 @@
             "windows": "\ue62a"
           },
           "style": "diamond",
-          "template": "{{ if .WSL }}\uF17C on {{ end }}{{.Icon}} ",
+          "template": "{{.Icon}}{{ if .WSL }} on \uE62A{{ end }} ",
           "trailing_diamond": "\ue0b0",
           "type": "os"
         },
@@ -31,9 +31,12 @@
           "properties": {
             "folder_icon": "\uf07c ",
             "folder_separator_icon": "<#011627>\ue0b1</> ",
-            "home_icon": " \ueb06 ",
-            "style": "agnoster",
-            "windows_registry_icon": "\uF013"
+            "home_icon": "\ueb06 ",
+            "style": "full",
+            "windows_registry_icon": "\uF013",
+            "mapped_locations": {
+              "~/code": "\uF4B0 "
+            }
           },
           "style": "powerline",
           "template": " {{ path .Path .Location }} ",
