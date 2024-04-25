@@ -41,8 +41,14 @@
     enable = true;
   };
 
-  programs.starship = {
+  programs.oh-my-posh = {
     enable = true;
+    enableZshIntegration = true;
+    settings = builtins.fromJSON (builtins.unsafeDiscardStringContext (builtins.readFile ../analogposh.omp.json));
+  };
+
+  programs.starship = {
+    enable = false;
     settings = {
       shell = {
         disabled = false;
