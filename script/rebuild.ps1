@@ -37,7 +37,8 @@ function _buildhost($rootPath, $hostname, [switch]$Optional) {
   # Find the host in 'machines/hosts'
   $hostConfigDir = Join-Path $rootPath "machines" "hosts" $hostname
   if (-not (Test-Path $hostConfigDir)) {
-    throw "No configuration found for host $hostname found at $hostConfigDir."
+    Write-Warning "No configuration found for host $hostname found at $hostConfigDir."
+    return
   }
 
   $configureScript = Join-Path $hostConfigDir "configure.ps1"

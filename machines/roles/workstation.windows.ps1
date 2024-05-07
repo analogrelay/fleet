@@ -55,9 +55,14 @@ if(-not (Test-Path $gitLocalConfigFile)) {
   } else {
     $emailAddress = "git@analogrelay.net"
   }
-
   git config --file "$gitLocalConfigFile" user.email "$emailAddress"
   git config --file "$gitLocalConfigFile" user.name "$userName"
+}
+
+$Local1PPath = "$env:USERPROFILE\AppData\Local\1Password\app\8\op-ssh-sign.exe"
+if (Test-Path $Local1PPath) {
+  $Local1PPath = $Local1PPath.Replace("\", "/")
+  git config --file "$gitLocalConfigFile" git."ssh".program $Local1PPath
 }
 
 Install-Module VSSetup -Scope CurrentUser
