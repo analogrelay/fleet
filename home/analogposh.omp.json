@@ -97,8 +97,16 @@
           "foreground": "#ffffff",
           "leading_diamond": "\ue0b2",
           "style": "diamond",
-          "template": "\ue266 {{ .Icon .PhysicalPercentUsed .Precision }}% ",
-          "trailing_diamond": "<transparent,#8f43f3>\ue0b2</>",
+          "background_templates": [
+            "{{if eq \"Charging\" .State.String}}#40c4ff{{end}}",
+            "{{if eq \"Discharging\" .State.String}}#ff5722{{end}}",
+            "{{if eq \"Full\" .State.String}}#4caf50{{end}}"
+          ],
+          "templates": [
+            "{{ if eq \"Charging\" .State.String }} \udb80\udc84 {{ else if gt .Percentage 90 }} \udb80\udc82 {{ else if gt .Percentage 80 }} \udb80\udc81 {{ else if gt .Percentage 70 }} \udb80\udc80 {{ else if gt .Percentage 60 }} \udb80\udc7f {{ else if gt .Percentage 50 }} \udb80\udc7e  {{ else if gt .Percentage 40 }} \udb80\udc7d {{ else if gt .Percentage 30 }} \udb80\udc7c {{ else if gt .Percentage 20 }} \udb80\udc7b {{ else if gt .Percentage 10 }} \udb80\udc7a {{ else }} \udb80\udc8e {{ end }}",
+            "{{ .Percentage }}% "
+          ],
+          "trailing_diamond": "<transparent,background>\ue0b2",
           "type": "battery"
         },
         {
@@ -268,7 +276,7 @@
           "foreground": "#ffffff",
           "leading_diamond": "\ue0b2",
           "style": "diamond",
-          "template": "\uf308 {{.Context}} :: {{if .Namespace}}{{.Namespace}}{{else}}default{{end}} ",
+          "template": "\uf308 {{.Context}}/{{if .Namespace}}{{.Namespace}}{{else}}default{{end}} ",
           "trailing_diamond": "<transparent,#316ce4>\ue0b2</>",
           "type": "kubectl"
         },

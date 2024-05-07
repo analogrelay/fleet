@@ -22,5 +22,9 @@
   systemd.tmpfiles.rules = [
       "d /var/volumes/postgres 2775 k8s share - -"
   ];
+
+  home-manager.extraSpecialArgs = {
+    username = "ashley";
+  };
 }
 

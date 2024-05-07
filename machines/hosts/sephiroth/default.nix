@@ -14,4 +14,8 @@
   networking.hostName = "sephiroth";
 
   system.stateVersion = 4;
+
+  home-manager.extraSpecialArgs = {
+    username = "ashley";
+  };
 }

@@ -26,4 +26,8 @@
     # Mark this node so that it isn't scheduled on by default.
     extraArgs = "--node-label transient=true:NoSchedule";
   };
+
+  home-manager.extraSpecialArgs = {
+    username = "ashley";
+  };
 }

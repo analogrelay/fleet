@@ -20,5 +20,9 @@
 
   # We want to do ARM things sometimes
   boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
+
+  home-manager.extraSpecialArgs = {
+    username = "ashley";
+  };
 }
 

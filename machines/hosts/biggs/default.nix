@@ -12,5 +12,9 @@
   networking.hostName = "biggs";
 
   system.stateVersion = "23.11";
+
+  home-manager.extraSpecialArgs = {
+    username = "ashley";
+  };
 }
 
