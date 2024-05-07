@@ -16,7 +16,7 @@ spec:
           clientSecretSecretRef:
             name: azuredns-config
             key: client-secret
-          subscriptionID: f40f3d83-69b4-4a51-88a7-3fed6830624a
+          subscriptionID: 466cf680-808d-4446-94b3-f367eaa60ba1
           tenantID: 2be5c49d-d8ac-4700-a8a7-10668c406a70
           resourceGroupName: analogcloud-dns
           hostedZoneName: analogrelay.net
@@ -39,7 +39,7 @@ spec:
           clientSecretSecretRef:
             name: azuredns-config
             key: client-secret
-          subscriptionID: f40f3d83-69b4-4a51-88a7-3fed6830624a
+          subscriptionID: 466cf680-808d-4446-94b3-f367eaa60ba1
           tenantID: 2be5c49d-d8ac-4700-a8a7-10668c406a70
           resourceGroupName: analogcloud-dns
           hostedZoneName: analogrelay.net

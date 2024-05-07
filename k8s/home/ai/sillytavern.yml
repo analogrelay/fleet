@@ -1,0 +1,110 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: sillytavern
+  name: sillytavern
+  namespace: ai
+spec:
+  selector:
+    matchLabels:
+      app: sillytavern
+  template:
+    metadata:
+      labels:
+        app: sillytavern
+    spec:
+      containers:
+        - name: sillytavern
+          image: ghcr.io/sillytavern/sillytavern:1.11.7
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 250m
+              memory: 750Mi
+          volumeMounts:
+            - mountPath: /home/node/app/config
+              name: sillytavern-config
+            - mountPath: /home/node/app/public/user
+              name: sillytavern-user
+            - mountPath: /home/node/app/public/scripts/extensions/third-party
+              name: sillytavern-extensions
+      volumes:
+        - name: sillytavern-config
+          nfs:
+            server: avalanche.node.analogrelay.net
+            path: /mnt/data/k3s/shares/ai.sillytavern/config
+        - name: sillytavern-user
+          nfs:
+            server: avalanche.node.analogrelay.net
+            path: /mnt/data/k3s/shares/ai.sillytavern/user
+        - name: sillytavern-extensions
+          nfs:
+            server: avalanche.node.analogrelay.net
+            path: /mnt/data/k3s/shares/ai.sillytavern/extensions
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sillytavern-svc
+  namespace: ai
+spec:
+  type: ClusterIP
+  ports:
+  - name: sillytavern
+    port: 80
+    targetPort: http
+    protocol: TCP
+  selector:
+    app: sillytavern
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sillytavern-ingress
+  namespace: ai
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: tavern.home.analogrelay.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: sillytavern-svc
+            port:
+              number: 80
+  tls:
+    - hosts:
+        - tavern.home.analogrelay.net
+      secretName: sillytavern-ingress-cert
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sillytavern-ingress-ts
+  namespace: ai
+  annotations:
+    tailscale.com/funnel: "true"
+spec:
+  ingressClassName: tailscale
+  defaultBackend:
+    service:
+      name: sillytavern-svc
+      port:
+        number: 80
+  tls:
+    - hosts:
+        - tavern
