@@ -10,5 +10,8 @@
     azure-cli
     rustup
     git-credential-manager
+    pulumi
+    gh
+    lazygit
   ];
 }

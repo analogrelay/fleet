@@ -2,8 +2,8 @@ target=$1
 
 orgs=$(find $HOME/code -maxdepth 1 -mindepth 1 -type d)
 
-github_repos=$(echo $orgs | grep "^/home/ashleyst/code/[^@]*$" | xargs -I ORG find "ORG" -maxdepth 1 -mindepth 1 -type d)
-ado_repos=$(echo $orgs | grep "^/home/ashleyst/code/[^@]*@[^@]*$" | xargs -I ORG find "ORG" -maxdepth 2 -mindepth 2 -type d)
+github_repos=$(echo $orgs | grep "^$HOME/code/[^@]*$" | xargs -I ORG find "ORG" -maxdepth 1 -mindepth 1 -type d)
+ado_repos=$(echo $orgs | grep "^$HOME/code/[^@]*@[^@]*$" | xargs -I ORG find "ORG" -maxdepth 2 -mindepth 2 -type d)
 
 # Collect all the candidates
 candidates=$(cat <<EOF
@@ -43,6 +43,9 @@ EOF
 done
 
 if [ "$DEBUG" = "1" ]; then
+    echo "Orgs: $orgs"
+    echo "Github Repos: $github_repos"
+    echo "ADO Repos: $ado_repos"
     echo "Candidates: $candidates"
 else
     qry_arg=()
