@@ -152,6 +152,8 @@
             pkgs.sops
             pkgs.git
             pkgs.jq
+            pkgs.nodejs
+            pkgs-unstable.pulumi-bin
           ] ++ (pkgs.lib.lists.optional (pkgs.lib.strings.hasSuffix "-darwin" "${system}") [
             nix-darwin.packages.${system}.darwin-rebuild
           ]);
