@@ -103,7 +103,7 @@
       nixosConfigurations = {
         avalanche = mkSystem "x86_64-linux" [ ./machines/hosts/avalanche ];
         shinra = mkSystem "x86_64-linux" [ ./machines/hosts/shinra ];
-        biggs = mkImage "aarch64-linux" [ ./machines/hosts/biggs ];
+        tifa = mkSystem "aarch64-linux" [ ./machines/hosts/tifa ];
         zach = mkWslSystem "x86_64-linux" [ ./machines/hosts/zach ];
       };
       darwinConfigurations = {

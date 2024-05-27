@@ -7,6 +7,8 @@ import { adminSshKey, k3sAgentIdentity } from './identity.js';
 
 import { readFile } from 'fs/promises';
 
+const agentCount = 0;
+
 // Read the cloud init file, and replace the placeholder with the identity ID.
 const cloudInitTemplate = await readFile('./msftbenefit/analogcompute/k3s-agent.cloud-init.sh', { encoding: 'utf-8' });
 
@@ -20,7 +22,7 @@ export const agentScaleSet = new azure.compute.VirtualMachineScaleSet("analogcom
   vmScaleSetName: "analogcompute-agents",
   overprovision: false,
   sku: {
-    capacity: 2,
+    capacity: agentCount,
     name: azure.compute.VirtualMachineSizeTypes.Standard_B2s,
   },
   upgradePolicy: {

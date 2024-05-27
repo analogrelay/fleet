@@ -54,39 +54,38 @@ nodes:
     ipAddresses:
       - 192.168.2.4
   - name: wedge
+    description: Raspberry Pi 4 Server
     macAddresses:
       - E4:5F:01:32:74:53
     ipAddresses:
       - 192.168.2.5
   - name: tifa
+    description: Raspberry Pi 4 Server
     macAddresses:
       - E4:5F:01:46:2A:86
     ipAddresses:
       - 192.168.2.6
-  - name: barret
-    description: Raspberry Pi 4 Server
-    macAddresses:
-      - DC:A6:32:E9:A7:9E
-    ipAddresses:
-      - 192.168.2.7
-  - name: biggs
-    description: Raspberry Pi 4 Server
-    macAddresses:
-      - E4:5F:01:48:EC:F7
-    ipAddresses:
-      - 192.168.2.9
-  - name: reno
-    description: Raspberry Pi 4 Server
-    macAddresses:
-      - B8:27:EB:0C:A3:D8
-    ipAddresses:
-      - 192.168.2.10
   - name: jessie
     description: Raspberry Pi 4 Server
     macAddresses:
       - E4:5F:01:46:2A:77
     ipAddresses:
       - 192.168.2.11
+  - name: barret
+    macAddresses:
+      - DC:A6:32:E9:A7:9E
+    ipAddresses:
+      - 192.168.2.7
+  - name: biggs
+    macAddresses:
+      - E4:5F:01:48:EC:F7
+    ipAddresses:
+      - 192.168.2.9
+  - name: reno
+    macAddresses:
+      - B8:27:EB:0C:A3:D8
+    ipAddresses:
+      - 192.168.2.10
 
   # Workstations
   - name: sephiroth
