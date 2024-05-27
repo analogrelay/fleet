@@ -10,6 +10,14 @@
       "*.bicorn-bebop.ts.net" = {
         user = "ashley";
       };
+      "*.internal.analogrelay.cloud" = {
+        user = "azureuser";
+        proxyJump = "analogrelay.cloud";
+      };
+      "analogrelay.cloud" = {
+        forwardAgent = true;
+        user = "azureuser";
+      };
       "github.com" = {
         extraOptions = {
           "StrictHostKeyChecking" = "yes";

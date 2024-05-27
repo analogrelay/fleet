@@ -1,0 +1,108 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: traefik-auth
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: auth-server
+  namespace: traefik-auth
+  labels:
+    app: auth-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-server
+  template:
+    metadata:
+      labels:
+        app: auth-server
+    spec:
+      containers:
+        - name: traefik-forward-auth
+          image: thomseddon/traefik-forward-auth:2
+          ports:
+            - containerPort: 4181
+              protocol: TCP
+          env:
+            - name: DEFAULT_PROVIDER
+              value: "oidc"
+            - name: AUTH_HOST
+              value: "auth.analogrelay.cloud"
+            - name: COOKIE_DOMAIN
+              value: "analogrelay.cloud"
+            - name: LOG_LEVEL
+              value: "trace"
+            - name: PROVIDERS_OIDC_ISSUER_URL
+              value: https://login.microsoftonline.com/2be5c49d-d8ac-4700-a8a7-10668c406a70/v2.0
+            - name: PROVIDERS_OIDC_CLIENT_ID
+              value: d7fa9573-9a20-4131-857f-62c1cf35a512
+            - name: PROVIDERS_OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: entra-client-secret
+                  key: value
+            - name: SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: entra-jwt-secret
+                  key: value
+            - name: LOG_LEVEL
+              value: trace
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-server
+  namespace: traefik-auth
+spec:
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 4181
+  selector:
+    app: auth-server
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: auth-route
+  namespace: traefik-auth
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect@kubernetescrd, kube-system-auth@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: auth.analogrelay.cloud
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: auth-server
+            port:
+              number: 80
+  tls:
+    - hosts:
+        - auth.analogrelay.cloud
+      secretName: traefik-auth-cert
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: auth
+  namespace: kube-system
+spec:
+  forwardAuth:
+    address: http://auth-server.traefik-auth.svc.cluster.local
+    authResponseHeaders: 
+      - X-Forwarded-User

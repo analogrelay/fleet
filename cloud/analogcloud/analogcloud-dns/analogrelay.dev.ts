@@ -1,5 +1,5 @@
 import * as azure from '@pulumi/azure-native';
-import { analogcloud } from '../../providers.js';
+import { analogcloud } from '../../global.js';
 import resourceGroup from './resourceGroup.js';
 import { createMailRecords, fastmailSpfValue } from './common.js';
 
@@ -12,7 +12,7 @@ export const analogrelay_dev = new azure.network.Zone("analogrelay.dev", {
   provider: analogcloud,
 });
 
-createMailRecords("analogrelay.dev");
+createMailRecords("analogrelay.dev", analogrelay_dev);
 
 new azure.network.RecordSet("analogrelay.dev/txt/root", {
   zoneName: analogrelay_dev.name,

@@ -54,13 +54,11 @@ nodes:
     ipAddresses:
       - 192.168.2.4
   - name: wedge
-    description: Synology NAS
     macAddresses:
       - E4:5F:01:32:74:53
     ipAddresses:
       - 192.168.2.5
   - name: tifa
-    description: Synology NAS
     macAddresses:
       - E4:5F:01:46:2A:86
     ipAddresses:

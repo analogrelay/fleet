@@ -1,6 +1,6 @@
 import * as azure from "@pulumi/azure-native"
 import resourceGroup from "./resourceGroup.js";
-import { analogcloud } from "../../providers.js";
+import { analogcloud } from "../../global.js";
 
 export const fastmailSpfValue: azure.types.input.network.TxtRecordArgs = {
   value: [ "v=spf1 include:spf.messagingengine.com ?all" ],
@@ -11,9 +11,9 @@ const fastmailMxRecords: azure.types.input.network.MxRecordArgs[] = [
   { exchange: "in2-smtp.messagingengine.com", preference: 20 },
 ];
 
-function createDkimRecord(zoneName: string, index: number): azure.network.RecordSet {
+function createDkimRecord(zoneName: string, zone: azure.network.Zone, index: number): azure.network.RecordSet {
   return new azure.network.RecordSet(`${zoneName}/cname/fm${index}._domainkey`, {
-    zoneName: zoneName,
+    zoneName: zone.name,
     resourceGroupName: resourceGroup.name,
     recordType: "CNAME",
     ttl: 3600,
@@ -26,18 +26,18 @@ function createDkimRecord(zoneName: string, index: number): azure.network.Record
   });
 }
 
-export function createDkimRecords(zoneName: string): azure.network.RecordSet[] {
+export function createDkimRecords(zoneName: string, zone: azure.network.Zone): azure.network.RecordSet[] {
   return [
-    createDkimRecord(zoneName, 1),
-    createDkimRecord(zoneName, 2),
-    createDkimRecord(zoneName, 3),
+    createDkimRecord(zoneName, zone, 1),
+    createDkimRecord(zoneName, zone, 2),
+    createDkimRecord(zoneName, zone, 3),
   ]
 }
 
-export function createMailRecords(zoneName: string): azure.network.RecordSet[] {
+export function createMailRecords(zoneName: string, zone: azure.network.Zone): azure.network.RecordSet[] {
   return [
     new azure.network.RecordSet(`${zoneName}/mx/root`, {
-      zoneName: zoneName,
+      zoneName: zone.name,
       resourceGroupName: resourceGroup.name,
       recordType: "MX",
       ttl: 3600,
@@ -46,6 +46,6 @@ export function createMailRecords(zoneName: string): azure.network.RecordSet[] {
     }, {
       provider: analogcloud,
     }),
-    ...createDkimRecords(zoneName),
+    ...createDkimRecords(zoneName, zone),
   ]
 }

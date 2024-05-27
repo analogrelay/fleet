@@ -1,5 +1,5 @@
 import * as azure from '@pulumi/azure-native';
-import { analogcloud } from '../../providers.js';
+import { analogcloud } from '../../global.js';
 
 export const resourceGroup = new azure.resources.ResourceGroup("analogcloud-dns", {
   location: "westus3",

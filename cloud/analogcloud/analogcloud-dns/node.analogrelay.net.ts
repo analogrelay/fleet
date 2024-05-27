@@ -1,5 +1,5 @@
 import * as azure from '@pulumi/azure-native';
-import { analogcloud } from '../../providers.js';
+import { analogcloud } from '../../global.js';
 import resourceGroup from './resourceGroup.js';
 import { allNodesWithName } from '../../lib/inventory.js';
 

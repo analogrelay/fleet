@@ -3,14 +3,16 @@
     "exports": "./index.ts",
     "type": "module",
     "engines": {
-      "node": ">=16"
+        "node": ">=16"
     },
     "devDependencies": {
         "@types/node": "^18"
     },
     "dependencies": {
         "@pulumi/azure-native": "^2.0.0",
+        "@pulumi/azuread": "^5.50.0",
         "@pulumi/pulumi": "^3.113.0",
+        "@pulumi/random": "^4.16.1",
         "ts-node": "^10.9.2",
         "typescript": "^5.0.0",
         "yaml": "^2.4.2"

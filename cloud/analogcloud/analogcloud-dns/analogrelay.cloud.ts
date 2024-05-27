@@ -2,20 +2,21 @@ import * as azure from '@pulumi/azure-native';
 import { analogcloud } from '../../global.js';
 import resourceGroup from './resourceGroup.js';
 import { createMailRecords, fastmailSpfValue } from './common.js';
+import { publicIp } from '../../msftbenefit/analogcompute/primary.js';
 
-export const analogrelay_com = new azure.network.Zone("analogrelay.com", {
+export const analogrelay_cloud = new azure.network.Zone("analogrelay.cloud", {
   location: "global",
   resourceGroupName: resourceGroup.name,
-  zoneName: "analogrelay.com",
+  zoneName: "analogrelay.cloud",
   zoneType: azure.network.ZoneType.Public,
 }, {
   provider: analogcloud,
 });
 
-createMailRecords("analogrelay.com", analogrelay_com);
+createMailRecords("analogrelay.cloud", analogrelay_cloud);
 
-new azure.network.RecordSet("analogrelay.com/txt/root", {
-  zoneName: analogrelay_com.name,
+new azure.network.RecordSet("analogrelay.cloud/txt/root", {
+  zoneName: analogrelay_cloud.name,
   resourceGroupName: resourceGroup.name,
   recordType: "TXT",
   ttl: 3600,
@@ -27,17 +28,15 @@ new azure.network.RecordSet("analogrelay.com/txt/root", {
   provider: analogcloud,
 });
 
-new azure.network.RecordSet("analogrelay.com/txt/_atproto", {
-  zoneName: analogrelay_com.name,
+new azure.network.RecordSet("analogrelay.cloud/a/root", {
+  zoneName: analogrelay_cloud.name,
   resourceGroupName: resourceGroup.name,
-  recordType: "TXT",
+  recordType: "A",
   ttl: 3600,
-  relativeRecordSetName: "_atproto",
-  txtRecords: [
+  relativeRecordSetName: "@",
+  aRecords: [
     {
-      value: [ "did=did:plc:2jim2f6p5xwgmy5orwvrl3u6" ],
-    },
-  ]
-}, {
-  provider: analogcloud,
-});
+      ipv4Address: publicIp.ipAddress.apply(ip => ip!),
+    }
+  ],
+}, { provider: analogcloud });

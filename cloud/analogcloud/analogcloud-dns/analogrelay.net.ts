@@ -1,5 +1,5 @@
 import * as azure from '@pulumi/azure-native';
-import { analogcloud } from '../../providers.js';
+import { analogcloud } from '../../global.js';
 import resourceGroup from './resourceGroup.js';
 import { node_analogrelay_net } from './node.analogrelay.net.js';
 import { device_analogrelay_net } from './device.analogrelay.net.js';
@@ -15,7 +15,7 @@ export const analogrelay_net = new azure.network.Zone("analogrelay.net", {
   protect: true, // Protected because this zone is modified by external tools (Kubernetes external-dns)
 });
 
-createMailRecords("analogrelay.net");
+createMailRecords("analogrelay.net", analogrelay_net);
 
 new azure.network.RecordSet("analogrelay.net/txt/root", {
   zoneName: analogrelay_net.name,
