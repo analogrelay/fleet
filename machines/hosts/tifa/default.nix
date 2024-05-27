@@ -4,9 +4,12 @@
   imports =
     [ ./hardware-configuration.nix
       ../../platform.nix
-      ../../roles/server.nix
 
       ../../users/ashley.nix
+
+      ../../roles/server.nix
+
+      ../../profiles/k3s/agent.nix
     ];
 
   networking.hostName = "tifa";

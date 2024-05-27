@@ -5,9 +5,11 @@
     enable = true;
     matchBlocks = {
       "*.node.analogrelay.net" = {
+        forwardAgent = true;
         user = "ashley";
       };
       "*.bicorn-bebop.ts.net" = {
+        forwardAgent = true;
         user = "ashley";
       };
       "*.internal.analogrelay.cloud" = {
