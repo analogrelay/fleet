@@ -4,6 +4,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixos-hardware.url = "github:NixOS/nixos-hardware";
     mac-app-util.url = "github:hraban/mac-app-util";
     home-manager = {
       url = "github:nix-community/home-manager/release-23.11";
@@ -32,6 +33,7 @@
     self, 
     nixpkgs, 
     nixpkgs-unstable, 
+    nixos-hardware,
     flake-utils, 
     ssh-to-age, 
     nix-darwin, 
@@ -103,7 +105,10 @@
       nixosConfigurations = {
         avalanche = mkSystem "x86_64-linux" [ ./machines/hosts/avalanche ];
         shinra = mkSystem "x86_64-linux" [ ./machines/hosts/shinra ];
-        tifa = mkSystem "aarch64-linux" [ ./machines/hosts/tifa ];
+        tifa = mkSystem "aarch64-linux" [ 
+          nixos-hardware.raspberry-pi-4
+          ./machines/hosts/tifa 
+        ];
         zach = mkWslSystem "x86_64-linux" [ ./machines/hosts/zach ];
       };
       darwinConfigurations = {
