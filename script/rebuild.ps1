@@ -33,36 +33,25 @@ if ($continue -ne "Y" -and $continue -ne "y") {
   exit 1
 }
 
-function _buildhost($rootPath, $hostname) {
+function _buildhost($rootPath, $hostname, [switch]$Optional) {
   # Find the host in 'machines/hosts'
   $hostConfigDir = Join-Path $rootPath "machines" "hosts" $hostname
   if (-not (Test-Path $hostConfigDir)) {
     throw "No configuration found for host $hostname found at $hostConfigDir."
   }
 
-  # First, run a 'preconfigure.ps1' script if it exists
-  $preconfigureScript = Join-Path $hostConfigDir "preconfigure.ps1"
-  if (Test-Path $preconfigureScript) {
-    Write-Host "Running preconfigure script..."
-    & $preconfigureScript
-  }
-
-  # Now, run the DSC configuration
-  $dscConfig = Join-Path $hostConfigDir "configuration.dsc.yaml"
-  if (Test-Path $dscConfig) {
-    Write-Host "Applying WinGet configuration..."
-    winget configure --file "$dscConfig"
-  }
-
-  # Now, run a 'postconfigure.ps1' script if it exists
-  $configureScript = Join-Path $hostConfigDir "postconfigure.ps1"
+  $configureScript = Join-Path $hostConfigDir "configure.ps1"
   if (Test-Path $configureScript) {
-    Write-Host "Running postconfigure script..."
+    Write-Host "Applying WinGet configuration..."
     & $configureScript
+  } elseif(-not $Optional) {
+    throw "No configuration script found for host $hostname at $configureScript."
   }
 }
 
 _buildhost $RepoRoot $HostName
 if(Test-Path $InternalRepoRoot) {
-  _buildhost $InternalRepoRoot $HostName
+  _buildhost $InternalRepoRoot $HostName -Optional
+} else {
+  Write-Warning "fleet-internal repository not found at $InternalRepoRoot."
 }

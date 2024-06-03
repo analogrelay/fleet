@@ -1,6 +1,6 @@
 # Drop a file to redirect the profile to the fleet profile
 
-$RepoRoot = (Get-Item -Path $PSScriptRoot).Parent.Parent.Parent.FullName
+$RepoRoot = (Get-Item -Path $PSScriptRoot).Parent.Parent.FullName
 
 $profileScriptContent = ". '$RepoRoot\powershell\profile.ps1'"
 $profileScriptContent | Out-File -FilePath $profile -Encoding utf8

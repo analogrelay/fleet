@@ -38,10 +38,13 @@
             "type": "remainingProfiles"
         }
     ],
+    "newTabPosition": "afterCurrentTab",
     "profiles": 
     {
         "defaults": 
         {
+            "colorScheme": "One Half Dark",
+            "experimental.retroTerminalEffect": false,
             "font": 
             {
                 "face": "MonaspiceNe Nerd Font"
@@ -329,5 +332,6 @@
             "yellow": "#808000"
         }
     ],
-    "themes": []
+    "themes": [],
+    "useAcrylicInTabRow": true
 }

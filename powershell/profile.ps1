@@ -6,7 +6,3 @@ $FleetRoot = (Get-Item $PSScriptRoot).Parent.FullName
 Get-ChildItem "$FleetRoot\powershell\profile.d" -Filter '*.ps1' | ForEach-Object {
   . $_
 }
-
-Get-ChildItem (Join-Path $PSScriptRoot "functions") -Filter '*.ps1' | ForEach-Object {
-  . $_
-}
