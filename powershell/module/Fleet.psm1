@@ -56,7 +56,7 @@ function Update-MachineConfiguration {
   applyconfig "$FleetRoot\machines\realms\$Realm.windows.ps1"
   applyconfig "$FleetRoot\machines\roles\$Role.windows.ps1"
 
-  $Profiles | Where-Objecct { -not [string]::IsNullOrWhitespace($_) } | ForEach-Object {
+  $Profiles | Where-Object { -not [string]::IsNullOrWhitespace($_) } | ForEach-Object {
     applyconfig "$FleetRoot\machines\profiles\$_.windows.ps1"
   }
 }
