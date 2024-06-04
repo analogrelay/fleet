@@ -1,4 +1,4 @@
-# Drop a file to redirect the profile to the fleet profile
+winget configure --file "$PSScriptRoot\workstation.dsc.yml"
 
 $RepoRoot = (Get-Item -Path $PSScriptRoot).Parent.Parent.FullName
 
@@ -31,7 +31,7 @@ if (-not (Test-Path $wtSettingsFile)) {
 }
 
 # Check the machine name
-$ExpectedMachineName = "ashleyst-delta"
+$ExpectedMachineName = $env:FLEET_MACHINE
 $CurrentMachineName = & hostname
 if ($ExpectedMachineName -ne $CurrentMachineName) {
   Write-Host "Renaming machine..."
@@ -49,8 +49,12 @@ if(Test-Path $fleetGitConfigFile) {
 
 $gitLocalConfigFile = Join-Path $env:USERPROFILE ".gitlocal"
 if(-not (Test-Path $gitLocalConfigFile)) {
-  $emailAddress = Read-Host "Please enter your git email address"
-  $userName = Read-Host "Please enter your git user name"
+  $userName = "Ashley Stanton-Nurse"
+  if ($env:FLEET_REALM -eq "microsoft") {
+    $emailAddress = "ashleyst@microsoft.com"
+  } else {
+    $emailAddress = "git@analogrelay.net"
+  }
 
   git config --file "$gitLocalConfigFile" user.email "$emailAddress"
   git config --file "$gitLocalConfigFile" user.name "$userName"

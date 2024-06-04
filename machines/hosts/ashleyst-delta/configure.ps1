@@ -1,5 +1,7 @@
 $RepoRoot = (Get-Item -Path $PSScriptRoot).Parent.Parent.Parent.FullName
+Import-Module "$RepoRoot\powershell\module\Fleet.psd1" -Scope Local
 
-winget configure --file "$RepoRoot\machines\windows.dsc.yml"
-winget configure --file "$RepoRoot\machines\roles\workstation.dsc.yml"
-. "$RepoRoot\machines\roles\workstation.windows.ps1"
+# Set user-level environment variable to define key information about the machine.
+Set-MachineContext -Name "ashleyst-delta" -Role "workstation" -Realm "microsoft"
+
+Update-MachineConfiguration

@@ -1,0 +1,1 @@
+winget configure --file "$PSScriptRoot\microsoft.dsc.yml"

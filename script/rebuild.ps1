@@ -42,7 +42,7 @@ function _buildhost($rootPath, $hostname, [switch]$Optional) {
 
   $configureScript = Join-Path $hostConfigDir "configure.ps1"
   if (Test-Path $configureScript) {
-    Write-Host "Applying WinGet configuration..."
+    Write-Host "Applying configuration..."
     & $configureScript
   } elseif(-not $Optional) {
     throw "No configuration script found for host $hostname at $configureScript."

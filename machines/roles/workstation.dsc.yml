@@ -19,14 +19,6 @@ properties:
         id: Microsoft.DotNet.SDK.8
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: vsbase
-      directives:
-        description: Install Visual Studio 2022 Enterprise Core Workload
-        allowPrerelease: true
-      settings:
-        id: Microsoft.VisualStudio.2022.Enterprise
-        source: winget
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
       directives:
         description: Install Visual Studio Code
         allowPrerelease: true

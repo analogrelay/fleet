@@ -1,6 +1,6 @@
 $env:HOME = $env:USERPROFILE
 
-$FleetRoot = (Get-Item $PSScriptRoot).Parent.FullName
+Import-Module "$PSScriptRoot\module\Fleet.psd1" -Scope Global
 
 # Run Profile Scripts
 Get-ChildItem "$FleetRoot\powershell\profile.d" -Filter '*.ps1' | ForEach-Object {
