@@ -1,4 +1,4 @@
-winget configure --file "$PSScriptRoot\workstation.dsc.yml"
+winget configure --file "$PSScriptRoot\workstation.dsc.yml" --accept-configuration-agreements
 
 $RepoRoot = (Get-Item -Path $PSScriptRoot).Parent.Parent.FullName
 

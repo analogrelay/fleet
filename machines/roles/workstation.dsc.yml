@@ -67,3 +67,17 @@ properties:
       settings:
         id: Canonical.Ubuntu.2204
         source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives:
+        description: Install JetBrains Toolbox
+        allowPrerelease: true
+      settings:
+        id: JetBrains.Toolbox
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives:
+        description: Install WinDirStat
+        allowPrerelease: true
+      settings:
+        id: WinDirStat.WinDirStat
+        source: winget

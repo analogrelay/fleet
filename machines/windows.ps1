@@ -1,1 +1,1 @@
-winget configure --file "$PSScriptRoot\windows.dsc.yml"
+winget configure --file "$PSScriptRoot\windows.dsc.yml" --accept-configuration-agreements
