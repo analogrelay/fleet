@@ -5,6 +5,8 @@
     [ ./hardware-configuration.nix
       ../../platform.nix
 
+      ../../hardware/rpi4.nix
+
       ../../users/ashley.nix
 
       ../../roles/server.nix
