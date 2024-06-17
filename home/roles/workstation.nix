@@ -13,5 +13,6 @@
     pulumi
     gh
     lazygit
+    jq
   ];
 }
