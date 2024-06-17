@@ -1,9 +1,13 @@
 keys: &all_keys
+  - &backup age17a2hdufk32lxt7xftcvcqwhz9l5jtzll47gkkjqwsehg8gemk55scfzxmu
   - &user_ashley age1an5cnl74gg6le3rr7jzfc07slzfaketcs2vv6t7fl7vxxrn6cs4qxf60gh
   - &system_avalanche age1zwy2y4rf62r4udmprr6f2hvs0vpw3e38dh3p0hqsj2jlyt0n5gls20r6aj
   - &system_shinra age12hg08zmusx69d70462ec7qq9ch974rw4p08c6e49rak0hqc7leesuadtvg
   - &system_zach age1f0xa5vhpgdk4sstslfuv8vcypjcx5y7my6tgca8l2m4my4mccppsafjyey
   - &system_sephiroth age1hwuqwhcqtvkwsylsea9q4rfh6xtshghxwjwn32g9v8qek3qzm4ussct9yw
+  - &system_tifa age19ys7plh80x2sggwn9wxzzkky8lfqawj902yqr5uwyphmpv09yuyqz7wuj7
+  - &system_wedge age1z6upstcgq6nx00s7slhkkx7ve97tpkg2zen5p2v7wl2v84rdgeuqqvm26n
+  - &system_jessie age1zu04ydfyckh7zjteca3vk2azjggpgzcx2f87fygeqxmku5k9pyvq80pkku
 creation_rules:
   - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
     key_groups:
