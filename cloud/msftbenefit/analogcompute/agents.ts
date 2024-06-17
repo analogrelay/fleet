@@ -7,7 +7,8 @@ import { adminSshKey, k3sAgentIdentity } from './identity.js';
 
 import { readFile } from 'fs/promises';
 
-const agentCount = 0;
+const agentCount = 1;
+const armAgentCount = 0;
 
 // Read the cloud init file, and replace the placeholder with the identity ID.
 const cloudInitTemplate = await readFile('./msftbenefit/analogcompute/k3s-agent.cloud-init.sh', { encoding: 'utf-8' });
@@ -36,6 +37,12 @@ export const agentScaleSet = new azure.compute.VirtualMachineScaleSet("analogcom
     ],
   },
   virtualMachineProfile: {
+    scheduledEventsProfile: {
+      terminateNotificationProfile: {
+        enable: true,
+        notBeforeTimeout: "PT5M",
+      },
+    },
     storageProfile: {
       osDisk: {
         createOption: azure.compute.DiskCreateOption.FromImage,
@@ -83,6 +90,78 @@ export const agentScaleSet = new azure.compute.VirtualMachineScaleSet("analogcom
       uefiSettings: {
         secureBootEnabled: true,
         vTpmEnabled: true,
+      },
+    },
+    userData: cloudInit.apply(cloudInit => Buffer.from(cloudInit).toString('base64')),
+  },
+});
+
+export const armAgentScaleSet = new azure.compute.VirtualMachineScaleSet("analogcompute/arm-agents", {
+  resourceGroupName: resourceGroup.name,
+  location: resourceGroup.location,
+  vmScaleSetName: "analogcompute-arms",
+  overprovision: false,
+  sku: {
+    capacity: armAgentCount,
+    name: "Standard_B2pls_v2",
+  },
+  upgradePolicy: {
+    mode: azure.compute.UpgradeMode.Manual,
+  },
+  orchestrationMode: azure.compute.OrchestrationMode.Uniform,
+  identity: {
+    type: azure.compute.ResourceIdentityType.SystemAssigned_UserAssigned,
+    userAssignedIdentities: [
+      k3sAgentIdentity.id,
+    ],
+  },
+  virtualMachineProfile: {
+    scheduledEventsProfile: {
+      terminateNotificationProfile: {
+        enable: true,
+        notBeforeTimeout: "PT5M",
+      },
+    },
+    storageProfile: {
+      osDisk: {
+        createOption: azure.compute.DiskCreateOption.FromImage,
+        managedDisk: {
+          storageAccountType: azure.compute.StorageAccountTypes.StandardSSD_LRS,
+        },
+      },
+      imageReference: {
+        publisher: "Canonical",
+        offer: "0001-com-ubuntu-server-jammy",
+        sku: "22_04-lts-arm64",
+        version: "latest",
+      },
+    },
+    networkProfile: {
+      networkInterfaceConfigurations: [{
+        name: 'analogcompute-arms-nic-01',
+        primary: true,
+        networkSecurityGroup: {
+          id: agentNodeNsg.id,
+        },
+        ipConfigurations: [{
+          name: 'analogcompute-arms-ipcfg-01',
+          subnet: {
+            id: subnets["k3s-secondary"].id?.apply(id => id!),
+          },
+        }],
+      }],
+    },
+    osProfile: {
+      computerNamePrefix: "analogcompute-arm-",
+      adminUsername: "azureuser",
+      linuxConfiguration: {
+        disablePasswordAuthentication: true,
+        ssh: {
+          publicKeys: [{
+            keyData: adminSshKey.publicKey.apply(key => key!),
+            path: `/home/azureuser/.ssh/authorized_keys`,
+          }],
+        }
       },
     },
     userData: cloudInit.apply(cloudInit => Buffer.from(cloudInit).toString('base64')),
