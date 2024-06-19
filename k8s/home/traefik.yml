@@ -10,6 +10,66 @@ spec:
       - "--entrypoints.mqtt.address=:1883/tcp"
       - "--entrypoints.mqttws.address=:9001/tcp"
       - "--entrypoints.postgres.address=:5432/tcp"
+      - "--providers.file.filename=/config/additional.toml"
+    volumes:
+      - name: traefik-toml-config
+        mountPath: /config
+        type: configMap
+      - name: home-cert-tls
+        mountPath: /certs/home
+        type: secret
+---
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: home-cert
+  namespace: kube-system
+spec:
+  secretName: home-cert-tls
+  dnsNames:
+    - home.analogrelay.net
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+    group: cert-manager.io
+  usages:
+    - digital signature
+    - key encipherment
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: traefik-toml-config
+  namespace: kube-system
+data:
+  additional.toml: |
+    [tls]
+      [[tls.certificates]]
+        certFile = "/certs/home/tls.crt"
+        keyFile = "/certs/home/tls.key"
+
+    [http]
+      [http.routers]
+        [http.routers.web-home-assistant]
+          rule = "Host(`home.analogrelay.net`) && PathPrefix(`/`)"
+          entryPoints = ["web"]
+          service = "home-assistant"
+          middlewares = ["kube-system-redirect@kubernetescrd"]
+        [http.routers.websecure-home-assistant]
+          rule = "Host(`home.analogrelay.net`) && PathPrefix(`/`)"
+          entryPoints = ["websecure"]
+          service = "home-assistant"
+          middlewares = ["kube-system-redirect@kubernetescrd"]
+          [http.routers.websecure-home-assistant.tls]
+
+      [http.services]
+        [http.services.home-assistant]
+          [http.services.home-assistant.loadBalancer]
+            [[http.services.home-assistant.loadBalancer.servers]]
+              url = "http://192.168.2.12:8123"
 ---
 apiVersion: v1
 kind: Service

@@ -37,6 +37,24 @@ new azure.network.RecordSet("analogrelay.net/txt/root", {
   protect: true,
 });
 
+new azure.network.RecordSet("analogrelay.net/a/home", {
+  zoneName: analogrelay_net.name,
+  resourceGroupName: resourceGroup.name,
+  recordType: "A",
+  ttl: 3600,
+  relativeRecordSetName: "home",
+  aRecords: [
+    {
+      ipv4Address: "192.168.2.1"
+    },
+    {
+      ipv4Address: "192.168.2.2"
+    },
+  ],
+}, {
+  provider: analogcloud,
+});
+
 new azure.network.RecordSet("analogrelay.net/ns/node", {
   zoneName: analogrelay_net.name,
   resourceGroupName: resourceGroup.name,

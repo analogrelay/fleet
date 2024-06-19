@@ -65,12 +65,6 @@ nodes:
       - E4:5F:01:46:2A:86
     ipAddresses:
       - 192.168.2.6
-  - name: jessie
-    description: Raspberry Pi 4 Server
-    macAddresses:
-      - E4:5F:01:46:2A:77
-    ipAddresses:
-      - 192.168.2.11
   - name: barret
     macAddresses:
       - DC:A6:32:E9:A7:9E
@@ -86,6 +80,18 @@ nodes:
       - B8:27:EB:0C:A3:D8
     ipAddresses:
       - 192.168.2.10
+  - name: jessie
+    description: Raspberry Pi 4 Server
+    macAddresses:
+      - E4:5F:01:46:2A:77
+    ipAddresses:
+      - 192.168.2.11
+  - name: home
+    description: Home Assistant Green
+    macAddresses:
+      - 20:F8:3B:00:A8:ED
+    ipAddresses:
+      - 192.168.2.12
 
   # Workstations
   - name: sephiroth
@@ -130,3 +136,17 @@ nodes:
       - 9c:8e:cd:3c:e1:bf
     ipAddresses:
       - 192.168.4.7
+  - name: hue
+    domain: devices
+    description: Hue Bridge
+    macAddresses:
+      - EC:B5:FA:21:93:5C
+    ipAddresses:
+      - 192.168.4.8
+  - name: livingroomtvplug
+    domain: devices
+    description: Living Room TV Smart Plug
+    macAddresses:
+      - E8:DB:84:C9:5A:0A
+    ipAddresses:
+      - 192.168.4.9
