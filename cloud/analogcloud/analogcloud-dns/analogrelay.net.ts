@@ -1,9 +1,8 @@
 import * as azure from '@pulumi/azure-native';
 import { analogcloud } from '../../global.js';
 import resourceGroup from './resourceGroup.js';
-import { node_analogrelay_net } from './node.analogrelay.net.js';
-import { device_analogrelay_net } from './device.analogrelay.net.js';
 import { createMailRecords, fastmailSpfValue } from './common.js';
+import { loadInventory } from "../../../inventory/lib/index.js";
 
 export const analogrelay_net = new azure.network.Zone("analogrelay.net", {
   location: "global",
@@ -55,24 +54,46 @@ new azure.network.RecordSet("analogrelay.net/a/home", {
   provider: analogcloud,
 });
 
-new azure.network.RecordSet("analogrelay.net/ns/node", {
-  zoneName: analogrelay_net.name,
-  resourceGroupName: resourceGroup.name,
-  recordType: "NS",
-  ttl: 3600,
-  relativeRecordSetName: "node",
-  nsRecords: node_analogrelay_net.nameServers.apply(nameServers => nameServers.map(nameServer => ({ nsdname: nameServer }))),
-}, {
-  provider: analogcloud,
-});
+// Create domains for networks
+const inventory = await loadInventory();
 
-new azure.network.RecordSet("analogrelay.net/ns/device", {
-  zoneName: analogrelay_net.name,
-  resourceGroupName: resourceGroup.name,
-  recordType: "NS",
-  ttl: 3600,
-  relativeRecordSetName: "device",
-  nsRecords: device_analogrelay_net.nameServers.apply(nameServers => nameServers.map(nameServer => ({ nsdname: nameServer }))),
-}, {
-  provider: analogcloud,
-});
+for (const network of inventory.networks.values()) {
+  if (!network.dns) {
+    continue;
+  }
+
+  const firstDot = network.domain.indexOf(".");
+
+  const zone = new azure.network.Zone(`${network.subdomain}.analogrelay.net`, {
+    location: "global",
+    resourceGroupName: resourceGroup.name,
+    zoneName: `${network.subdomain}.analogrelay.net`,
+    zoneType: azure.network.ZoneType.Public,
+  }, {
+    provider: analogcloud,
+  });
+
+  new azure.network.RecordSet(`analogrelay.net/ns/${network.subdomain}`, {
+    zoneName: analogrelay_net.name,
+    resourceGroupName: resourceGroup.name,
+    recordType: "NS",
+    ttl: 3600,
+    relativeRecordSetName: network.subdomain,
+    nsRecords: zone.nameServers.apply(nameServers => nameServers.map(nameServer => ({ nsdname: nameServer }))),
+  }, {
+    provider: analogcloud,
+  });
+
+  for (const connection of network.connections) {
+    new azure.network.RecordSet(`${network.subdomain}.analogrelay.net/a/${connection.hostname}`, {
+      zoneName: zone.name,
+      resourceGroupName: resourceGroup.name,
+      recordType: "A",
+      ttl: 3600,
+      relativeRecordSetName: connection.hostname,
+      aRecords: connection.ipv4Addresses.map(ipAddress => ({ ipv4Address: ipAddress })),
+    }, {
+      provider: analogcloud,
+    });
+  }
+}

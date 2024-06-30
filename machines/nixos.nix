@@ -3,6 +3,7 @@
 {
   networking.domain = "node.analogrelay.net";
   networking.networkmanager.enable = true;
+  systemd.services.NetworkManager-wait-online.enable = false;
 
   # This can be overridden on a per-host basis
   time.timeZone = "America/Vancouver";

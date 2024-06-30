@@ -38,6 +38,11 @@ in
   };
   programs.bat.enable = true;
   programs.password-store.enable = true;
+  programs.direnv = {
+    enable = true;
+    enableZshIntegration = true;
+    nix-direnv.enable = true;
+  };
 
   home.packages = with pkgs; [
     dos2unix

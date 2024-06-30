@@ -26,6 +26,9 @@
           "StrictHostKeyChecking" = "yes";
         };
       };
+      "gaia.node.analogrelay.net" = {
+        user = "admin";
+      };
       "avalanche.node.analogrelay.net" = {};
       "avalanche.bicorn-bebop.ts.net" = {};
       "shinra.node.analogrelay.net" = {};

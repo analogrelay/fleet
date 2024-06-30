@@ -5,5 +5,3 @@ import './analogrelay.com.js';
 import './analogrelay.dev.js';
 import './analogrelay.net.js';
 import './andrewnurse.net.js';
-import './device.analogrelay.net.js';
-import './node.analogrelay.net.js';

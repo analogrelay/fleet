@@ -1,0 +1,244 @@
+# An inventory of all the machines in the fleet.
+# Used to generate DNS names, and to update DHCP static leases (eventually)
+networks:
+  - id: 10
+    dns: true
+    name: primary
+    dhcpServer: "primary/dhcp"
+    subdomain: node
+    description: The Primary VLAN
+  - id: 42
+    dns: true
+    name: iot
+    subdomain: iot
+    description: VLAN for IoT devices with limited internet and LAN access
+nodes:
+  # Network Equipment
+  - name: gaia
+    description: Home Gateway
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.1.1
+  - name: midgar
+    description: Wi-Fi Access Point
+    macAddresses:
+      - 5C:E9:31:EA:92:68
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.1.2
+  - name: wutai
+    description: Wi-Fi Access Point
+    macAddresses:
+      - 5C:E9:31:EA:92:8A
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.1.3
+  - name: kalm
+    description: Wi-Fi Access Point
+    macAddresses:
+      - C4:41:1E:36:EB:30
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.1.4
+  - name: junon
+    description: Wi-Fi Access Point
+    macAddresses:
+      - 40:ED:00:14:69:BE
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.1.6
+
+  # Servers
+  - name: avalanche
+    description: Home Server
+    macAddresses:
+      - 74:56:3C:75:F4:26
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.2.1
+  - name: shinra
+    description: Old Macbook Server
+    macAddresses:
+      - 7C:C2:C6:45:A8:30
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.2.2
+  - name: cid
+    description: Synology NAS
+    macAddresses:
+      - 00:11:32:24:87:9D
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.2.4
+  - name: wedge
+    description: Raspberry Pi 4 Server
+    macAddresses:
+      - E4:5F:01:32:74:53
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.2.5
+  - name: tifa
+    description: Raspberry Pi 4 Server
+    macAddresses:
+      - E4:5F:01:46:2A:86
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.2.6
+  - name: barret
+    macAddresses:
+      - DC:A6:32:E9:A7:9E
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.2.7
+  - name: biggs
+    macAddresses:
+      - E4:5F:01:48:EC:F7
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.2.9
+  - name: reno
+    macAddresses:
+      - B8:27:EB:0C:A3:D8
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.2.10
+  - name: jessie
+    description: Raspberry Pi 4 Server
+    macAddresses:
+      - E4:5F:01:46:2A:77
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.2.11
+  - name: home
+    description: Home Assistant Green
+    macAddresses:
+      - 20:F8:3B:00:A8:ED
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.2.12
+      - network: iot
+        ipAddresses:
+          - 10.1.0.2
+  - name: octopi
+    description: Octopi
+    macAddresses:
+      - B8:27:EB:0C:A3:D8 
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.2.13
+
+  # Workstations
+  - name: sephiroth
+    description: MacBook
+    macAddresses:
+      - F8:4D:89:5E:3C:4D
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.3.1
+  - name: cloud
+    description: Windows Desktop
+    macAddresses:
+      - D4:5D:64:D3:5F:82
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.3.2
+  - name: ashleyst-delta
+    description: Work Laptop
+    macAddresses:
+      -	C8:96:65:E6:D8:46
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.3.3
+
+  # Devices
+  - name: hvacprimarybed
+    description: Primary Bedroom Mini-Split Controller
+    macAddresses:
+      - 24:A1:60:30:33:6A
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.4.2
+  - name: hvaclivingroom
+    description: Living Room Mini-Split Controller
+    macAddresses:
+      - 24:A1:60:2F:C1:AD
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.4.3
+  - name: brothermfc
+    description: Brother MFC-7860DW Printer
+    macAddresses:
+      - 00:80:92:C3:42:28
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.4.6
+  - name: frontdoorbell
+    description: Amcrest Front Doorbell
+    macAddresses:
+      - 9c:8e:cd:3c:e1:bf
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.4.7
+  - name: hue
+    description: Hue Bridge
+    macAddresses:
+      - EC:B5:FA:21:93:5C
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.4.8
+  - name: livingroomtvplug
+    description: Living Room TV Smart Plug
+    macAddresses:
+      - E8:DB:84:C9:5A:0A
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.4.9
+  - name: miyoo
+    description: Miyoo Mini Plus
+    macAddresses:
+      - 98:03:CF:9D:73:45
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.4.10
+  - name: fridgeplug
+    description: Fridge Smart Plug
+    macAddresses:
+      - E8:DB:84:C9:F0:0B
+    connections:
+      - network: primary
+        ipAddresses:
+          - 192.168.4.11
+  - name: tablet-alpha
+    description: Amazon Fire HD 10 Plus Tablet
+    macAddresses:
+      - D8:FB:D6:72:3C:87
+    connections:
+      - network: iot
+        ipAddresses:
+          - 10.1.1.1

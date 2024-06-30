@@ -20,6 +20,10 @@ spec:
       labels: 
         app: omada
     spec:
+      securityContext:
+        sysctls:
+          - name: net.ipv4.ip_unprivileged_port_start
+            value: "0"
       containers:
         - name: omada-container
           image: mbentley/omada-controller:5.13
@@ -31,13 +35,15 @@ spec:
               value: "5000"
             - name: PGID
               value: "5003"
+            - name: MANAGE_HTTPS_PORT
+              value: "443"
           ports:
             - name: http
               containerPort: 8088
             - name: https
               containerPort: 8843
             - name: mgmt-https
-              containerPort: 8043
+              containerPort: 443
             - name: app-disco
               containerPort: 27001
               protocol: UDP

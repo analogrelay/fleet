@@ -58,15 +58,21 @@ spec:
               mountPath: /config
             - name: downloads
               mountPath: /downloads
+            - name: public
+              mountPath: /public
       volumes:
         - name: downloads
           nfs:
             server: avalanche.node.analogrelay.net
-            path: /mnt/data/shares/public/aria/downloads
+            path: /mnt/data/shares/public/downloads
+        - name: public
+          nfs:
+            server: avalanche.node.analogrelay.net
+            path: /mnt/data/shares/public
         - name: config
           nfs:
             server: avalanche.node.analogrelay.net
-            path: /mnt/data/shares/public/aria/config
+            path: /mnt/data/k3s/shares/aria.aria-config
 
 ---
 apiVersion: v1
