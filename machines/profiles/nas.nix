@@ -24,15 +24,14 @@
     ];
 
     # Configure Aria2c downloader
-    sops.secrets.aria2_token.sopsFile = ../../../secrets/secrets.yaml;
     services.aria2 = {
       enable = true;
       openPorts = true;
       rpcListenPort = 6800;
-      listenPortRange = { from = 6881; to = 6999; };
+      extraArguments = "--rpc-listen-all";
+      listenPortRange = [{ from = 6881; to = 6999; }];
       downloadDir = "/mnt/data/shares/public/downloads";
-      rpcSecretFile = config.sops.secrets.k3s_token.path; 
-    }
+    };
 
     # Configure samba
     services.samba = {

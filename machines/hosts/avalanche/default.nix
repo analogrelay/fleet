@@ -24,5 +24,10 @@
   home-manager.extraSpecialArgs = {
     username = "ashley";
   };
+
+  services.beesd.filesystems.data = {
+    spec = "LABEL=DATA";
+    hashTableSizeMB = 128;
+  };
 }
 
