@@ -3,13 +3,15 @@
 {
   imports =
     [ ./hardware-configuration.nix
+      ../hardware/rpi4.nix
       ../../platform.nix
-      ../../roles/server.nix
 
-      ../../users/ashley.nix
+      ../../users
+
+      ../../roles/server.nix
     ];
 
-  networking.hostName = "biggs";
+  networking.hostName = "wedge";
 
   system.stateVersion = "23.11";
 

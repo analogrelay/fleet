@@ -103,15 +103,19 @@
       lib = { inherit mkSystem; };
 
       nixosConfigurations = {
+        # Standard x64 servers
         avalanche = mkSystem "x86_64-linux" [ ./machines/hosts/avalanche ];
         shinra = mkSystem "x86_64-linux" [ ./machines/hosts/shinra ];
-        tifa = mkSystem "aarch64-linux" [ 
-          nixos-hardware.raspberry-pi-4
-          ./machines/hosts/tifa 
-        ];
+
+        # WSL on Cloud
         zach = mkWslSystem "x86_64-linux" [ ./machines/hosts/zach ];
+
+        # Raspberry Pis
+        jessie = mkSystem "aarch64-linux" [ ./machines/hosts/jessie ];
+        wedge = mkSystem "aarch64-linux" [ ./machines/hosts/wedge ];
       };
       darwinConfigurations = {
+        # MacBook Workstation
         sephiroth = mkDarwinSystem "aarch64-darwin" [
           ./machines/hosts/sephiroth
         ];
@@ -131,10 +135,6 @@
             ./home
           ];
         };
-      };
-
-      images = {
-        rpi4 = nixosConfigurations.rpi4.config.system.build.sdImage;
       };
 
       overlays = import ./overlays {inherit inputs;};

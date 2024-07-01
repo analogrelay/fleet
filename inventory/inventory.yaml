@@ -87,6 +87,7 @@ nodes:
         ipAddresses:
           - 192.168.2.5
   - name: tifa
+    online: false
     description: Raspberry Pi 4 Server
     macAddresses:
       - E4:5F:01:46:2A:86
@@ -95,6 +96,7 @@ nodes:
         ipAddresses:
           - 192.168.2.6
   - name: barret
+    online: false
     macAddresses:
       - DC:A6:32:E9:A7:9E
     connections:
@@ -102,6 +104,7 @@ nodes:
         ipAddresses:
           - 192.168.2.7
   - name: biggs
+    online: false
     macAddresses:
       - E4:5F:01:48:EC:F7
     connections:
@@ -109,6 +112,7 @@ nodes:
         ipAddresses:
           - 192.168.2.9
   - name: reno
+    online: false
     macAddresses:
       - B8:27:EB:0C:A3:D8
     connections:
