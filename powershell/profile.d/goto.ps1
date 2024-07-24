@@ -26,3 +26,5 @@ function goto([string]$query) {
     Write-Host "No directory selected."
   }
 }
+
+Set-Alias g goto
