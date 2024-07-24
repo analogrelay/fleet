@@ -114,3 +114,45 @@ properties:
       settings:
         id: BurntSushi.ripgrep.MSVC
         source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives:
+        description: Install rustup
+        allowPrerelease: true
+      settings:
+        id: Rustlang.Rustup
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives:
+        description: Install azure cli
+        allowPrerelease: true
+      settings:
+        id: Microsoft.AzureCLI
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives:
+        description: Install WSL from Store
+        allowPrerelease: true
+      settings:
+        id: 9P9TQF7MRM4R
+        source: msstore
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives:
+        description: Install Ubuntu 22.04 WSL
+        allowPrerelease: true
+      settings:
+        id: Canonical.Ubuntu.2204
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives:
+        description: Install k9s
+        allowPrerelease: true
+      settings:
+        id: Derailed.k9s
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives:
+        description: Install kubectl
+        allowPrerelease: true
+      settings:
+        id: Kubernetes.kubectl
+        source: winget

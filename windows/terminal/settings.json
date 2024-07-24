@@ -83,6 +83,27 @@
                 "hidden": false,
                 "name": "Ubuntu",
                 "source": "CanonicalGroupLimited.Ubuntu_79rhkp1fndgsc"
+            },
+            {
+                "colorScheme": "Ubuntu-ColorScheme",
+                "commandline": "wsl.exe -d NixOS",
+                "cursorShape": "filledBox",
+                "font": 
+                {
+                    "size": 13.0
+                },
+                "guid": "{62e12f79-82e9-4e9e-b70c-261b302dd0fa}",
+                "hidden": false,
+                "icon": "https://nixos.org/logo/nixos-logo-only-hires.png",
+                "name": "NixOS",
+                "startingDirectory": "\\\\wsl.localhost\\NixOS\\home\\nixos",
+                "tabTitle": "NixOS"
+            },
+            {
+                "guid": "{2c4de342-38b7-51cf-b940-2309a097f518}",
+                "hidden": true,
+                "name": "Ubuntu",
+                "source": "Windows.Terminal.Wsl"
             }
         ]
     },
