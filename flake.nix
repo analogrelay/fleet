@@ -107,8 +107,9 @@
         avalanche = mkSystem "x86_64-linux" [ ./machines/hosts/avalanche ];
         shinra = mkSystem "x86_64-linux" [ ./machines/hosts/shinra ];
 
-        # WSL on Cloud
+        # WSLs
         zach = mkWslSystem "x86_64-linux" [ ./machines/hosts/zach ];
+        ashleyst-deltaprime = mkWslSystem "x86_64-linux" [ ./machines/hosts/ashleyst-deltaprime ];
 
         # Raspberry Pis
         jessie = mkSystem "aarch64-linux" [ ./machines/hosts/jessie ];

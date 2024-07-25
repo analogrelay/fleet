@@ -6,12 +6,12 @@
         listenAddresses = [ 
             {
                 addr = "0.0.0.0";
-                port = 22;
+                port = 2222;
             }
         ];
     };
 
     networking.firewall.allowedTCPPorts = [
-        22 # sshd
+        2222 # sshd
     ];
 }

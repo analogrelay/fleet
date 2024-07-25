@@ -5,6 +5,7 @@
     [ ./hardware-configuration.nix
       ../hardware/rpi4.nix
       ../../platform.nix
+      ../../realms/analoghome.nix
 
       ../../users
 

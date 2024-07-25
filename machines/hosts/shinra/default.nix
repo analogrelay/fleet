@@ -4,6 +4,7 @@
   imports =
     [ ./hardware-configuration.nix
       ../../platform.nix
+      ../../realms/analoghome.nix
 
       ../../users
 

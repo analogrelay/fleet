@@ -3,6 +3,7 @@
 {
   imports = [
     ../../platform.nix
+    ../../realms/analoghome.nix
     ../../roles/workstation.nix
 
     ../../profiles/k3s/agent.nix
