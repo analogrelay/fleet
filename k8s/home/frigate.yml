@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: frigate
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: frigate-config
+  namespace: frigate
+spec:
+  storageClassName: nfs-avalanche
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Mi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: frigate-media
+  namespace: frigate
+spec:
+  storageClassName: nfs-avalanche
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: frigate
+  namespace: kube-system
+spec:
+  repo: https://blakeblackshear.github.io/blakeshome-charts/
+  chart: frigate
+  targetNamespace: frigate
+  valuesContent: |-
+    ingress:
+      enabled: true
+      ingressClassName: traefik
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-production
+        traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect@kubernetescrd
+      hosts:
+        - host: frigate.home.analogrelay.net
+          paths:
+            - '/'
+      tls:
+        - hosts:
+            - frigate.home.analogrelay.net
+          secretName: frigate-ingress-cert
+    persistence:
+      config:
+        enabled: true
+        existingClaim: frigate-config
+      media:
+        enabled: true
+        existingClaim: frigate-media
+    envFromSecrets:
+      - "secret-envs"
+    config: |
+      mqtt:
+        host: "home.analogrelay.net"
+        port: 1883
+      cameras:
+        doorbell:
+          enabled: true
+          ffmpeg:
+            inputs:
+              - path: "rtsp://admin:{FRIGATE_RTSP_PASSWORD}@frontdoorbell.node.analogrelay.net/cam/realmonitor?channel=1&subtype=0"
+        driveway:
+          enabled: true
+          ffmpeg:
+            inputs:
+              - path: "rtsp://admin:{FRIGATE_RTSP_PASSWORD}@drivewaycam.node.analogrelay.net"

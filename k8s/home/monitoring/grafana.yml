@@ -23,6 +23,9 @@ spec:
             runAsGroup: 1
           image: grafana/grafana:latest
           imagePullPolicy: IfNotPresent
+          env:
+            - name: GF_SECURITY_ALLOW_EMBEDDING
+              value: "true"
           ports:
             - containerPort: 3000
               name: http-grafana

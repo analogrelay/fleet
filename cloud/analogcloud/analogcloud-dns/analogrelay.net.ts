@@ -62,8 +62,6 @@ for (const network of inventory.networks.values()) {
     continue;
   }
 
-  const firstDot = network.domain.indexOf(".");
-
   const zone = new azure.network.Zone(`${network.subdomain}.analogrelay.net`, {
     location: "global",
     resourceGroupName: resourceGroup.name,

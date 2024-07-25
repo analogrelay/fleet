@@ -1,0 +1,201 @@
+# Networks
+[network.primary]
+vlan = 10
+dns = true
+dhcpServer = "primary/dhcp"
+subdomain = "node"
+description = "Primary VLAN for home devices"
+subnet = "10.10.0.0/16"
+
+  [network.primary.config.sshDefaults]
+  forwardAgent = true
+  user = "ashley"
+
+[network.iot]
+vlan = 20
+dns = true
+subdomain = "iot"
+description = "VLAN for IoT devices with limited internet and LAN access"
+subnet = "10.20.0.0/16"
+
+  [network.iot.config.sshDefaults]
+  forwardAgent = true
+  user = "ashley"
+
+[network.tailnet]
+external = true
+domain = "bicorn-bebop.ts.net"
+description = "Tailscale Network"
+
+  [network.tailnet.config.sshDefaults]
+  forwardAgent = true
+  user = "ashley"
+
+# Nodes
+[node.gaia]
+description = "Home Gateway"
+connection.primary.ipAddresses = [ "192.168.1.1" ]
+
+[node.midgar]
+description = "Wi-Fi Access Point"
+macAddresses = [ "5C:E9:31:EA:92:68" ]
+connection.primary.ipAddresses = [ "192.168.1.2" ]
+
+  [node.midgar.config.sshDefaults.extraOptions]
+  PubkeyAcceptedAlgorithms = "+ssh-rsa"
+  HostkeyAlgorithms = "+ssh-rsa"
+
+[node.wutai]
+description = "Wi-Fi Access Point"
+macAddresses = [ "5C:E9:31:EA:92:8A" ]
+connection.primary.ipAddresses = [ "192.168.1.3" ]
+
+  [node.wutai.config.sshDefaults.extraOptions]
+  PubkeyAcceptedAlgorithms = "+ssh-rsa"
+  HostkeyAlgorithms = "+ssh-rsa"
+
+[node.kalm]
+description = "Wi-Fi Access Point"
+macAddresses = [ "C4:41:1E:36:EB:30" ]
+connection.primary.ipAddresses = [ "192.168.1.4" ]
+config.sshDefaults.user = "root"
+
+  [node.kalm.config.sshDefaults.extraOptions]
+  PubkeyAcceptedAlgorithms = "+ssh-rsa"
+  HostkeyAlgorithms = "+ssh-rsa"
+
+[node.junon]
+description = "Wi-Fi Access Point"
+macAddresses = [ "40:ED:00:14:69:BE" ]
+connection.primary.ipAddresses = [ "192.168.1.6" ]
+
+[node.avalanche]
+description = "Home Server"
+macAddresses = [ "74:56:3C:75:F4:26" ]
+connection.primary.ipAddresses = [ "192.168.2.1" ]
+
+[node.shinra]
+description = "Old Macbook Server"
+macAddresses = [ "7C:C2:C6:45:A8:30" ]
+connection.primary.ipAddresses = [ "192.168.2.2" ]
+
+[node.cid]
+description = "Synology NAS"
+macAddresses = [ "00:11:32:24:87:9D" ]
+connection.primary.ipAddresses = [ "192.168.2.4" ]
+
+[node.wedge]
+description = "Raspberry Pi 4 Server"
+macAddresses = [ "E4:5F:01:32:74:53" ]
+connection.primary.ipAddresses = [ "192.168.2.5" ]
+node.wedge.apps = [ "octoprint", "octoprint-cam" ]
+
+[node.tifa]
+description = "Raspberry Pi 4 Server"
+macAddresses = [ "E4:5F:01:46:2A:86" ]
+connection.primary.ipAddresses = [ "192.168.2.6" ]
+
+[node.barret]
+macAddresses = [ "DC:A6:32:E9:A7:9E" ]
+connection.primary.ipAddresses = [ "192.168.2.7" ]
+
+[node.biggs]
+macAddresses = [ "E4:5F:01:48:EC:F7" ]
+connection.primary.ipAddresses = [ "192.168.2.9" ]
+
+[node.reno]
+macAddresses = [ "B8:27:EB:0C:A3:D8" ]
+connection.primary.ipAddresses = [ "192.168.2.10" ]
+
+[node.jessie]
+description = "Raspberry Pi 4 Server"
+macAddresses = [ "E4:5F:01:46:2A:77" ]
+connection.primary.ipAddresses = [ "192.168.2.11" ]
+
+[node.home]
+description = "Home Assistant Green"
+macAddresses = [ "20:F8:3B:00:A8:ED" ]
+connection.primary.ipAddresses = [ "192.168.2.12" ]
+connection.iot.ipAddresses = [ "10.1.0.2" ]
+node.home.apps = [ "home" ]
+
+[node.octopi]
+description = "Octopi"
+macAddresses = [ "B8:27:EB:0C:A3:D8" ]
+connection.primary.ipAddresses = [ "192.168.2.13" ]
+config.sshDefaults.user = "pi"
+
+[node.sephiroth]
+description = "MacBook"
+macAddresses = [ "F8:4D:89:5E:3C:4D" ]
+connection.primary.ipAddresses = [ "192.168.3.1" ]
+
+[node.cloud]
+description = "Windows Desktop"
+macAddresses = [ "D4:5D:64:D3:5F:82" ]
+connection.primary.ipAddresses = [ "192.168.3.2" ]
+
+[node.ashleyst-delta]
+description = "Work Laptop"
+macAddresses = [ "C8:96:65:E6:D8:46" ]
+connection.primary.ipAddresses = [ "192.168.3.3" ]
+
+[node.hvacprimarybed]
+description = "Primary Bedroom Mini-Split Controller"
+macAddresses = [ "24:A1:60:30:33:6A" ]
+connection.primary.ipAddresses = [ "192.168.4.2" ]
+
+[node.hvaclivingroom]
+description = "Living Room Mini-Split Controller"
+macAddresses = [ "24:A1:60:2F:C1:AD" ]
+connection.primary.ipAddresses = [ "192.168.4.3" ]
+
+[node.brothermfc]
+description = "Brother MFC-7860DW Printer"
+macAddresses = [ "00:80:92:C3:42:28" ]
+connection.primary.ipAddresses = [ "192.168.4.6" ]
+
+[node.frontdoorbell]
+description = "Amcrest Front Doorbell"
+macAddresses = [ "9c:8e:cd:3c:e1:bf" ]
+connection.primary.ipAddresses = [ "192.168.4.7" ]
+
+[node.hue]
+description = "Hue Bridge"
+macAddresses = [ "EC:B5:FA:21:93:5C" ]
+connection.primary.ipAddresses = [ "192.168.4.8" ]
+
+[node.livingroomtvplug]
+description = "Living Room TV Smart Plug"
+macAddresses = [ "E8:DB:84:C9:5A:0A" ]
+connection.primary.ipAddresses = [ "192.168.4.9" ]
+
+[node.miyoo]
+description = "Miyoo Mini Plus"
+macAddresses = [ "98:03:CF:9D:73:45" ]
+connection.primary.ipAddresses = [ "192.168.4.10" ]
+
+[node.fridgeplug]
+description = "Fridge Smart Plug"
+macAddresses = [ "E8:DB:84:C9:F0:0B" ]
+connection.primary.ipAddresses = [ "192.168.4.11" ]
+
+[node.tablet-alpha]
+description = "Amazon Fire HD 10 Plus Tablet"
+macAddresses = [ "D8:FB:D6:72:3C:87" ]
+connection.primary.ipAddresses = [ "192.168.4.12" ]
+
+[node.livingroomtv]
+description = "LG TV in Living Room"
+macAddresses = [ "74:90:BC:24:DB:5C" ]
+connection.primary.ipAddresses = [ "192.168.4.13" ]
+
+[node.espresense-ashleyoffice]
+description = "ESPresense in Ashley's Office"
+macAddresses = [ "7C:9E:BD:67:32:38" ]
+connection.primary.ipAddresses = [ "192.168.4.14" ]
+
+[node.drivewaycam]
+description = "Amcrest Driveway Camera"
+macAddresses = [ "A0:60:32:00:91:6F" ]
+connection.primary.ipAddresses = [ "192.168.4.15" ]

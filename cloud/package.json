@@ -5,6 +5,9 @@
     "engines": {
         "node": ">=16"
     },
+    "scripts": {
+      "run": "node --import ./ts-loader.js ./index.ts"
+    },
     "devDependencies": {
         "@types/node": "^18"
     },
