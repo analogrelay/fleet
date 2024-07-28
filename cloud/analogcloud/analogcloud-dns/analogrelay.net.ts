@@ -2,7 +2,8 @@ import * as azure from '@pulumi/azure-native';
 import { analogcloud } from '../../global.js';
 import resourceGroup from './resourceGroup.js';
 import { createMailRecords, fastmailSpfValue } from './common.js';
-import { loadInventory } from "../../../inventory/lib/index.js";
+import { loadInventory } from 'inventory';
+import * as path from 'node:path';
 
 export const analogrelay_net = new azure.network.Zone("analogrelay.net", {
   location: "global",
@@ -55,7 +56,8 @@ new azure.network.RecordSet("analogrelay.net/a/home", {
 });
 
 // Create domains for networks
-const inventory = await loadInventory();
+// CWD is the root of the pulumi project.
+const inventory = await loadInventory(path.join(process.cwd(), "../inventory/inventory.toml"));
 
 for (const network of inventory.networks.values()) {
   if (!network.dns) {

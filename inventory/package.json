@@ -2,7 +2,8 @@
   "name": "inventory",
   "version": "1.0.0",
   "description": "A YAML file, and wrapping Node module, that specified the inventory of machines, devices, networks, etc. in the fleet",
-  "main": "index.js",
+  "exports": "./lib/index.ts",
+  "type": "module",
   "scripts": {
     "run": "ts-node ./bin/main.ts"
   },

@@ -1,9 +1,8 @@
-export * from "./types.js";
+export * from "./inventory.js";
 
 import TOML from "smol-toml";
-import { Connection, Inventory, Network, Node } from "./types.js";
+import { Connection, Inventory, Network, Node } from "./inventory.js";
 import { writeFile, readFile } from "fs/promises";
-import path from "path";
 
 interface TomlInventory {
   network?: Record<string, TomlNetwork>,
@@ -53,8 +52,8 @@ export async function loadInventory(inputPath: string): Promise<Inventory> {
       !!tomlNetwork.external,
       tomlNetwork.subdomain ?? "",
       tomlNetwork.description ?? "",
-      tomlNetwork.config || {},
       tomlNetwork.dhcpServer,
+      tomlNetwork.config || {},
     );
     networks.set(key, network);
   }
@@ -75,8 +74,8 @@ export async function loadInventory(inputPath: string): Promise<Inventory> {
         node,
         network,
         tomlConnection.hostname ?? node.name,
-        tomlConnection.config || {},
         tomlConnection.ipAddresses ?? [],
+        tomlConnection.config || {},
       );
       network.connections.push(connection);
       node.connections.push(connection);

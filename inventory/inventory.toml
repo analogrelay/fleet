@@ -102,6 +102,7 @@ connection.primary.ipAddresses = [ "192.168.2.7" ]
 [node.biggs]
 macAddresses = [ "E4:5F:01:48:EC:F7" ]
 connection.primary.ipAddresses = [ "192.168.2.9" ]
+config.k3s.cluster = "home"
 
 [node.reno]
 macAddresses = [ "B8:27:EB:0C:A3:D8" ]
@@ -111,6 +112,7 @@ connection.primary.ipAddresses = [ "192.168.2.10" ]
 description = "Raspberry Pi 4 Server"
 macAddresses = [ "E4:5F:01:46:2A:77" ]
 connection.primary.ipAddresses = [ "192.168.2.11" ]
+config.k3s.cluster = "home"
 
 [node.home]
 description = "Home Assistant Green"
@@ -199,3 +201,8 @@ connection.primary.ipAddresses = [ "192.168.4.14" ]
 description = "Amcrest Driveway Camera"
 macAddresses = [ "A0:60:32:00:91:6F" ]
 connection.primary.ipAddresses = [ "192.168.4.15" ]
+
+[node.gwensroomcam]
+description = "Eufy Baby Monitor"
+macAddresses = [ "04:17:B6:2B:50:6B" ]
+connection.primary.ipAddresses = [ "192.168.4.16" ]

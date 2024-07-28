@@ -80,3 +80,8 @@ spec:
           ffmpeg:
             inputs:
               - path: "rtsp://admin:{FRIGATE_RTSP_PASSWORD}@drivewaycam.node.analogrelay.net"
+        gwensroom:
+          enabled: true
+          ffmpeg:
+            inputs:
+              - path: "rtsp://{FRIGATE_EUFY_USERNAME}:{FRIGATE_EUFY_PASSWORD}@gwensroomcam.node.analogrelay.net/live0"
