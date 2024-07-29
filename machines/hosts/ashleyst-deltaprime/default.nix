@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, pkgs-analogrelay, ... }:
 
 {
   imports =
@@ -11,10 +11,14 @@
 
   networking.hostName = "ashleyst-deltaprime";
   wsl.defaultUser = "ashleyst";
-
+ 
   system.stateVersion = "23.11";
 
   home-manager.extraSpecialArgs = {
     username = "ashleyst";
   };
+
+  environment.systemPackages = [
+    pkgs-analogrelay.jetbrains.rust-rover
+  ];
 }

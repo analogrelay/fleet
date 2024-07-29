@@ -2,12 +2,13 @@
   description = "NixOS Configurations";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs-analogrelay.url = "github:analogrelay/nixpkgs/analogrelay-main";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     mac-app-util.url = "github:hraban/mac-app-util";
     home-manager = {
-      url = "github:nix-community/home-manager/release-23.11";
+      url = "github:nix-community/home-manager/release-24.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     vscode-server = {
@@ -23,7 +24,7 @@
     };
     nix-vscode-extensions.url = "github:nix-community/nix-vscode-extensions";
     nixos-wsl = {
-      url = "github:nix-community/NixOS-WSL";
+      url = "github:nix-community/NixOS-WSL/2405.5.4";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-utils.follows = "flake-utils";
     };
@@ -33,6 +34,7 @@
     self, 
     nixpkgs, 
     nixpkgs-unstable, 
+    nixpkgs-analogrelay,
     nixos-hardware,
     flake-utils, 
     ssh-to-age, 
@@ -60,8 +62,22 @@
       defaultDarwinModules = [
         home-manager.darwinModules.home-manager
       ];
-      mkPkgs = system:
+      mkSpecialArgs = system: platform: let
+          pkgs-unstable = mkPkgsUnstable system;
+          pkgs-analogrelay = mkPkgsAnalogrelay system;
+        in { inherit inputs outputs platform pkgs-unstable pkgs-analogrelay; };
+      mkPkgs = system: 
         import nixpkgs {
+          inherit system overlays;
+          config.allowUnfree = true;
+        };
+      mkPkgsUnstable = system:
+        import nixpkgs-unstable {
+          inherit system overlays;
+          config.allowUnfree = true;
+        };
+      mkPkgsAnalogrelay = system:
+        import nixpkgs-analogrelay {
           inherit system overlays;
           config.allowUnfree = true;
         };
@@ -70,7 +86,7 @@
           inherit system;
           pkgs = mkPkgs system;
           modules = defaultModules ++ extraModules;
-          specialArgs = {inherit inputs outputs; platform = "nixos"; };
+          specialArgs = mkSpecialArgs system "nixos";
         };
       mkWslSystem = system: extraModules:
         nixpkgs.lib.nixosSystem rec {
@@ -79,24 +95,14 @@
           modules = defaultModules ++ [
             nixos-wsl.nixosModules.wsl
           ] ++ extraModules;
-          specialArgs = {inherit inputs outputs; platform = "wsl"; };
+          specialArgs = mkSpecialArgs system "wsl";
         };
       mkDarwinSystem = system: extraModules:
         nix-darwin.lib.darwinSystem rec {
           inherit system;
           pkgs = mkPkgs system;
           modules = defaultDarwinModules ++ extraModules;
-          specialArgs = { inherit inputs outputs; platform = "darwin"; };
-        };
-      mkImage = system: extraModules:
-        nixpkgs.lib.nixosSystem {
-          inherit system;
-          pkgs = mkPkgs system;
-          modules = [
-            "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
-            { sdImage.compressImage = false; }
-          ] ++ defaultModules ++ extraModules;
-          specialArgs = {inherit inputs outputs; platform = "nixos"; };
+          specialArgs = mkSpecialArgs system "darwin";
         };
     in
     rec {
