@@ -14,5 +14,6 @@
     gh
     lazygit
     jq
+    devenv
   ];
 }

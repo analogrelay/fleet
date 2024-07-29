@@ -38,4 +38,5 @@ in
       ../../home
     ];
   };
+  nix.settings.trusted-users = [ "ashley" ];
 }
