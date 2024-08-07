@@ -63,25 +63,60 @@ spec:
       media:
         enabled: true
         existingClaim: frigate-media
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+              - shinra 
+    coral:
+      enabled: true
     envFromSecrets:
       - "secret-envs"
     config: |
+      detectors:
+        coral:
+          type: edgetpu
+          device: usb
       mqtt:
         host: "home.analogrelay.net"
         port: 1883
+      record:
+        enabled: true
+        retain:
+          days: 3
+          mode: all
+        events:
+          retain:
+            default: 30
+            mode: motion
+      go2rtc:
+        streams:
+          frontdoorbell:
+            - "rtsp://admin:{FRIGATE_RTSP_PASSWORD}@frontdoorbell.node.analogrelay.net/cam/realmonitor?channel=1&subtype=0"
+          driveway:
+            - "rtsp://admin:{FRIGATE_RTSP_PASSWORD}@drivewaycam.node.analogrelay.net/live0"
       cameras:
-        doorbell:
+        frontdoorbell:
           enabled: true
           ffmpeg:
             inputs:
-              - path: "rtsp://admin:{FRIGATE_RTSP_PASSWORD}@frontdoorbell.node.analogrelay.net/cam/realmonitor?channel=1&subtype=0"
+              - path: "rtsp://admin:{FRIGATE_RTSP_PASSWORD}@frontdoorbell.node.analogrelay.net/cam/realmonitor?channel=1&subtype=0&unicast=true"
+                roles:
+                  - record
+              - path: "rtsp://admin:{FRIGATE_RTSP_PASSWORD}@frontdoorbell.node.analogrelay.net/cam/realmonitor?channel=1&subtype=1&unicast=true"
+                roles:
+                  - detect
         driveway:
           enabled: true
           ffmpeg:
             inputs:
-              - path: "rtsp://admin:{FRIGATE_RTSP_PASSWORD}@drivewaycam.node.analogrelay.net"
-        gwensroom:
-          enabled: true
-          ffmpeg:
-            inputs:
-              - path: "rtsp://{FRIGATE_EUFY_USERNAME}:{FRIGATE_EUFY_PASSWORD}@gwensroomcam.node.analogrelay.net/live0"
+              - path: "rtsp://admin:{FRIGATE_RTSP_PASSWORD}@drivewaycam.node.analogrelay.net/live0"
+                roles:
+                  - record
+              - path: "rtsp://admin:{FRIGATE_RTSP_PASSWORD}@drivewaycam.node.analogrelay.net/live1"
+                roles:
+                  - detect
