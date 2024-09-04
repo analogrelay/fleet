@@ -206,3 +206,8 @@ connection.primary.ipAddresses = [ "192.168.4.15" ]
 description = "Eufy Baby Monitor"
 macAddresses = [ "04:17:B6:2B:50:6B" ]
 connection.primary.ipAddresses = [ "192.168.4.16" ]
+
+[node.officeawair]
+description = "Office Awair Element"
+macAddresses = [ "70:88:6B:14:2C:FC" ]
+connection.primary.ipAddresses = [ "192.168.4.17" ]
