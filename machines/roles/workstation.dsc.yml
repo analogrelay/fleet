@@ -10,7 +10,13 @@ properties:
         MinVersion: '10.0.22000'
   resources:
     # Base System packages and config
-    # TODO: Separate this into it's own file when https://github.com/microsoft/winget-cli/issues/3797 lands
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives:
+        description: Install gh CLI
+        allowPrerelease: true
+      settings:
+        id: GitHub.cli
+        source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       directives:
         description: Install .NET SDK 8.0

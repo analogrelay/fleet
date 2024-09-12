@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Configuration for a codespace
+echo "Configuring Codespace dotfiles..."
+
+# Nix doesn't really work in codespaces, so we having maintain some separate logic here.
+# That's unfortunate, but it's the best we can do for now.
+if ! type -p brew >/dev/null; then
+  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi

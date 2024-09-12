@@ -1,0 +1,1 @@
+winget configure --file "$PSScriptRoot\multimedia.dsc.yml" --accept-configuration-agreements
