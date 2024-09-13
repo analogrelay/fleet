@@ -1,0 +1,25 @@
+{
+  "entries": {
+    "tap": {
+      "jandedobbeleer/oh-my-posh": {
+        "revision": "79b5839e637d1563362c634aa00a6a2d3b2ec831"
+      }
+    },
+    "brew": {
+      "jandedobbeleer/oh-my-posh/oh-my-posh": {
+        "version": "23.13.1",
+        "bottle": false
+      }
+    }
+  },
+  "system": {
+    "linux": {
+      "Debian GNU/Linux 11 (bullseye) (bullseye)": {
+        "HOMEBREW_VERSION": "4.3.21",
+        "HOMEBREW_PREFIX": "/home/linuxbrew/.linuxbrew",
+        "Homebrew/homebrew-core": "api",
+        "GCC": "10.2.1"
+      }
+    }
+  }
+}

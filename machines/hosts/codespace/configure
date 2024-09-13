@@ -1,10 +1,42 @@
 #!/usr/bin/env bash
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+dotfiles_root="$(dirname $(dirname $(dirname $script_dir)))"
+
 # Configuration for a codespace
 echo "Configuring Codespace dotfiles..."
+
+make_link() {
+  local source="$1"
+  local target="$2"
+
+  if [ -L "$target" ]; then
+    return
+  fi
+
+  if [ -e "$target" ]; then
+    echo "Backing up existing $target..."
+    mv "$target" "$target.bak"
+  fi
+
+  ln -s "$source" "$target"
+}
 
 # Nix doesn't really work in codespaces, so we having maintain some separate logic here.
 # That's unfortunate, but it's the best we can do for now.
 if ! type -p brew >/dev/null; then
-  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  if [ ! -d /home/linuxbrew/.linuxbrew ]; then
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  fi
+
   eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
+
+brew bundle --file "$dotfiles_root/machines/hosts/codespace/Brewfile"
+
+make_link "$dotfiles_root/zsh" "$HOME/.config/zsh"
+make_link "$dotfiles_root/home/analogposh.omp.json" "$HOME/.config/analogposh.omp.json"
+
+if type -p zsh >/dev/null; then
+  echo "Setting zsh as default shell..."
+  sudo chsh -s "$(which zsh)" "$(whoami)"
 fi
