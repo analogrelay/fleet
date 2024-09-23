@@ -18,6 +18,11 @@ make_link() {
     mv "$target" "$target.bak"
   fi
 
+  target_base=$(dirname $target)
+  if [ ! -d $target_base ]; then
+    mkdir -p "$target_base"
+  fi
+
   ln -s "$source" "$target"
 }
 
@@ -35,6 +40,12 @@ brew bundle --file "$dotfiles_root/machines/hosts/codespace/Brewfile"
 
 make_link "$dotfiles_root/zsh" "$HOME/.config/zsh"
 make_link "$dotfiles_root/home/analogposh.omp.json" "$HOME/.config/analogposh.omp.json"
+make_link "$dotfiles_root/git" "$HOME/.config/git/config.d"
+
+# Generate the appropriate config imports
+echo "[include]" > ~/.config/git/config
+echo "    path = ./config.d/base.gitconfig" >> ~/.config/git/config
+echo "    path = ./config.d/codespaces.gitconfig" >> ~/.config/git/config
 
 if type -p zsh >/dev/null; then
   echo "Setting zsh as default shell..."

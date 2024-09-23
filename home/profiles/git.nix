@@ -9,7 +9,12 @@
       key = builtins.readFile ../../keys/gitSigning.pub;
       signByDefault = true;
     };
-    extraConfig = {
+    extraConfig = [
+      { include.path = "~/.config/git/config.d/base.gitconfig" }
+      { include.path = "~/.config/git/config.d/local.gitconfig" }
+    ]
+    
+    {
       init.defaultBranch = "main";
       color.ui = true;
       pull.rebase = true;

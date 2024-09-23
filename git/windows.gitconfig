@@ -1,0 +1,4 @@
+[gpg "ssh"]
+	program = "C:/Program Files/1Password/app/8/op-ssh-sign.exe"
+[core]
+	sshCommand = "C:/Program\\ Files/OpenSSH/ssh.exe"
