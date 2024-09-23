@@ -6,6 +6,9 @@
     dotDir = ".config/zsh";
     autosuggestion.enable = true;
     enableCompletion = true;
+    initExtra = ''
+      source ~/.config/zsh/.zshrc
+    '';
   };
   home.file.".config/zsh/functions" = {
     source = ../../zsh/functions;
@@ -22,24 +25,5 @@
 
   programs.oh-my-posh = {
     enable = true;
-  };
-
-  programs.starship = {
-    enable = false;
-    settings = {
-      shell = {
-        disabled = false;
-      };
-      custom = {
-        arch = {
-          command = "echo $(arch)";
-          description = "Current Process CPU Architecture";
-          when = "true";
-          os = "macos";
-          symbol = "🖥";
-          format = "\\($symbol  $output\\)";
-        };
-      };
-    };
   };
 }

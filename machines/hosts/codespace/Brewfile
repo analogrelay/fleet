@@ -1,3 +1,6 @@
 tap "jandedobbeleer/oh-my-posh"
 
 brew "jandedobbeleer/oh-my-posh/oh-my-posh"
+brew "node"
+brew "eza"
+brew "bat"

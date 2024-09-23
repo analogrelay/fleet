@@ -1,6 +1,5 @@
-if [ ! -d /home/linuxbrew/.linuxbrew ]; then
-  echo "WARNING: Homebrew is not installed. Run 'script/bootstrap' in your dotfiles to install it."
-else
+if [ -d /home/linuxbrew/.linuxbrew ]; then
+  # Enable Linuxbrew, if installed.
   eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 fi
 

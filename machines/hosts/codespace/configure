@@ -40,3 +40,7 @@ if type -p zsh >/dev/null; then
   echo "Setting zsh as default shell..."
   sudo chsh -s "$(which zsh)" "$(whoami)"
 fi
+
+# Source '.config/zsh/.zshrc' from our ~/.zshrc
+# It's OK to replace whatever default zshrc existed. We're not worried about what came before.
+echo 'source $HOME/.config/zsh/.zshrc' > ~/.zshrc
