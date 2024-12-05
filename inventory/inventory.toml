@@ -127,6 +127,16 @@ macAddresses = [ "B8:27:EB:0C:A3:D8" ]
 connection.primary.ipAddresses = [ "192.168.2.13" ]
 config.sshDefaults.user = "pi"
 
+[node.retroid]
+description = "Retroid Pocket 5 - Android"
+macAddresses = [ "4E:12:2D:D2:16:90" ]
+connection.primary.ipAddresses = [ "192.168.2.14" ]
+
+[node.retroidnix]
+description = "Retroid Pocket 5 - Rocknix"
+macAddresses = [ "00:03:7F:67:16:13" ]
+connection.primary.ipAddresses = [ "192.168.2.15" ]
+
 [node.sephiroth]
 description = "MacBook"
 macAddresses = [ "F8:4D:89:5E:3C:4D" ]
