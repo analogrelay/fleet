@@ -6,9 +6,6 @@
     dotDir = ".config/zsh";
     autosuggestion.enable = true;
     enableCompletion = true;
-    initExtra = ''
-      source ~/.config/zsh/.zshrc
-    '';
   };
   home.file.".config/zsh/functions" = {
     source = ../../zsh/functions;
@@ -25,5 +22,7 @@
 
   programs.oh-my-posh = {
     enable = true;
+    enableZshIntegration = true;
+    enableBashIntegration = true;
   };
 }

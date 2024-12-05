@@ -17,7 +17,7 @@
 
   networking.hostName = "shinra";
 
-  system.stateVersion = "23.11";
+  system.stateVersion = "24.05";
 
   # Create volumes for Kubernetes
   systemd.tmpfiles.rules = [
@@ -27,5 +27,13 @@
   home-manager.extraSpecialArgs = {
     username = "ashley";
   };
+
+  services.xserver.enable = true;
+  services.displayManager.sddm.enable = true;
+  services.desktopManager.plasma6.enable = true;
+
+  services.xrdp.enable = true;
+  services.xrdp.defaultWindowManager = "startplasma-x11";
+  services.xrdp.openFirewall = true;
 }
 

@@ -1,6 +1,6 @@
 { lib, platform, ... }:
 
 {
-    imports = [
-    ] ++ lib.optional (builtins.pathExists ./analoghome.${platform}.nix) ./analoghome.${platform.nix};
+    #imports = [
+    #] ++ lib.optional (builtins.pathExists ./analoghome.${platform}.nix) ./analoghome.${platform.nix};
 }

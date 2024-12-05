@@ -24,7 +24,7 @@ in
 {
   imports = allImports;
 
-  home.stateVersion = "23.11";
+  home.stateVersion = "24.05";
   home.username = username;
 
   programs.home-manager.enable = true;
