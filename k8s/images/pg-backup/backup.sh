@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -x
+
 fatal() {
   local msg="$1"
   echo "$msg" 1>&2
@@ -7,11 +9,12 @@ fatal() {
 }
 
 [ -z "$PGHOST" ] && fatal "missing env var: 'PGHOST'"
-[ -z "$PGPORT" ] && fatal "missing env var: 'PGPORT'"
 [ -z "$PGUSER" ] && fatal "missing env var: 'PGUSER'"
 [ -z "$PGPASSWORD" ] && fatal "missing env var: 'PGPASSWORD'"
 [ -z "$PGDATABASE" ] && fatal "missing env var: 'PGDATABASE'"
 [ -z "$BACKUP_ROOT" ] && fatal "missing env var: 'BACKUP_ROOT'"
+
+echo "Preparing to back up"
 
 TIMESTAMP="$(date +"%m-%d-%Y-%H-%M")"
 BACKUP_BASENAME="$PGDATABASE.$TIMESTAMP"
@@ -28,4 +31,4 @@ echo "Deleting directory..."
 rm -Rf "$BACKUP_DIRECTORY"
 
 echo "Rotating out old files..."
-find . -name '*.backup.tar.gz" -maxdepth 1 -type f -mtime +7 -delete
+find . -name '*.backup.tar.gz' -maxdepth 1 -type f -mtime +7 -delete
