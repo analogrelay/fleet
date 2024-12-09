@@ -45,6 +45,138 @@ spec:
       storage: 1Mi
 
 ---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: data-disk-pv
+  namespace: cloud-sync
+spec:
+  volumeMode: Filesystem
+  capacity:
+    storage: 14Ti
+  accessModes:
+    - ReadOnlyMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: existing-local-volume
+  local:
+    path: /mnt/data
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+              - avalanche
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data-disk-pvc
+  namespace: cloud-sync
+spec:
+  storageClassName: existing-local-volume
+  volumeName: data-disk-pv
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 14Ti
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-homes
+  namespace: cloud-sync
+spec:
+  schedule: "32 0 * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          securityContext:
+            fsGroup: 5000
+          containers:
+          - name: rclone
+            image: rclone/rclone:beta
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: RCLONE_CONFIG_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: rclone
+                  key: password
+            command:
+              - rclone
+              - copy
+              - "--verbose"
+              - "/target/shares/homes"
+              - "analogbackup-crypt:"
+            volumeMounts:
+              - name: target
+                mountPath: /target
+              - name: config-file
+                mountPath: /config/rclone
+          restartPolicy: OnFailure
+          volumes:
+            - name: target
+              persistentVolumeClaim:
+                claimName: data-disk-pvc
+            - name: config-file
+              persistentVolumeClaim:
+                claimName: rclone-config-pvc
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-rest
+  namespace: cloud-sync
+spec:
+  schedule: "32 3 * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          securityContext:
+            fsGroup: 5000
+          containers:
+          - name: rclone
+            image: rclone/rclone:beta
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: RCLONE_CONFIG_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: rclone
+                  key: password
+            command:
+              - rclone
+              - copy
+              - "--verbose"
+              - "--exclude=/shares/homes/**"
+              - "/target"
+              - "analogbackup:vault"
+            volumeMounts:
+              - name: target
+                mountPath: /target
+              - name: config-file
+                mountPath: /config/rclone
+          restartPolicy: OnFailure
+          volumes:
+            - name: target
+              persistentVolumeClaim:
+                claimName: data-disk-pvc
+            - name: config-file
+              persistentVolumeClaim:
+                claimName: rclone-config-pvc
+
+---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -52,6 +184,7 @@ metadata:
   namespace: cloud-sync
 spec:
   schedule: "0 * * * *"
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       template:
@@ -97,6 +230,7 @@ metadata:
   namespace: cloud-sync
 spec:
   schedule: "15 * * * *"
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       template:
@@ -142,6 +276,7 @@ metadata:
   namespace: cloud-sync
 spec:
   schedule: "30 * * * *"
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       template:
@@ -187,6 +322,7 @@ metadata:
   namespace: cloud-sync
 spec:
   schedule: "45 * * * *"
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       template:

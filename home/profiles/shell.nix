@@ -6,6 +6,12 @@
     dotDir = ".config/zsh";
     autosuggestion.enable = true;
     enableCompletion = true;
+    initExtra = ''
+      source ~/.config/zsh/analogzsh.zsh
+    '';
+  };
+  home.file.".config/zsh/analogzsh.zsh" = {
+    source = ../../zsh/.zshrc;
   };
   home.file.".config/zsh/functions" = {
     source = ../../zsh/functions;

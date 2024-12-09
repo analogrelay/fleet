@@ -107,23 +107,30 @@ metadata:
 spec:
   # Backup the database every day at 2AM
   schedule: "0 2 * * *"
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       template:
         spec:
           containers:
           - name: postgres-backup
-            image: postgres:16.1
-            command: ["/bin/bash"]
-            args: ["-c", 'pg_dump --file="/var/backups/paperless.$(date +"%m-%d-%Y-%H-%M").backup" --username=postgres --host=postgres-svc.postgres.svc.cluster.local --format=directory paperless']
+            image: ghcr.io/analogrelay/pg-backup:latest
             env:
+            - name: BACKUP_ROOT
+              value: /target
+            - name: PGUSER
+              value: postgres
+            - name: PGHOST
+              value: postgres-svc.postgres.svc.cluster.local
+            - name: PGDATABASE
+              value: paperless
             - name: PGPASSWORD
               valueFrom:
                 secretKeyRef:
                   name: postgres
                   key: root-password
             volumeMounts:
-            - mountPath: /var/backups
+            - mountPath: /target
               name: target
           restartPolicy: Never
           volumes:

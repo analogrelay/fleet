@@ -152,6 +152,11 @@ description = "Work Laptop"
 macAddresses = [ "C8:96:65:E6:D8:46" ]
 connection.primary.ipAddresses = [ "192.168.3.3" ]
 
+[node.bizarro-sephiroth]
+description = "MacBook Linux VM"
+macAddresses = [ "" ]
+connection.primary.ipAddresses = [ "192.168.3.4" ]
+
 [node.hvacprimarybed]
 description = "Primary Bedroom Mini-Split Controller"
 macAddresses = [ "24:A1:60:30:33:6A" ]

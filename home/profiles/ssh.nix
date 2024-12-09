@@ -17,6 +17,10 @@
         proxyJump = "analogrelay.cloud";
         forwardAgent = true;
       };
+      "*.analogrelay.cloud" = {
+        forwardAgent = true;
+        user = "azureuser";
+      };
       "analogrelay.cloud" = {
         forwardAgent = true;
         user = "azureuser";
