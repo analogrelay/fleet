@@ -1,57 +1,27 @@
 #!/usr/bin/env bash
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 dotfiles_root="$(dirname $(dirname $(dirname $script_dir)))"
+cd "$dotfiles_root"
 
 # Configuration for a codespace
 echo "Configuring Codespace dotfiles..."
 
-make_link() {
-  local source="$1"
-  local target="$2"
-
-  if [ -L "$target" ]; then
-    return
-  fi
-
-  if [ -e "$target" ]; then
-    echo "Backing up existing $target..."
-    mv "$target" "$target.bak"
-  fi
-
-  target_base=$(dirname $target)
-  if [ ! -d $target_base ]; then
-    mkdir -p "$target_base"
-  fi
-
-  ln -s "$source" "$target"
-}
-
-# Nix doesn't really work in codespaces, so we having maintain some separate logic here.
-# That's unfortunate, but it's the best we can do for now.
-if ! type -p brew >/dev/null; then
-  if [ ! -d /home/linuxbrew/.linuxbrew ]; then
-    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  fi
-
-  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-fi
-
-brew bundle --file "$dotfiles_root/machines/hosts/codespace/Brewfile"
+./machines/hosts/common/configure --package-manager brew
 
 make_link "$dotfiles_root/zsh" "$HOME/.config/zsh"
 make_link "$dotfiles_root/home/analogposh.omp.json" "$HOME/.config/analogposh.omp.json"
 make_link "$dotfiles_root/git" "$HOME/.config/git/config.d"
 
+# Source '.config/zsh/.zshrc' from our ~/.zshrc
+# It's OK to replace whatever default zshrc existed. We're not worried about what came before.
+echo 'source $HOME/.config/zsh/.zshrc' > ~/.zshrc
+
 # Generate the appropriate config imports
-echo "[include]" > ~/.config/git/config
-echo "    path = ./config.d/base.gitconfig" >> ~/.config/git/config
-echo "    path = ./config.d/codespaces.gitconfig" >> ~/.config/git/config
+git config set --global "include.path" "~/.config/git/config.d/base.gitconfig"
 
 if type -p zsh >/dev/null; then
   echo "Setting zsh as default shell..."
   sudo chsh -s "$(which zsh)" "$(whoami)"
 fi
 
-# Source '.config/zsh/.zshrc' from our ~/.zshrc
-# It's OK to replace whatever default zshrc existed. We're not worried about what came before.
-echo 'source $HOME/.config/zsh/.zshrc' > ~/.zshrc
+git config set --global "include.path" "~/.config/git/config.d/codespaces.gitconfig"

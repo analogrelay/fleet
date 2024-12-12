@@ -1,9 +1,18 @@
-{ ... }:
+{ pkgs, ... }:
 
 {
+  home.file.".ssh/known_hosts" = {
+    source = ./known_hosts;
+  };
+
   programs.ssh = {
     enable = true;
     matchBlocks = {
+      "*" = (if pkgs.stdenv.isLinux then {
+        extraOptions = {
+          "IdentityAgent" = "~/.1password/agent.sock";
+        };
+      } else {});
       "*.node.analogrelay.net" = {
         forwardAgent = true;
         user = "ashley";

@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+dotfiles_root="$(dirname $(dirname $(dirname $script_dir)))"
+cd "$dotfiles_root"
+
+source "$dotfiles_root/machines/hosts/common/_utils.sh"
+
+echo "Executing common machine configuration..."
+
+# Parse arguments
+package_manager=nix
+while [[ $# -gt 0 ]]; do
+  key="$1"
+  shift
+
+  case $key in
+    --package-manager)
+      package_manager="$1"
+      shift
+      ;;
+    --hostname-override)
+      dotfiles_hostname="$1"
+      shift
+      ;;
+    *)
+      echo "Unknown option: $key"
+  esac
+done
+
+echo "Using package manager: $package_manager"
+
+if [ "$package_manager" = "brew" ]; then
+  if type -p brew >/dev/null; then
+    echo "Homebrew is already installed. Skipping..."
+  else
+    echo "Installing Homebrew..."
+    # Nix doesn't really work in codespaces, so we having maintain some separate logic here.
+    # That's unfortunate, but it's the best we can do for now.
+    if ! type -p brew >/dev/null; then
+      if [ ! -d /home/linuxbrew/.linuxbrew ]; then
+        NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      fi
+
+      eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    fi
+  fi
+
+  brew bundle --file "$dotfiles_root/machines/hosts/codespace/Brewfile"
+else
+  machines/hosts/common/install_nix.sh
+fi

@@ -25,6 +25,8 @@
       };
     } // (if pkgs.stdenv.isDarwin then {
       "gpg \"ssh\"".program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+    } else {}) // (if pkgs.stdenv.isLinux then {
+      "gpg \"ssh\"".program = "/opt/1Password/op-ssh-sign";
     } else {});
   };
 }

@@ -3,3 +3,23 @@
 if [ "$CODESPACES" = "true" ]; then
   exec machines/hosts/codespace/configure
 fi
+
+if [ "$(uname)" = "Darwin" ]; then
+  echo "Nix-less bootstrap is not supported on macOS, yet."
+  exit 1
+fi
+
+distro_name=$(cat /etc/os-release | grep "^NAME=" | sed s/NAME=//g)
+if [ "$distro_name" = "NixOS" ]; then
+  echo "Use 'script/rebuild' to build a nix configuration for this machine."
+  exit 1
+fi
+
+hostname=$(hostname)
+if [ -f "machines/hosts/$hostname/configure" ]; then
+  echo "Using host-specific configure script"
+  exec "machines/hosts/$hostname/configure"
+else
+  echo "Host-specific configure script not found, using 'common' configure script"
+  exec "machines/hosts/common/configure"
+fi

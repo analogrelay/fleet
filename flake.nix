@@ -129,6 +129,19 @@
       };
 
       homeConfigurations = {
+        "ashley@zach" = home-manager.lib.homeManagerConfiguration {
+          pkgs = mkPkgs "x86_64-linux";
+          extraSpecialArgs = {
+            username = "ashley";
+            os = "linux";
+            distro = "fedora";
+            role = "workstation";
+            wsl = false;
+          };
+          modules = [
+            ./home
+          ];
+        };
         "ashleyst@ashleyst-delta" = home-manager.lib.homeManagerConfiguration {
           pkgs = mkPkgs "x86_64-linux";
           extraSpecialArgs = {
