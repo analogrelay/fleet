@@ -5,10 +5,6 @@ let
     uid = 1000;
     description = "Ashley Stanton-Nurse";
     shell = pkgs.zsh;
-    openssh.authorizedKeys.keyFiles = [
-      ../../keys/1password.pub
-      ../../keys/jenova.pub
-    ];
   };
   linuxUser = defaultConfig // {
     home = "/home/ashleyst";

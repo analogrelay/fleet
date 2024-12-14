@@ -137,6 +137,7 @@
             distro = "fedora";
             role = "workstation";
             wsl = false;
+            realm = "analoghome";
           };
           modules = [
             ./home
@@ -150,6 +151,7 @@
             distro = "ubuntu";
             role = "workstation";
             wsl = true;
+            realm = "microsoft";
           };
           modules = [
             ./home
