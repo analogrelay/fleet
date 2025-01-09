@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, wsl, ... }:
 
 {
   programs.git = {
@@ -25,8 +25,13 @@
       };
     } // (if pkgs.stdenv.isDarwin then {
       "gpg \"ssh\"".program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
-    } else {}) // (if pkgs.stdenv.isLinux then {
-      "gpg \"ssh\"".program = "/opt/1Password/op-ssh-sign";
-    } else {});
+    } else {}) // (if pkgs.stdenv.isLinux then
+      if wsl then {
+        "gpg \"ssh\"".program = "/mnt/c/Program Files/1Password/app/8/op-ssh-sign.exe";
+        core.sshCommand = "ssh.exe";
+      } else {
+        "gpg \"ssh\"".program = "/opt/1Password/op-ssh-sign";
+      } 
+    else {});
   };
 }

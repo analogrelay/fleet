@@ -115,7 +115,7 @@
 
         # WSLs
         zach = mkWslSystem "x86_64-linux" [ ./machines/hosts/zach ];
-        ashleyst-deltaprime = mkWslSystem "x86_64-linux" [ ./machines/hosts/ashleyst-deltaprime ];
+        ashleyst-alphaprime = mkWslSystem "x86_64-linux" [ ./machines/hosts/ashleyst-alphaprime ];
 
         # Raspberry Pis
         jessie = mkSystem "aarch64-linux" [ ./machines/hosts/jessie ];

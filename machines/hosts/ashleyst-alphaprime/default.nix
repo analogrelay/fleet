@@ -9,7 +9,7 @@
       ../../users/ashleyst.nix
     ];
 
-  networking.hostName = "ashleyst-deltaprime";
+  networking.hostName = "ashleyst-alphaprime";
   wsl.defaultUser = "ashleyst";
  
   system.stateVersion = "23.11";

@@ -25,5 +25,6 @@
     nix-index
     tmux
     nix
+    nixpkgs-fmt
   ];
 }
