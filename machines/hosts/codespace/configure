@@ -12,6 +12,7 @@ echo "Configuring Codespace dotfiles..."
 make_link "$dotfiles_root/zsh" "$HOME/.config/zsh"
 make_link "$dotfiles_root/home/analogposh.omp.json" "$HOME/.config/analogposh.omp.json"
 make_link "$dotfiles_root/git" "$HOME/.config/git/config.d"
+make_link "$dotfiles_root/eza" "$HOME/.config/eza"
 
 # Source '.config/zsh/.zshrc' from our ~/.zshrc
 # It's OK to replace whatever default zshrc existed. We're not worried about what came before.

@@ -35,7 +35,8 @@
             "style": "full",
             "windows_registry_icon": "\uF013",
             "mapped_locations": {
-              "~/code": "\uF4B0 "
+              "~/code": "\uF4B0 ",
+              "/workspaces": "\uF4B0 "
             }
           },
           "style": "powerline",

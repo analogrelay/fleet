@@ -3,6 +3,10 @@ if [ -d /home/linuxbrew/.linuxbrew ]; then
   eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 fi
 
+if type direnv; then
+  eval "$(direnv hook zsh)"
+fi
+
 try_brew() {
   if type -p brew > /dev/null; then
     brew $@
