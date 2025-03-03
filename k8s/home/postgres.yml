@@ -114,8 +114,10 @@ spec:
         spec:
           containers:
           - name: postgres-backup
-            image: analogrelay/pg-backup:v1.0
+            image: analogrelay/pg-backup:v1.3
             env:
+            - name: HEALTHCHECK_URL
+              value: https://hc-ping.com/41e63574-95c1-4492-991c-68230c315c77
             - name: BACKUP_ROOT
               value: /target
             - name: PGUSER

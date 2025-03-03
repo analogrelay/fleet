@@ -154,7 +154,7 @@ connection.primary.ipAddresses = [ "192.168.3.3" ]
 
 [node.bizarro-sephiroth]
 description = "MacBook Linux VM"
-macAddresses = [ "" ]
+macAddresses = [ "00:0C:29:1E:77:E6" ]
 connection.primary.ipAddresses = [ "192.168.3.4" ]
 
 [node.hvacprimarybed]

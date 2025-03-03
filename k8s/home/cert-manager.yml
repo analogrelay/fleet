@@ -10,17 +10,17 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-staging-keys
     solvers:
-    - dns01:
-        azureDNS:
-          clientID: f3a8c096-2ccb-4ae1-9ebf-91dca75bee52
-          clientSecretSecretRef:
-            name: azuredns-config
-            key: client-secret
-          subscriptionID: 466cf680-808d-4446-94b3-f367eaa60ba1
-          tenantID: 2be5c49d-d8ac-4700-a8a7-10668c406a70
-          resourceGroupName: analogcloud-dns
-          hostedZoneName: analogrelay.net
-          environment: AzurePublicCloud
+      - dns01:
+          azureDNS:
+            clientID: d7fa9573-9a20-4131-857f-62c1cf35a512
+            clientSecretSecretRef:
+              name: azuredns-config
+              key: client-secret
+            subscriptionID: 466cf680-808d-4446-94b3-f367eaa60ba1
+            tenantID: 2be5c49d-d8ac-4700-a8a7-10668c406a70
+            resourceGroupName: analogcloud-dns
+            hostedZoneName: analogrelay.net
+            environment: AzurePublicCloud
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
@@ -33,14 +33,14 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-production-keys
     solvers:
-    - dns01:
-        azureDNS:
-          clientID: f3a8c096-2ccb-4ae1-9ebf-91dca75bee52
-          clientSecretSecretRef:
-            name: azuredns-config
-            key: client-secret
-          subscriptionID: 466cf680-808d-4446-94b3-f367eaa60ba1
-          tenantID: 2be5c49d-d8ac-4700-a8a7-10668c406a70
-          resourceGroupName: analogcloud-dns
-          hostedZoneName: analogrelay.net
-          environment: AzurePublicCloud
+      - dns01:
+          azureDNS:
+            clientID: d7fa9573-9a20-4131-857f-62c1cf35a512
+            clientSecretSecretRef:
+              name: azuredns-config
+              key: client-secret
+            subscriptionID: 466cf680-808d-4446-94b3-f367eaa60ba1
+            tenantID: 2be5c49d-d8ac-4700-a8a7-10668c406a70
+            resourceGroupName: analogcloud-dns
+            hostedZoneName: analogrelay.net
+            environment: AzurePublicCloud

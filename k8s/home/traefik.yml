@@ -22,7 +22,6 @@ spec:
         mountPath: /certs/octoprint
         type: secret
 ---
-
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -32,7 +31,6 @@ spec:
   secretName: octoprint-cert-tls
   dnsNames:
     - octoprint.home.analogrelay.net
-    - octoprint-cam.home.analogrelay.net
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
@@ -42,7 +40,6 @@ spec:
     - key encipherment
 
 ---
-
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -61,7 +58,6 @@ spec:
     - key encipherment
 
 ---
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -103,13 +99,6 @@ data:
           middlewares = ["kube-system-redirect@kubernetescrd"]
           [http.routers.websecure-octoprint.tls]
 
-        [http.routers.websecure-octoprint-camera]
-          rule = "Host(`octoprint-cam.home.analogrelay.net`) && PathPrefix(`/`)"
-          entryPoints = ["websecure"]
-          service = "octoprint-camera"
-          middlewares = ["kube-system-redirect@kubernetescrd"]
-          [http.routers.websecure-octoprint-camera.tls]
-
       [http.services]
         [http.services.home-assistant]
           [http.services.home-assistant.loadBalancer]
@@ -118,11 +107,7 @@ data:
         [http.services.octoprint]
           [http.services.octoprint.loadBalancer]
             [[http.services.octoprint.loadBalancer.servers]]
-              url = "http://wedge.node.analogrelay.net:5000"
-        [http.services.octoprint-camera]
-          [http.services.octoprint-camera.loadBalancer]
-            [[http.services.octoprint-camera.loadBalancer.servers]]
-              url = "http://wedge.node.analogrelay.net:8001"
+              url = "http://biggs.node.analogrelay.net"
 ---
 apiVersion: v1
 kind: Service
@@ -135,10 +120,10 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - name: traefik
-    port: 80
-    targetPort: traefik
-    protocol: TCP
+    - name: traefik
+      port: 80
+      targetPort: traefik
+      protocol: TCP
   selector:
     app.kubernetes.io/instance: traefik-kube-system
     app.kubernetes.io/name: traefik
@@ -154,16 +139,16 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-  - host: traefik.home.analogrelay.net
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: traefik-dashboard
-            port:
-              number: 80
+    - host: traefik.home.analogrelay.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: traefik-dashboard
+                port:
+                  number: 80
   tls:
     - hosts:
         - traefik.home.analogrelay.net

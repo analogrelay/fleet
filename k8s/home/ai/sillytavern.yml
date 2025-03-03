@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: sillytavern
-          image: ghcr.io/sillytavern/sillytavern:1.11.7
+          image: ghcr.io/sillytavern/sillytavern:1.12.12
           ports:
             - containerPort: 8000
               name: http
@@ -33,6 +33,8 @@ spec:
               name: sillytavern-user
             - mountPath: /home/node/app/public/scripts/extensions/third-party
               name: sillytavern-extensions
+            - mountPath: /home/node/app/data
+              name: sillytavern-data
       volumes:
         - name: sillytavern-config
           nfs:
@@ -42,11 +44,14 @@ spec:
           nfs:
             server: avalanche.node.analogrelay.net
             path: /mnt/data/k3s/shares/ai.sillytavern/user
+        - name: sillytavern-data
+          nfs:
+            server: avalanche.node.analogrelay.net
+            path: /mnt/data/k3s/shares/ai.sillytavern/data
         - name: sillytavern-extensions
           nfs:
             server: avalanche.node.analogrelay.net
             path: /mnt/data/k3s/shares/ai.sillytavern/extensions
-
 
 ---
 apiVersion: v1
@@ -57,10 +62,10 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - name: sillytavern
-    port: 80
-    targetPort: http
-    protocol: TCP
+    - name: sillytavern
+      port: 80
+      targetPort: http
+      protocol: TCP
   selector:
     app: sillytavern
 
@@ -76,16 +81,16 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-  - host: tavern.home.analogrelay.net
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: sillytavern-svc
-            port:
-              number: 80
+    - host: tavern.home.analogrelay.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sillytavern-svc
+                port:
+                  number: 80
   tls:
     - hosts:
         - tavern.home.analogrelay.net

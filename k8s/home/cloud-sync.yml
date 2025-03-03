@@ -4,7 +4,6 @@ kind: Namespace
 metadata:
   name: cloud-sync
 ---
-
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -24,10 +23,10 @@ spec:
     required:
       nodeSelectorTerms:
         - matchExpressions:
-          - key: kubernetes.io/hostname
-            operator: In
-            values:
-              - avalanche
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - avalanche
 
 ---
 apiVersion: v1
@@ -45,7 +44,6 @@ spec:
       storage: 1Mi
 
 ---
-
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -65,10 +63,10 @@ spec:
     required:
       nodeSelectorTerms:
         - matchExpressions:
-          - key: kubernetes.io/hostname
-            operator: In
-            values:
-              - avalanche
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - avalanche
 
 ---
 apiVersion: v1
@@ -101,26 +99,26 @@ spec:
           securityContext:
             fsGroup: 5000
           containers:
-          - name: rclone
-            image: rclone/rclone:beta
-            imagePullPolicy: IfNotPresent
-            env:
-            - name: RCLONE_CONFIG_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: rclone
-                  key: password
-            command:
-              - rclone
-              - copy
-              - "--verbose"
-              - "/target/shares/homes"
-              - "analogbackup-crypt:"
-            volumeMounts:
-              - name: target
-                mountPath: /target
-              - name: config-file
-                mountPath: /config/rclone
+            - name: rclone
+              image: rclone/rclone:beta
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: RCLONE_CONFIG_PASS
+                  valueFrom:
+                    secretKeyRef:
+                      name: rclone
+                      key: password
+              command:
+                - rclone
+                - copy
+                - "--verbose"
+                - "/target/shares/homes"
+                - "analogbackup-crypt:"
+              volumeMounts:
+                - name: target
+                  mountPath: /target
+                - name: config-file
+                  mountPath: /config/rclone
           restartPolicy: OnFailure
           volumes:
             - name: target
@@ -146,27 +144,31 @@ spec:
           securityContext:
             fsGroup: 5000
           containers:
-          - name: rclone
-            image: rclone/rclone:beta
-            imagePullPolicy: IfNotPresent
-            env:
-            - name: RCLONE_CONFIG_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: rclone
-                  key: password
-            command:
-              - rclone
-              - copy
-              - "--verbose"
-              - "--exclude=/shares/homes/**"
-              - "/target"
-              - "analogbackup:vault"
-            volumeMounts:
-              - name: target
-                mountPath: /target
-              - name: config-file
-                mountPath: /config/rclone
+            - name: rclone
+              image: rclone/rclone:beta
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: RCLONE_CONFIG_PASS
+                  valueFrom:
+                    secretKeyRef:
+                      name: rclone
+                      key: password
+              command:
+                - rclone
+                - copy
+                - "--verbose"
+                - "--exclude=/shares/homes/**"
+                - "--exclude=/k3s/volumes/prometheus/**"
+                - "--exclude=/downloads/**"
+                - "--exclude=/shares/public/downloads/**"
+                - "--exclude=/k3s/shares/frigate.frigate-media/**"
+                - "/target"
+                - "analogbackup:vault"
+              volumeMounts:
+                - name: target
+                  mountPath: /target
+                - name: config-file
+                  mountPath: /config/rclone
           restartPolicy: OnFailure
           volumes:
             - name: target
@@ -192,26 +194,26 @@ spec:
           securityContext:
             fsGroup: 5000
           containers:
-          - name: rclone
-            image: rclone/rclone:beta
-            imagePullPolicy: IfNotPresent
-            env:
-            - name: RCLONE_CONFIG_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: rclone
-                  key: password
-            command:
-              - rclone
-              - sync
-              - "--verbose"
-              - "onedrive-ashley:"
-              - "/target"
-            volumeMounts:
-              - name: target
-                mountPath: /target
-              - name: config-file
-                mountPath: /config/rclone
+            - name: rclone
+              image: rclone/rclone:beta
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: RCLONE_CONFIG_PASS
+                  valueFrom:
+                    secretKeyRef:
+                      name: rclone
+                      key: password
+              command:
+                - rclone
+                - sync
+                - "--verbose"
+                - "onedrive-ashley:"
+                - "/target"
+              volumeMounts:
+                - name: target
+                  mountPath: /target
+                - name: config-file
+                  mountPath: /config/rclone
           restartPolicy: OnFailure
           volumes:
             - name: target
@@ -238,26 +240,26 @@ spec:
           securityContext:
             fsGroup: 5000
           containers:
-          - name: rclone
-            image: rclone/rclone:beta
-            imagePullPolicy: IfNotPresent
-            env:
-            - name: RCLONE_CONFIG_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: rclone
-                  key: password
-            command:
-              - rclone
-              - sync
-              - "--verbose"
-              - "google-ashley:"
-              - "/target"
-            volumeMounts:
-              - name: target
-                mountPath: /target
-              - name: config-file
-                mountPath: /config/rclone
+            - name: rclone
+              image: rclone/rclone:beta
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: RCLONE_CONFIG_PASS
+                  valueFrom:
+                    secretKeyRef:
+                      name: rclone
+                      key: password
+              command:
+                - rclone
+                - sync
+                - "--verbose"
+                - "google-ashley:"
+                - "/target"
+              volumeMounts:
+                - name: target
+                  mountPath: /target
+                - name: config-file
+                  mountPath: /config/rclone
           restartPolicy: OnFailure
           volumes:
             - name: target
@@ -284,26 +286,26 @@ spec:
           securityContext:
             fsGroup: 5000
           containers:
-          - name: rclone
-            image: rclone/rclone:beta
-            imagePullPolicy: IfNotPresent
-            env:
-            - name: RCLONE_CONFIG_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: rclone
-                  key: password
-            command:
-              - rclone
-              - sync
-              - "--verbose"
-              - "onedrive-mary:"
-              - "/target"
-            volumeMounts:
-              - name: target
-                mountPath: /target
-              - name: config-file
-                mountPath: /config/rclone
+            - name: rclone
+              image: rclone/rclone:beta
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: RCLONE_CONFIG_PASS
+                  valueFrom:
+                    secretKeyRef:
+                      name: rclone
+                      key: password
+              command:
+                - rclone
+                - sync
+                - "--verbose"
+                - "onedrive-mary:"
+                - "/target"
+              volumeMounts:
+                - name: target
+                  mountPath: /target
+                - name: config-file
+                  mountPath: /config/rclone
           restartPolicy: OnFailure
           volumes:
             - name: target
@@ -330,26 +332,26 @@ spec:
           securityContext:
             fsGroup: 5000
           containers:
-          - name: rclone
-            image: rclone/rclone:beta
-            imagePullPolicy: IfNotPresent
-            env:
-            - name: RCLONE_CONFIG_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: rclone
-                  key: password
-            command:
-              - rclone
-              - sync
-              - "--verbose"
-              - "google-mary:"
-              - "/target"
-            volumeMounts:
-              - name: target
-                mountPath: /target
-              - name: config-file
-                mountPath: /config/rclone
+            - name: rclone
+              image: rclone/rclone:beta
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: RCLONE_CONFIG_PASS
+                  valueFrom:
+                    secretKeyRef:
+                      name: rclone
+                      key: password
+              command:
+                - rclone
+                - sync
+                - "--verbose"
+                - "google-mary:"
+                - "/target"
+              volumeMounts:
+                - name: target
+                  mountPath: /target
+                - name: config-file
+                  mountPath: /config/rclone
           restartPolicy: OnFailure
           volumes:
             - name: target
