@@ -1,18 +1,14 @@
 { pkgs, role, ... }:
 
 {
-  home.file.".ssh/known_hosts" = {
-    source = ./known_hosts;
-  };
-
   programs.ssh = {
     enable = true;
     matchBlocks = {
-      "*" = (if pkgs.stdenv.isLinux && role != "server" && role != "image" then {
-        extraOptions = {
-          "IdentityAgent" = "~/.1password/agent.sock";
-        };
-      } else { });
+      "*" =
+        (if pkgs.stdenv.isLinux && role != "server" && role != "image" then {
+          extraOptions = { "IdentityAgent" = "~/.1password/agent.sock"; };
+        } else
+          { });
       "*.node.analogrelay.net" = {
         forwardAgent = true;
         user = "ashley";
@@ -34,16 +30,11 @@
         forwardAgent = true;
         user = "azureuser";
       };
-      "github.com" = {
-        extraOptions = {
-          "StrictHostKeyChecking" = "yes";
-        };
-      };
-      "gaia.node.analogrelay.net" = {
-        user = "admin";
-      };
+      "gaia.node.analogrelay.net" = { user = "admin"; };
       "avalanche.node.analogrelay.net" = { };
       "avalanche.bicorn-bebop.ts.net" = { };
+      "scarlet.node.analogrelay.net" = { };
+      "scarlet.bicorn-bebop.ts.net" = { };
       "shinra.node.analogrelay.net" = { };
       "shinra.bicorn-bebop.ts.net" = { };
       "biggs.node.analogrelay.net" = { };
