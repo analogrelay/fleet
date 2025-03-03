@@ -30,22 +30,24 @@
     };
   };
 
-  outputs = { 
-    self, 
-    nixpkgs, 
-    nixpkgs-unstable, 
-    nixpkgs-analogrelay,
-    nixos-hardware,
-    flake-utils, 
-    ssh-to-age, 
-    nix-darwin, 
-    sops-nix, 
-    home-manager, 
-    mac-app-util, 
-    nix-vscode-extensions,
-    nixos-wsl,
-    vscode-server,
-    ... }@inputs: let
+  outputs =
+    { self
+    , nixpkgs
+    , nixpkgs-unstable
+    , nixpkgs-analogrelay
+    , nixos-hardware
+    , flake-utils
+    , ssh-to-age
+    , nix-darwin
+    , sops-nix
+    , home-manager
+    , mac-app-util
+    , nix-vscode-extensions
+    , nixos-wsl
+    , vscode-server
+    , ...
+    }@inputs:
+    let
       inherit (self) outputs;
 
       overlays = [
@@ -57,16 +59,18 @@
         sops-nix.nixosModules.sops
         home-manager.nixosModules.home-manager
         vscode-server.nixosModule
-        ({config, pkgs, ...}: {services.vscode-server.enable = true;})
+        ({ config, pkgs, ... }: { services.vscode-server.enable = true; })
       ];
       defaultDarwinModules = [
         home-manager.darwinModules.home-manager
       ];
-      mkSpecialArgs = system: platform: let
+      mkSpecialArgs = system: platform:
+        let
           pkgs-unstable = mkPkgsUnstable system;
           pkgs-analogrelay = mkPkgsAnalogrelay system;
-        in { inherit inputs outputs platform pkgs-unstable pkgs-analogrelay; };
-      mkPkgs = system: 
+        in
+        { inherit inputs outputs platform pkgs-unstable pkgs-analogrelay; };
+      mkPkgs = system:
         import nixpkgs {
           inherit system overlays;
           config.allowUnfree = true;
@@ -112,6 +116,7 @@
         # Standard x64 servers
         avalanche = mkSystem "x86_64-linux" [ ./machines/hosts/avalanche ];
         shinra = mkSystem "x86_64-linux" [ ./machines/hosts/shinra ];
+        scarlet = mkSystem "x86_64-linux" [ ./machines/hosts/scarlet ];
 
         # WSLs
         zach = mkWslSystem "x86_64-linux" [ ./machines/hosts/zach ];
@@ -123,8 +128,8 @@
 
         # Live Image
         live = {
-          "x86_64" = mkSystem "x86_64-linux" [ ./machines/images/live/default ];
-        }
+          "x86_64" = mkSystem "x86_64-linux" [ ./machines/images/live ];
+        };
       };
       darwinConfigurations = {
         # MacBook Workstation
@@ -164,40 +169,40 @@
         };
       };
 
-      overlays = import ./overlays {inherit inputs;};
-    } // flake-utils.lib.eachDefaultSystem (system: 
-      let 
-        pkgs = nixpkgs.legacyPackages.${system};
-        pkgs-unstable = nixpkgs-unstable.legacyPackages.${system};
-      in
-      {
-        packages = import ./pkgs {pkgs = nixpkgs.legacyPackages.${system}; };
+      overlays = import ./overlays { inherit inputs; };
+    } // flake-utils.lib.eachDefaultSystem (system:
+    let
+      pkgs = nixpkgs.legacyPackages.${system};
+      pkgs-unstable = nixpkgs-unstable.legacyPackages.${system};
+    in
+    {
+      packages = import ./pkgs { pkgs = nixpkgs.legacyPackages.${system}; };
 
-        formatter = nixpkgs.legacyPackages.${system}.alejandra;
+      formatter = nixpkgs.legacyPackages.${system}.alejandra;
 
-        devShells.default = pkgs.mkShell {
-          packages = [
-            ssh-to-age.packages.${system}.ssh-to-age
-            pkgs.zsh
-            pkgs.bashInteractive
-            pkgs.nix
-            pkgs.sops
-            pkgs.git
-            pkgs.jq
-            pkgs.nodejs
-            pkgs.python3
-            pkgs.yq
-            pkgs-unstable.pulumi-bin
-          ] ++ (pkgs.lib.lists.optional (pkgs.lib.strings.hasSuffix "-darwin" "${system}") [
-            nix-darwin.packages.${system}.darwin-rebuild
-          ]);
+      devShells.default = pkgs.mkShell {
+        packages = [
+          ssh-to-age.packages.${system}.ssh-to-age
+          pkgs.zsh
+          pkgs.bashInteractive
+          pkgs.nix
+          pkgs.sops
+          pkgs.git
+          pkgs.jq
+          pkgs.nodejs
+          pkgs.python3
+          pkgs.yq
+          pkgs-unstable.pulumi-bin
+        ] ++ (pkgs.lib.lists.optional (pkgs.lib.strings.hasSuffix "-darwin" "${system}") [
+          nix-darwin.packages.${system}.darwin-rebuild
+        ]);
 
-          shellHook = ''
-            export FLEET_IN_SHELL=1
-            python -m venv .venv --copies
-            source .venv/bin/activate
-            pip install -r requirements.txt
-          '';
+        shellHook = ''
+          export FLEET_IN_SHELL=1
+          python -m venv .venv --copies
+          source .venv/bin/activate
+          pip install -r requirements.txt
+        '';
       };
     });
 }

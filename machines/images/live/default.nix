@@ -1,16 +1,17 @@
-{ ... }:
+{ modulesPath, ... }:
 
 {
   imports = [
-    <nixpkgs/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix>
-
-    # Provide an initial copy of the NixOS channel so that the user
-    # doesn't need to run "nix-channel --update" first.
-    <nixpkgs/nixos/modules/installer/cd-dvd/channel.nix>
+    (modulesPath + "/installer/cd-dvd/installation-cd-minimal.nix")
 
     ../../platform.nix
     ../../users/ashley.nix
   ];
+  networking.wireless.enable = false; # We use networkmanager in platform.nix
   networking.hostName = "live";
+  home-manager.extraSpecialArgs = {
+    role = "image";
+    username = "ashley";
+  };
 }
 
