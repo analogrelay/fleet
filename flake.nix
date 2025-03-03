@@ -120,6 +120,11 @@
         # Raspberry Pis
         jessie = mkSystem "aarch64-linux" [ ./machines/hosts/jessie ];
         wedge = mkSystem "aarch64-linux" [ ./machines/hosts/wedge ];
+
+        # Live Image
+        live = {
+          "x86_64" = mkSystem "x86_64-linux" [ ./machines/images/live/default ];
+        }
       };
       darwinConfigurations = {
         # MacBook Workstation
