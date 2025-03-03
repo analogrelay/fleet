@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, role, ... }:
 
 {
   home.file.".ssh/known_hosts" = {
@@ -8,11 +8,11 @@
   programs.ssh = {
     enable = true;
     matchBlocks = {
-      "*" = (if pkgs.stdenv.isLinux then {
+      "*" = (if pkgs.stdenv.isLinux && role != "server" then {
         extraOptions = {
           "IdentityAgent" = "~/.1password/agent.sock";
         };
-      } else {});
+      } else { });
       "*.node.analogrelay.net" = {
         forwardAgent = true;
         user = "ashley";
@@ -42,14 +42,14 @@
       "gaia.node.analogrelay.net" = {
         user = "admin";
       };
-      "avalanche.node.analogrelay.net" = {};
-      "avalanche.bicorn-bebop.ts.net" = {};
-      "shinra.node.analogrelay.net" = {};
-      "shinra.bicorn-bebop.ts.net" = {};
-      "biggs.node.analogrelay.net" = {};
-      "wedge.node.analogrelay.net" = {};
-      "tifa.node.analogrelay.net" = {};
-      "barret.node.analogrelay.net" = {};
+      "avalanche.node.analogrelay.net" = { };
+      "avalanche.bicorn-bebop.ts.net" = { };
+      "shinra.node.analogrelay.net" = { };
+      "shinra.bicorn-bebop.ts.net" = { };
+      "biggs.node.analogrelay.net" = { };
+      "wedge.node.analogrelay.net" = { };
+      "tifa.node.analogrelay.net" = { };
+      "barret.node.analogrelay.net" = { };
       "zach.node.analogrelay.net" = {
         hostname = "cloud.node.analogrelay.net";
         port = 2222;
