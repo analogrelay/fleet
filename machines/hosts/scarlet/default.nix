@@ -6,6 +6,7 @@
       ./hardware-configuration.nix
       ../../platform.nix
       ../../realms/analoghome.nix
+      ../../roles/workstation.nix
 
       ../../users
     ];

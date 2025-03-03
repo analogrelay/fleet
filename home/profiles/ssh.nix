@@ -8,7 +8,7 @@
   programs.ssh = {
     enable = true;
     matchBlocks = {
-      "*" = (if pkgs.stdenv.isLinux && role != "server" then {
+      "*" = (if pkgs.stdenv.isLinux && role != "server" && role != "image" then {
         extraOptions = {
           "IdentityAgent" = "~/.1password/agent.sock";
         };
