@@ -29,6 +29,11 @@
     };
 
   fileSystems."/mnt/data" =
+    { device = "/dev/disk/by-label/NEWDATA";
+      fsType = "ext4";
+    };
+
+  fileSystems."/mnt/oldata" =
     { device = "/dev/disk/by-label/DATA";
       fsType = "btrfs";
     };

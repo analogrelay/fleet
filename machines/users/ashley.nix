@@ -1,7 +1,6 @@
 { lib, pkgs, ... }:
 
-let 
-  defaultConfig = {
+let defaultConfig = {
     uid = 1000;
     description = "Ashley Stanton-Nurse";
     shell = pkgs.zsh;
@@ -17,6 +16,7 @@ let
       "share"
       "family"
       "parents"
+      "aria2"
     ];
   };
   darwinUser = defaultConfig // {

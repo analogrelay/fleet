@@ -1,4 +1,4 @@
-{ ... }:
+{ pkgs, ... }:
 
 {
   imports =
@@ -17,7 +17,7 @@
 
   networking.hostName = "avalanche";
 
-  system.stateVersion = "23.11";
+  system.stateVersion = "24.11";
 
   # We want to do ARM things sometimes
   boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
@@ -30,5 +30,9 @@
     spec = "LABEL=DATA";
     hashTableSizeMB = 128;
   };
+
+  environment.systemPackages = with pkgs; [
+    linuxKernel.packages.linux_6_1.gasket
+  ];
 }
 
