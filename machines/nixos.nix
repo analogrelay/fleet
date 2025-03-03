@@ -35,4 +35,12 @@
     distro = "nixos";
     wsl = false;
   };
+
+  users = {
+    groups = {
+      unattend = {
+        gid = 6000;
+      };
+    };
+  };
 }

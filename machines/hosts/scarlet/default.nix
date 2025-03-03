@@ -9,6 +9,11 @@
       ../../roles/workstation.nix
 
       ../../users
+      ../../users/kiosk.nix
+
+      ../../profiles/desktop-environment.nix
+      ../../profiles/gaming.nix
+      ../../profiles/tailnet.nix
     ];
 
   networking.hostName = "scarlet";
@@ -17,6 +22,13 @@
 
   home-manager.extraSpecialArgs = {
     username = "ashley";
+  };
+
+  services.blueman.enable = true;
+
+  services.displayManager = {
+    autoLogin.enable = true;
+    autoLogin.user = "kiosk";
   };
 }
 

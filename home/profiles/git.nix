@@ -29,8 +29,6 @@
       if wsl then {
         "gpg \"ssh\"".program = "/mnt/c/Program Files/1Password/app/8/op-ssh-sign.exe";
         core.sshCommand = "ssh.exe";
-      } else if role != "server" then {
-        "gpg \"ssh\"".program = "/opt/1Password/op-ssh-sign";
       } else { }
     else { });
   };

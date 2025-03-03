@@ -4,11 +4,6 @@
   programs.ssh = {
     enable = true;
     matchBlocks = {
-      "*" =
-        (if pkgs.stdenv.isLinux && role != "server" && role != "image" then {
-          extraOptions = { "IdentityAgent" = "~/.1password/agent.sock"; };
-        } else
-          { });
       "*.node.analogrelay.net" = {
         forwardAgent = true;
         user = "ashley";
