@@ -21,18 +21,6 @@
         "d /mnt/data/shares/homes/mary 2750 mary share - -"
     ];
 
-    # Configure Aria2c downloader
-    services.aria2 = {
-      enable = true;
-      openPorts = true;
-      rpcSecretFile = config.sops.secrets.aria2c_token.path;
-      settings = {
-        dir = "/mnt/data/shares/public/downloads";
-        "rpc-listen-all" = "true";
-      };
-    };
-    users.groups.share.members = [ "aria2" ];
-
     # Configure samba
     services.samba = {
         enable = true;

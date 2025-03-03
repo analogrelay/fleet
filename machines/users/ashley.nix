@@ -1,16 +1,20 @@
 { lib, pkgs, ... }:
 
-let defaultConfig = {
+let
+  defaultConfig = {
     uid = 1000;
     description = "Ashley Stanton-Nurse";
     shell = pkgs.zsh;
+    openssh.authorizedKeys.keys = [
+      (builtins.readFile ../../keys/local-server-admin.pub)
+    ];
   };
   linuxUser = defaultConfig // {
     home = "/home/ashley";
     isNormalUser = true;
     extraGroups = [
-      "wheel" 
-      "networkmanager" 
+      "wheel"
+      "networkmanager"
       "libvirtd"
       "docker"
       "share"

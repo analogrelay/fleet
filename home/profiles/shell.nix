@@ -30,5 +30,9 @@
     enable = true;
     enableZshIntegration = true;
     enableBashIntegration = true;
+    settings =
+      builtins.fromJSON (
+        builtins.unsafeDiscardStringContext (
+          builtins.readFile ../analogposh.omp.json));
   };
 }

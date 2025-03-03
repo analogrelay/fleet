@@ -10,15 +10,17 @@ let
     ./profiles/vim.nix
     ./profiles/ssh.nix
     ./profiles/tmux.nix
-    
+
     ./users/${username}.nix
   ];
-  nonWslImports = if (!wsl) then [
-    ./profiles/vscode.nix
-  ] else [];
-  wslImports = if (wsl) then [
-    ./profiles/wsl.nix
-  ] else [];
+  nonWslImports =
+    if (!wsl) then [
+      ./profiles/vscode.nix
+    ] else [ ];
+  wslImports =
+    if (wsl) then [
+      ./profiles/wsl.nix
+    ] else [ ];
   allImports = commonImports ++ nonWslImports ++ wslImports;
 in
 {
@@ -34,7 +36,7 @@ in
   programs.eza = {
     enable = true;
     git = true;
-    icons = true;
+    icons = "auto";
   };
   programs.bat.enable = true;
   programs.password-store.enable = true;
@@ -47,7 +49,7 @@ in
   home.packages = with pkgs; [
     dos2unix
     direnv
-    _1password
+    _1password-cli
   ];
 
   home.file.".local/bin" = {
