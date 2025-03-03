@@ -2,11 +2,9 @@
 let
   commonImports = [
     ./${os}.nix
-  ] ++ lib.optional (builtins.pathExists ./roles/${role}.nix) [
-    ./roles/${role}.nix
-  ] ++ lib.optional (builtins.pathExists ./roles/${role}.${os}.nix) [
-    ./roles/${role}.${os}.nix
-  ] ++ [
+  ] ++ (lib.optional (builtins.pathExists ./roles/${role}.nix) ./roles/${role}.nix)
+  ++ (lib.optional (builtins.pathExists ./roles/${role}.${os}.nix) ./roles/${role}.${os}.nix)
+  ++ [
     ./profiles/shell.nix
     ./profiles/git.nix
     ./profiles/vim.nix

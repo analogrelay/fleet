@@ -192,7 +192,6 @@
           pkgs.nodejs
           pkgs.python3
           pkgs.yq
-          pkgs-unstable.pulumi-bin
         ] ++ (pkgs.lib.lists.optional (pkgs.lib.strings.hasSuffix "-darwin" "${system}") [
           nix-darwin.packages.${system}.darwin-rebuild
         ]);

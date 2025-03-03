@@ -2,7 +2,7 @@
 
 {
   imports = [
-  ] ++ lib.optional (builtins.pathExists ./workstation.${platform}.nix) ./workstation.${platform}.nix;
+  ] ++ (lib.optional (builtins.pathExists ./workstation.${platform}.nix) ./workstation.${platform}.nix);
 
   home-manager.extraSpecialArgs = {
     role = "workstation";

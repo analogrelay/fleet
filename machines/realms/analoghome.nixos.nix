@@ -25,7 +25,7 @@
         shell = pkgs.zsh;
         isNormalUser = true;
         extraGroups = [
-            "share"
+          "share"
         ];
       };
     };
