@@ -4,6 +4,14 @@
   imports = [
   ] ++ (lib.optional (builtins.pathExists ./workstation.${platform}.nix) ./workstation.${platform}.nix);
 
+  fonts = {
+    fontDir.enable = true;
+    packages = with pkgs; [
+      monaspace
+      (nerdfonts.override { fonts = [ "Monaspace" ]; })
+    ];
+  };
+
   home-manager.extraSpecialArgs = {
     role = "workstation";
   };

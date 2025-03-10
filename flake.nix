@@ -100,6 +100,9 @@
         shinra = mkSystem "x86_64-linux" [ ./machines/hosts/shinra ];
         scarlet = mkSystem "x86_64-linux" [ ./machines/hosts/scarlet ];
 
+        # Workstations
+        cloud = mkSystem "x86_64-linux" [ ./machines/hosts/cloud ];
+
         # WSLs
         zach = mkWslSystem "x86_64-linux" [ ./machines/hosts/zach ];
         ashleyst-alphaprime =
