@@ -19,6 +19,12 @@ repo_root=$(dirname $script_dir)
 
 set -euo pipefail
 
+if [ "$(uname)" = "Linux" ]; then
+  platform=$(cat /etc/os-release | grep '^ID=' | cut -d'=' -f2)
+else
+  platform=$(uname)
+fi
+
 # Parse arguments
 hostname=""
 nixos_rebuild_command="switch"
@@ -33,6 +39,11 @@ while [[ $# -gt 0 ]]; do
       ;;
     --dry-run|--show-trace)
       rebuild_args+=($key)
+      ;;
+    --install-bootloader)
+      if [ "$platform" == "nixos" ]; then
+        rebuild_args+=("--install-bootloader")
+      fi
       ;;
     -h|--help)
       # Print usage information
@@ -72,8 +83,7 @@ if [ "$(uname)" = "Darwin" ]; then
   fi
   darwin-rebuild switch "${rebuild_args[@]}" --flake "$repo_root#$hostname"
 else
-  distro_id=$(cat /etc/os-release | grep '^ID=' | cut -d'=' -f2)
-  if [ "$distro_id" == "nixos" ]; then
+  if [ "$platform" == "nixos" ]; then
     echo "You may be prompted for your sudo password to run the rebuild script."
     sudo nixos-rebuild switch "${rebuild_args[@]}" --flake "$repo_root#$hostname"
   else

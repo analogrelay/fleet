@@ -14,5 +14,10 @@
     lazygit
     jq
     devenv
+    _1password-gui
   ];
+
+  programs.ssh.matchBlocks."*".extraOptions = {
+    "IdentityAgent" = "~/.1password/agent.sock";
+  };
 }
