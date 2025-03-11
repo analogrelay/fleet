@@ -17,6 +17,11 @@
   boot.loader.systemd-boot.configurationLimit = 3;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  networking.interfaces."enp6s0".wakeOnLan = {
+    enable = true;
+    policy = [ "magic" "unicast" ];
+  };
+
   fileSystems."/" =
     { device = "/dev/disk/by-label/NIXROOT";
       fsType = "ext4";
