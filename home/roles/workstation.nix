@@ -20,7 +20,4 @@
   programs.ssh.matchBlocks."*".extraOptions = {
     "IdentityAgent" = "~/.1password/agent.sock";
   };
-  programs.git.extraConfig = {
-    "gpg \"ssh\"".program = "op-ssh-sign";
-  };
 }

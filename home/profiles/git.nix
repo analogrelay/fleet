@@ -23,13 +23,6 @@
         credentialStore = "gpg";
         helper = "${pkgs.git-credential-manager}/bin/git-credential-manager";
       };
-    } // (if pkgs.stdenv.isDarwin then {
-      "gpg \"ssh\"".program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
-    } else { }) // (if pkgs.stdenv.isLinux then
-      if wsl then {
-        "gpg \"ssh\"".program = "/mnt/c/Program Files/1Password/app/8/op-ssh-sign.exe";
-        core.sshCommand = "ssh.exe";
-      } else { }
-    else { });
+    };
   };
 }

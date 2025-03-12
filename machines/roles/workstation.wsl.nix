@@ -11,6 +11,8 @@
         ];
     };
 
+    programs.nix-ld.enable = true;
+
     networking.firewall.allowedTCPPorts = [
         2222 # sshd
     ];
