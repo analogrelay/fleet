@@ -7,4 +7,8 @@
   } else {
     "gpg \"ssh\"".program = "op-ssh-sign";
   };
+
+  home.packages = with pkgs; [
+      microsoft-edge
+  ];
 }
