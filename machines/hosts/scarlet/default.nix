@@ -14,6 +14,7 @@
       ../../profiles/desktop-environment.nix
       ../../profiles/gaming.nix
       ../../profiles/tailnet.nix
+      ../../profiles/syncthing.nix
     ];
 
   networking.hostName = "scarlet";
@@ -30,5 +31,10 @@
     autoLogin.enable = true;
     autoLogin.user = "kiosk";
   };
+
+  # Create data directories
+  systemd.tmpfiles.rules = [
+    "d /data 2774 share share - -"
+  ];
 }
 

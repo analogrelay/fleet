@@ -1,0 +1,11 @@
+--- a/usr/share/es-de/resources/systems/unix/es_find_rules.xml  2024-11-12 11:26:09.000000000 -0800
++++ b/usr/share/es-de/resources/systems/unix/es_find_rules.xml  2024-11-12 11:26:09.000000000 -0800
+@@ -19,6 +19,8 @@
+             <entry>~/.config/retroarch/cores</entry>
+             <!-- FreeBSD repository -->
+             <entry>/usr/local/lib/libretro</entry>
++            <!-- NixOS repository -->
++            <entry>/run/current-system/sw/lib/retroarch/cores</entry>
+         </rule>
+     </core>
+     <emulator name="ADVANCEMAME">

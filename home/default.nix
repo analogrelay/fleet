@@ -10,6 +10,7 @@ let
     ./profiles/vim.nix
     ./profiles/ssh.nix
     ./profiles/tmux.nix
+    ./profiles/gaming.nix
 
     ./users/${username}.nix
   ];

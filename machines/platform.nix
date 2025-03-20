@@ -26,5 +26,8 @@
     tmux
     nix
     nixpkgs-fmt
+    usbutils
+    pciutils
+    hw-probe
   ];
 }
