@@ -10,6 +10,8 @@ spec:
       - "--entrypoints.mqtt.address=:1883/tcp"
       - "--entrypoints.mqttws.address=:9001/tcp"
       - "--entrypoints.postgres.address=:5432/tcp"
+      - "--entrypoints.rtsp.address=:8554/tcp"
+      - "--entrypoints.rtmp.address=:1935/tcp"
       - "--providers.file.filename=/config/additional.toml"
     volumes:
       - name: traefik-toml-config
