@@ -1,8 +1,7 @@
 { pkgs, ... }:
 
 {
-  imports = [
-  ];
+  imports = [ ];
 
   home.packages = with pkgs; [
     kubectl
@@ -15,9 +14,6 @@
     jq
     devenv
     _1password-gui
+    go
   ];
-
-  programs.ssh.matchBlocks."*".extraOptions = {
-    "IdentityAgent" = "~/.1password/agent.sock";
-  };
 }
