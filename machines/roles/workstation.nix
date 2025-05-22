@@ -1,8 +1,15 @@
-{ pkgs, lib, platform, wsl, ... }:
+{
+  pkgs,
+  lib,
+  platform,
+  wsl,
+  ...
+}:
 
 {
-  imports = [
-  ] ++ (lib.optional (builtins.pathExists ./workstation.${platform}.nix) ./workstation.${platform}.nix);
+  imports =
+    [ ]
+    ++ (lib.optional (builtins.pathExists ./workstation.${platform}.nix) ./workstation.${platform}.nix);
 
   fonts = {
     fontDir.enable = true;
@@ -22,13 +29,6 @@
       package = pkgs.qemu_kvm;
       runAsRoot = true;
       swtpm.enable = true;
-      ovmf = {
-        enable = true;
-        packages = [(pkgs.OVMF.override {
-          secureBoot = true;
-          tpmSupport = true;
-        }).fd];
-      };
     };
   };
 }
