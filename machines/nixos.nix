@@ -28,6 +28,9 @@
   environment.systemPackages = with pkgs; [
     cifs-utils
     nfs-utils
+    usbutils
+    pciutils
+    hw-probe
   ];
 
   home-manager.extraSpecialArgs = {
@@ -36,11 +39,5 @@
     wsl = false;
   };
 
-  users = {
-    groups = {
-      unattend = {
-        gid = 6000;
-      };
-    };
-  };
+  users = { groups = { unattend = { gid = 6000; }; }; };
 }

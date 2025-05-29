@@ -1,8 +1,9 @@
-{ pkgs, ... }:
+{ pkgs, os, ... }:
 
 {
-  programs.vscode = {
+  programs.vscode = if os == "linux" then {
     enable = true;
     package = pkgs.vscode.fhs;
-  };
+  } else
+    { };
 }

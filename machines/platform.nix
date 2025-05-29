@@ -1,13 +1,9 @@
 { pkgs, platform, ... }:
 
 {
-  imports = [
-    ./${platform}.nix
-  ];
-  
-  nix = {
-    settings.experimental-features = [ "nix-command" "flakes" ];
-  };
+  imports = [ ./${platform}.nix ];
+
+  nix = { settings.experimental-features = [ "nix-command" "flakes" ]; };
 
   home-manager = {
     useGlobalPkgs = true;
@@ -26,8 +22,5 @@
     tmux
     nix
     nixpkgs-fmt
-    usbutils
-    pciutils
-    hw-probe
   ];
 }

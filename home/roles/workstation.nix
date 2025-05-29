@@ -14,7 +14,6 @@
     jq
     devenv
     dotnet-sdk_9
-    _1password-gui
     go
   ];
 }
