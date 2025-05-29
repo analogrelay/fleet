@@ -161,6 +161,7 @@ spec:
                 - "--exclude=/k3s/volumes/prometheus/**"
                 - "--exclude=/downloads/**"
                 - "--exclude=/shares/public/downloads/**"
+                - "--exclude=/shares/public/backups/icloud/**"
                 - "--exclude=/k3s/shares/frigate.frigate-media/**"
                 - "/target"
                 - "analogbackup:vault"

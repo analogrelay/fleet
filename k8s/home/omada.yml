@@ -12,12 +12,14 @@ metadata:
   namespace: omada
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: omada
   template:
     metadata:
-      labels: 
+      labels:
         app: omada
     spec:
       securityContext:
@@ -26,7 +28,7 @@ spec:
             value: "0"
       containers:
         - name: omada-container
-          image: mbentley/omada-controller:5.13
+          image: mbentley/omada-controller:5.15-chromium
           volumeMounts:
             - name: omada-data
               mountPath: /opt/tplink/EAPController/data
@@ -35,15 +37,13 @@ spec:
               value: "5000"
             - name: PGID
               value: "5003"
-            - name: MANAGE_HTTPS_PORT
-              value: "443"
           ports:
             - name: http
               containerPort: 8088
             - name: https
               containerPort: 8843
             - name: mgmt-https
-              containerPort: 443
+              containerPort: 8043
             - name: app-disco
               containerPort: 27001
               protocol: UDP
@@ -77,38 +77,50 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-  - name: app-disco
-    port: 27001
-    targetPort: app-disco
-    protocol: UDP
-  - name: discovery
-    port: 29810
-    targetPort: discovery
-    protocol: UDP
-  - name: manager-v1
-    port: 29811
-    targetPort: manager-v1
-    protocol: TCP
-  - name: adopt-v1
-    port: 29812
-    targetPort: adopt-v1
-    protocol: TCP
-  - name: upgrade-v1
-    port: 29813
-    targetPort: upgrade-v1
-    protocol: TCP
-  - name: manager-v2
-    port: 29814
-    targetPort: manager-v2
-    protocol: TCP
-  - name: transfer-v2
-    port: 29815
-    targetPort: transfer-v2
-    protocol: TCP
-  - name: rtty
-    port: 29816
-    targetPort: rtty
-    protocol: TCP
+    - name: http
+      port: 8088
+      targetPort: http
+      protocol: TCP
+    - name: https
+      port: 8843
+      targetPort: https
+      protocol: TCP
+    - name: manage-https
+      port: 8043
+      targetPort: mgmt-https
+      protocol: TCP
+    - name: app-disco
+      port: 27001
+      targetPort: app-disco
+      protocol: UDP
+    - name: discovery
+      port: 29810
+      targetPort: discovery
+      protocol: UDP
+    - name: manager-v1
+      port: 29811
+      targetPort: manager-v1
+      protocol: TCP
+    - name: adopt-v1
+      port: 29812
+      targetPort: adopt-v1
+      protocol: TCP
+    - name: upgrade-v1
+      port: 29813
+      targetPort: upgrade-v1
+      protocol: TCP
+    - name: manager-v2
+      port: 29814
+      targetPort: manager-v2
+      protocol: TCP
+    - name: transfer-v2
+      port: 29815
+      targetPort: transfer-v2
+      protocol: TCP
+    - name: rtty
+      port: 29816
+      targetPort: rtty
+      protocol: TCP
   selector:
     app: omada
 
@@ -121,14 +133,14 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - name: http
-    port: 80
-    targetPort: http
-    protocol: TCP
-  - name: https
-    port: 443
-    targetPort: mgmt-https
-    protocol: TCP
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+    - name: https
+      port: 443
+      targetPort: mgmt-https
+      protocol: TCP
   selector:
     app: omada
 
@@ -168,16 +180,16 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-  - host: omada.home.analogrelay.net
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: omada-mgmt-svc
-            port:
-              number: 443
+    - host: omada.home.analogrelay.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: omada-mgmt-svc
+                port:
+                  number: 443
   tls:
     - hosts:
         - omada.home.analogrelay.net
