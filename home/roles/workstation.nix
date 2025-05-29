@@ -13,7 +13,6 @@
     lazygit
     jq
     devenv
-    dotnet-sdk_9
     go
   ];
 }

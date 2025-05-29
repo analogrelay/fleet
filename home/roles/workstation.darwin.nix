@@ -15,6 +15,7 @@ in {
   home.sessionPath = [
     "$HOME/.local/bin"
     "$HOME/Library/Application Support/JetBrains/Toolbox/scripts"
+    "/usr/local/share/dotnet"
   ];
 
   programs.git.extraConfig."gpg \"ssh\"".program =
