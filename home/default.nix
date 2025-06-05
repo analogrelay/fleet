@@ -54,6 +54,8 @@ in
     direnv
     _1password-cli
     nixfmt-rfc-style
+    zip
+    unzip
   ];
 
   home.file.".local/bin" = {
