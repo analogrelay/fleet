@@ -17,4 +17,8 @@
     python3
     pipx
   ];
+
+  home.sessionVariables = {
+    GOPRIVATE = "https://github.com/Azure/azure-cosmos-client-engine";
+  };
 }
