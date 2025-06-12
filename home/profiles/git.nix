@@ -1,4 +1,9 @@
-{ pkgs, wsl, role, ... }:
+{
+  pkgs,
+  wsl,
+  role,
+  ...
+}:
 
 {
   programs.git = {
@@ -14,6 +19,11 @@
       { path = "~/.config/git/config.d/local.gitconfig"; }
     ];
     extraConfig = {
+      url = {
+        "ssh://git@github.com/" = {
+          insteadOf = "https://github.com/";
+        };
+      };
       init.defaultBranch = "main";
       color.ui = true;
       pull.rebase = true;
