@@ -8,7 +8,8 @@
   fonts = {
     packages = with pkgs; [
       monaspace
-      (nerdfonts.override { fonts = [ "Monaspace" ]; })
+      nerd-fonts.monaspace
+      nerd-fonts.zed-mono
     ];
   };
 

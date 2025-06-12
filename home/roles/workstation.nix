@@ -14,5 +14,7 @@
     jq
     devenv
     go
+    python3
+    pipx
   ];
 }
