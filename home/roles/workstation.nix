@@ -19,6 +19,6 @@
   ];
 
   home.sessionVariables = {
-    GOPRIVATE = "https://github.com/Azure/azure-cosmos-client-engine";
+    GOPRIVATE = "github.com/Azure/azure-cosmos-client-engine";
   };
 }
