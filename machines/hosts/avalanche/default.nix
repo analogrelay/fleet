@@ -16,6 +16,7 @@
     ];
 
   networking.hostName = "avalanche";
+  networking.hostId = "19cc4826";
 
   system.stateVersion = "24.11";
 
@@ -26,13 +27,9 @@
     username = "ashley";
   };
 
-  services.beesd.filesystems.data = {
-    spec = "LABEL=DATA";
-    hashTableSizeMB = 128;
-  };
-
   environment.systemPackages = with pkgs; [
     linuxKernel.packages.linux_6_1.gasket
+    zfs
   ];
 }
 

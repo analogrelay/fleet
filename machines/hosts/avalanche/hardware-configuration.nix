@@ -8,6 +8,11 @@
     [ (modulesPath + "/installer/scan/not-detected.nix")
     ];
 
+  boot.supportedFilesystems = [ "zfs" ];
+  boot.zfs = {
+    extraPools = [ "tank" ];
+    forceImportRoot = false;
+  };
   boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "usb_storage" "usbhid" "sd_mod" ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-amd" ];
@@ -26,16 +31,6 @@
   fileSystems."/boot" =
     { device = "/dev/disk/by-label/NIXBOOT";
       fsType = "vfat";
-    };
-
-  fileSystems."/mnt/data" =
-    { device = "/dev/disk/by-label/NEWDATA";
-      fsType = "ext4";
-    };
-
-  fileSystems."/mnt/oldata" =
-    { device = "/dev/disk/by-label/DATA";
-      fsType = "btrfs";
     };
 
   swapDevices = [ ];
