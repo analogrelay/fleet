@@ -1,7 +1,6 @@
 { pkgs, ... }:
 
 {
-  programs.nix-ld.enable = true;
   fonts.fontDir.enable = true;
   virtualisation.libvirtd = {
     enable = true;
