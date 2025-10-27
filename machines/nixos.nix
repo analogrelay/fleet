@@ -39,5 +39,11 @@
     wsl = false;
   };
 
-  users = { groups = { unattend = { gid = 6000; }; }; };
+  users = {
+    groups = {
+      unattend = {
+        gid = 6000;
+      };
+    };
+  };
 }

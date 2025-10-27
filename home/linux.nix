@@ -1,4 +1,10 @@
-{ username, distro, lib, ... }:
+{
+  username,
+  distro,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   imports = [
@@ -6,4 +12,8 @@
 
   services.ssh-agent.enable = true;
   home.homeDirectory = "/home/${username}";
+  home.packages = with pkgs; [
+    pkg-config
+    openssl
+  ];
 }
