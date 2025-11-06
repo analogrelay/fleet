@@ -69,10 +69,10 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - name: grafana
-    port: 80
-    targetPort: http-grafana
-    protocol: TCP
+    - name: grafana
+      port: 80
+      targetPort: http-grafana
+      protocol: TCP
   selector:
     app: grafana
 
@@ -84,20 +84,20 @@ metadata:
   namespace: monitoring
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-production
-    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect-https@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:
-  - host: grafana.home.analogrelay.net
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: grafana-svc
-            port:
-              number: 80
+    - host: grafana.home.analogrelay.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana-svc
+                port:
+                  number: 80
   tls:
     - hosts:
         - grafana.home.analogrelay.net

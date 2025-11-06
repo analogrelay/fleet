@@ -79,7 +79,7 @@ spec:
       ingressClassName: traefik
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt-production
-        traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect@kubernetescrd
+        traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect-https@kubernetescrd
       hosts:
         - host: frigate.home.analogrelay.net
           paths:

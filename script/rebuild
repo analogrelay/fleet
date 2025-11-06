@@ -17,7 +17,7 @@ repo_root=$(dirname $script_dir)
 
 # This script is designed to not require the nix shell.
 
-set -euo pipefail
+set -eo pipefail
 
 if [ "$(uname)" = "Linux" ]; then
   platform=$(cat /etc/os-release | grep '^ID=' | cut -d'=' -f2)

@@ -1,3 +1,5 @@
+# cSpell:ignore cifs usbutils pciutils iperf unattend
+
 { pkgs, ... }:
 
 {
@@ -32,6 +34,8 @@
     pciutils
     hw-probe
   ];
+
+  programs.nix-ld.enable = true;
 
   home-manager.extraSpecialArgs = {
     os = "linux";

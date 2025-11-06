@@ -42,7 +42,7 @@ spec:
           configMap:
             defaultMode: 420
             name: prometheus-server-conf
-  
+
         - name: prometheus-storage-volume
           persistentVolumeClaim:
             claimName: prometheus-pvc
@@ -56,10 +56,10 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - name: prom
-    port: 80
-    targetPort: prom
-    protocol: TCP
+    - name: prom
+      port: 80
+      targetPort: prom
+      protocol: TCP
   selector:
     app: prometheus-server
 
@@ -71,20 +71,20 @@ metadata:
   namespace: monitoring
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-production
-    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect-https@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:
-  - host: prometheus.home.analogrelay.net
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: prometheus-svc
-            port:
-              number: 80
+    - host: prometheus.home.analogrelay.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: prometheus-svc
+                port:
+                  number: 80
   tls:
     - hosts:
         - prometheus.home.analogrelay.net

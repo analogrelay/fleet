@@ -38,10 +38,10 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - name: guacd
-    port: 4822
-    targetPort: guacd
-    protocol: TCP
+    - name: guacd
+      port: 4822
+      targetPort: guacd
+      protocol: TCP
   selector:
     app: guacd
 
@@ -95,10 +95,10 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - name: guacamole
-    port: 80
-    targetPort: guacamole
-    protocol: TCP
+    - name: guacamole
+      port: 80
+      targetPort: guacamole
+      protocol: TCP
   selector:
     app: guacamole
 
@@ -110,20 +110,20 @@ metadata:
   namespace: guacamole
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-production
-    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect-https@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:
-  - host: guacamole.home.analogrelay.net
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: guacamole-svc
-            port:
-              number: 80
+    - host: guacamole.home.analogrelay.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: guacamole-svc
+                port:
+                  number: 80
   tls:
     - hosts:
         - guacamole.home.analogrelay.net

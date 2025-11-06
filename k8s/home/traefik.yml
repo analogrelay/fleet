@@ -13,6 +13,7 @@ spec:
       - "--entrypoints.rtsp.address=:8554/tcp"
       - "--entrypoints.rtmp.address=:1935/tcp"
       - "--providers.file.filename=/config/additional.toml"
+      - "--providers.kubernetescrd.allowCrossNamespace=true"
     volumes:
       - name: traefik-toml-config
         mountPath: /config
@@ -81,24 +82,24 @@ data:
           rule = "Host(`home.analogrelay.net`) && PathPrefix(`/`)"
           entryPoints = ["web"]
           service = "home-assistant"
-          middlewares = ["kube-system-redirect@kubernetescrd"]
+          middlewares = ["kube-system-redirect-https@kubernetescrd"]
         [http.routers.websecure-home-assistant]
           rule = "Host(`home.analogrelay.net`) && PathPrefix(`/`)"
           entryPoints = ["websecure"]
           service = "home-assistant"
-          middlewares = ["kube-system-redirect@kubernetescrd"]
+          middlewares = ["kube-system-redirect-https@kubernetescrd"]
           [http.routers.websecure-home-assistant.tls]
 
         [http.routers.web-octoprint]
           rule = "Host(`octoprint.home.analogrelay.net`) && PathPrefix(`/`)"
           entryPoints = ["web"]
           service = "octoprint"
-          middlewares = ["kube-system-redirect@kubernetescrd"]
+          middlewares = ["kube-system-redirect-https@kubernetescrd"]
         [http.routers.websecure-octoprint]
           rule = "Host(`octoprint.home.analogrelay.net`) && PathPrefix(`/`)"
           entryPoints = ["websecure"]
           service = "octoprint"
-          middlewares = ["kube-system-redirect@kubernetescrd"]
+          middlewares = ["kube-system-redirect-https@kubernetescrd"]
           [http.routers.websecure-octoprint.tls]
 
       [http.services]
@@ -137,7 +138,7 @@ metadata:
   namespace: kube-system
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-production
-    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect-https@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:
@@ -173,10 +174,10 @@ spec:
         - traefik
 
 ---
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
-  name: redirect
+  name: redirect-https
   namespace: kube-system
 spec:
   redirectScheme:

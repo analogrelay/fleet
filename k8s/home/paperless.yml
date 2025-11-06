@@ -5,6 +5,46 @@ metadata:
   name: paperless
 
 ---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-pv
+  namespace: paperless
+spec:
+  capacity:
+    storage: 1Mi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: existing-local-volume
+  local:
+    path: /mnt/data/k3s/volumes/redis
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - avalanche
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+  namespace: paperless
+spec:
+  storageClassName: existing-local-volume
+  volumeName: redis-pv
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Mi
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -35,12 +75,7 @@ spec:
       volumes:
         - name: redis-storage
           persistentVolumeClaim:
-            claimName: redis
-      volumes:
-        - name: redis-storage
-          nfs:
-            server: avalanche.node.analogrelay.net
-            path: /mnt/data/k3s/shares/paperless.redis
+            claimName: redis-pvc
 
 ---
 apiVersion: v1
@@ -51,10 +86,10 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - name: redis
-    port: 6379
-    targetPort: redis
-    protocol: TCP
+    - name: redis
+      port: 6379
+      targetPort: redis
+      protocol: TCP
   selector:
     app: redis
 
@@ -92,10 +127,10 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - name: tika
-    port: 9998
-    targetPort: tika
-    protocol: TCP
+    - name: tika
+      port: 9998
+      targetPort: tika
+      protocol: TCP
   selector:
     app: tika
 
@@ -120,7 +155,12 @@ spec:
         - name: gotenberg
           image: docker.io/gotenberg/gotenberg:7.10
           imagePullPolicy: IfNotPresent
-          command: ["gotenberg", "--chromium-disable-javascript=true", "--chromium-allow-list=file:///tmp/.*"]
+          command:
+            [
+              "gotenberg",
+              "--chromium-disable-javascript=true",
+              "--chromium-allow-list=file:///tmp/.*",
+            ]
           ports:
             - name: gotenberg
               containerPort: 3000
@@ -134,10 +174,10 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - name: gotenberg
-    port: 3000
-    targetPort: gotenberg
-    protocol: TCP
+    - name: gotenberg
+      port: 3000
+      targetPort: gotenberg
+      protocol: TCP
   selector:
     app: gotenberg
 
@@ -160,7 +200,7 @@ spec:
     spec:
       containers:
         - name: paperless
-          image: ghcr.io/paperless-ngx/paperless-ngx:2.6.3
+          image: paperlessngx/paperless-ngx:2.14
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: cabinet
@@ -209,12 +249,6 @@ spec:
                 secretKeyRef:
                   name: paperless
                   key: cookie-secret
-            - name: PAPERLESS_CSRF_TRUSTED_ORIGINS
-              value: "https://cabinet.home.analogrelay.net,https://cabinet.bicorn-bebop.ts.net"
-            - name: PAPERLESS_ALLOWED_HOSTS
-              value: "cabinet.home.analogrelay.net,cabinet.bicorn-bebop.ts.net"
-            - name: PAPERLESS_CORS_ALLOWED_HOSTS
-              value: "https://cabinet.home.analogrelay.net,https://cabinet.bicorn-bebop.ts.net"
             - name: PAPERLESS_CONSUMER_POLLING
               value: "30"
             - name: PAPERLESS_CONSUMER_ENABLE_BARCODES
@@ -225,6 +259,16 @@ spec:
               value: '{"invalidate_digital_signatures": true}'
             - name: PAPERLESS_CONSUMER_ASN_BARCODE_PREFIX
               value: "ASN"
+            - name: USERMAP_UID
+              value: "5000"
+            - name: USERMAP_GID
+              value: "5003"
+            - name: PAPERLESS_CSRF_TRUSTED_ORIGINS
+              value: "https://cabinet.home.analogrelay.net"
+            - name: PAPERLESS_ALLOWED_HOSTS
+              value: "cabinet.home.analogrelay.net"
+            - name: PAPERLESS_CORS_ALLOWED_HOSTS
+              value: "https://cabinet.home.analogrelay.net"
           ports:
             - name: paperless
               containerPort: 8000
@@ -243,10 +287,10 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - name: paperless
-    port: 80
-    targetPort: paperless
-    protocol: TCP
+    - name: paperless
+      port: 8000
+      targetPort: paperless
+      protocol: TCP
   selector:
     app: paperless
 
@@ -262,35 +306,17 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-  - host: cabinet.home.analogrelay.net
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: paperless-svc
-            port:
-              number: 80
+    - host: cabinet.home.analogrelay.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: paperless-svc
+                port:
+                  number: 8000
   tls:
     - hosts:
         - cabinet.home.analogrelay.net
       secretName: paperless-ingress-cert
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: paperless-ingress-ts
-  namespace: paperless
-  annotations:
-    tailscale.com/funnel: "true"
-spec:
-  ingressClassName: tailscale
-  defaultBackend:
-    service:
-      name: paperless-svc
-      port:
-        number: 80
-  tls:
-    - hosts:
-        - cabinet

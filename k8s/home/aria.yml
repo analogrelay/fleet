@@ -17,7 +17,7 @@ spec:
       app: aria
   template:
     metadata:
-      labels: 
+      labels:
         app: aria
     spec:
       containers:
@@ -85,22 +85,22 @@ spec:
   selector:
     app: aria
   ports:
-  - name: http
-    port: 80
-    targetPort: http
-    protocol: TCP
-  - name: rpc
-    port: 6800
-    targetPort: rpc
-    protocol: TCP
-  - name: peer-tcp
-    port: 6888
-    targetPort: peer-tcp
-    protocol: TCP
-  - name: peer-udp
-    port: 6888
-    targetPort: peer-udp
-    protocol: UDP
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+    - name: rpc
+      port: 6800
+      targetPort: rpc
+      protocol: TCP
+    - name: peer-tcp
+      port: 6888
+      targetPort: peer-tcp
+      protocol: TCP
+    - name: peer-udp
+      port: 6888
+      targetPort: peer-udp
+      protocol: UDP
 
 ---
 apiVersion: networking.k8s.io/v1
@@ -110,20 +110,20 @@ metadata:
   namespace: aria
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-production
-    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect-https@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:
-  - host: aria-rpc.home.analogrelay.net
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: aria-svc
-            port:
-              number: 6800
+    - host: aria-rpc.home.analogrelay.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: aria-svc
+                port:
+                  number: 6800
   tls:
     - hosts:
         - aria-rpc.home.analogrelay.net
@@ -137,20 +137,20 @@ metadata:
   namespace: aria
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-production
-    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect-https@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:
-  - host: aria.home.analogrelay.net
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: aria-svc
-            port:
-              number: 80
+    - host: aria.home.analogrelay.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: aria-svc
+                port:
+                  number: 80
   tls:
     - hosts:
         - aria.home.analogrelay.net

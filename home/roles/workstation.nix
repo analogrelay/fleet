@@ -16,6 +16,7 @@
     go
     python3
     pipx
+    nodejs_24
   ];
 
   home.sessionVariables = {

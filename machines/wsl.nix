@@ -1,21 +1,21 @@
+# cSpell:ignore usbip
+
 { ... }:
 
 {
-    imports = [
-        ./nixos.nix
-    ];
+  imports = [ ./nixos.nix ];
 
-    home-manager.extraSpecialArgs = {
-        wsl = true;
-    };
+  home-manager.extraSpecialArgs = { wsl = true; };
 
-    wsl = {
-        enable = true;
-        usbip.enable = true;
-    };
+  programs.nix-ld.enable = true;
 
-    services.openssh = {
-        enable = true;
-        ports = [ 2222 ];
-    };
+  wsl = {
+    enable = true;
+    usbip.enable = true;
+  };
+
+  services.openssh = {
+    enable = true;
+    ports = [ 2222 ];
+  };
 }

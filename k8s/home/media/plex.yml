@@ -110,10 +110,10 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - name: plex
-    port: 80
-    targetPort: plex
-    protocol: TCP
+    - name: plex
+      port: 80
+      targetPort: plex
+      protocol: TCP
   selector:
     app: plex
 
@@ -125,20 +125,20 @@ metadata:
   namespace: media
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-production
-    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect-https@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:
-  - host: plex.home.analogrelay.net
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: plex-svc
-            port:
-              number: 80
+    - host: plex.home.analogrelay.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: plex-svc
+                port:
+                  number: 80
   tls:
     - hosts:
         - plex.home.analogrelay.net
