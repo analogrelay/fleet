@@ -1,9 +1,9 @@
-{ lib, ... }:
+{ lib, config, ... }:
 
 {
   programs.zsh = {
     enable = true;
-    dotDir = ".config/zsh";
+    dotDir = "${config.home.homeDirectory}/.config/zsh";
     autosuggestion.enable = true;
     enableCompletion = true;
     initContent = lib.mkOrder 1000 "source ~/.config/zsh/analogzsh.zsh";

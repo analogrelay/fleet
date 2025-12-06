@@ -1,4 +1,1 @@
-{ ... }:
-{
-  programs.git.userEmail = "ashleyst@microsoft.com";
-}
+{ ... }: { programs.git.settings.user.email = "ashleyst@microsoft.com"; }

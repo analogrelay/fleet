@@ -2,13 +2,13 @@
   description = "NixOS Configurations";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs-analogrelay.url = "github:analogrelay/nixpkgs/analogrelay-main";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     mac-app-util.url = "github:hraban/mac-app-util";
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.05";
+      url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     vscode-server = {
@@ -19,7 +19,7 @@
     sops-nix.url = "github:Mic92/sops-nix";
     ssh-to-age.url = "github:Mic92/ssh-to-age";
     nix-darwin = {
-      url = "github:LnL7/nix-darwin/nix-darwin-25.05";
+      url = "github:LnL7/nix-darwin/nix-darwin-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-vscode-extensions.url = "github:nix-community/nix-vscode-extensions";

@@ -18,6 +18,6 @@ in {
     "/usr/local/share/dotnet"
   ];
 
-  programs.git.extraConfig."gpg \"ssh\"".program =
+  programs.git.settings.gpg.ssh.program =
     "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
 }

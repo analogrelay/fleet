@@ -1,28 +1,15 @@
-{
-  pkgs,
-  wsl,
-  role,
-  ...
-}:
+{ pkgs, wsl, role, ... }:
 
 {
   programs.git = {
     enable = true;
-    userName = pkgs.lib.mkDefault "Ashley Stanton-Nurse";
-    userEmail = pkgs.lib.mkDefault "git@analogrelay.net";
-    signing = {
-      key = builtins.readFile ../../keys/gitSigning.pub;
-      signByDefault = true;
-    };
-    includes = [
-      { path = "~/.config/git/config.d/base.gitconfig"; }
-      { path = "~/.config/git/config.d/local.gitconfig"; }
-    ];
-    extraConfig = {
+    settings = {
+      user = {
+        name = pkgs.lib.mkDefault "Ashley Stanton-Nurse";
+        email = pkgs.lib.mkDefault "git@analogrelay.net";
+      };
       url = {
-        "ssh://git@github.com/" = {
-          insteadOf = "https://github.com/";
-        };
+        "ssh://git@github.com/" = { insteadOf = "https://github.com/"; };
       };
       init.defaultBranch = "main";
       color.ui = true;
@@ -34,5 +21,13 @@
         helper = "${pkgs.git-credential-manager}/bin/git-credential-manager";
       };
     };
+    signing = {
+      key = builtins.readFile ../../keys/gitSigning.pub;
+      signByDefault = true;
+    };
+    includes = [
+      { path = "~/.config/git/config.d/base.gitconfig"; }
+      { path = "~/.config/git/config.d/local.gitconfig"; }
+    ];
   };
 }
