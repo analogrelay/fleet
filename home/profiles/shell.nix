@@ -1,4 +1,4 @@
-{ ... }:
+{ lib, ... }:
 
 {
   programs.zsh = {
@@ -6,13 +6,9 @@
     dotDir = ".config/zsh";
     autosuggestion.enable = true;
     enableCompletion = true;
-    initExtra = ''
-      source ~/.config/zsh/analogzsh.zsh
-    '';
+    initContent = lib.mkOrder 1000 "source ~/.config/zsh/analogzsh.zsh";
   };
-  home.file.".config/zsh/analogzsh.zsh" = {
-    source = ../../zsh/.zshrc;
-  };
+  home.file.".config/zsh/analogzsh.zsh" = { source = ../../zsh/.zshrc; };
   home.file.".config/zsh/functions" = {
     source = ../../zsh/functions;
     recursive = true;
@@ -22,17 +18,13 @@
     recursive = true;
   };
 
-  programs.bash = {
-    enable = true;
-  };
+  programs.bash = { enable = true; };
 
   programs.oh-my-posh = {
     enable = true;
     enableZshIntegration = true;
     enableBashIntegration = true;
-    settings =
-      builtins.fromJSON (
-        builtins.unsafeDiscardStringContext (
-          builtins.readFile ../analogposh.omp.json));
+    settings = builtins.fromJSON (builtins.unsafeDiscardStringContext
+      (builtins.readFile ../analogposh.omp.json));
   };
 }
