@@ -6,7 +6,10 @@
   home.packages = with pkgs; [
     kubectl
     k9s
-    azure-cli
+    powershell
+    (azure-cli.withExtensions [
+      azure-cli.extensions.azure-devops
+    ])
     rustup
     git-credential-manager
     gh
@@ -17,6 +20,7 @@
     python3
     pipx
     nodejs_24
+    cmake
   ];
 
   home.sessionVariables = {

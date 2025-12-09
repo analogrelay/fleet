@@ -6,7 +6,7 @@
 }:
 
 {
-  programs.git.extraConfig =
+  programs.git.settings =
     if wsl then
       {
         "gpg \"ssh\"".program = "/mnt/c/Program Files/1Password/app/8/op-ssh-sign-wsl";
