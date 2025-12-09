@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ lib, pkgs, config, ... }:
 
 let
   defaultConfig = {
@@ -30,7 +30,7 @@ in
   home-manager.users.ashleyst = {
     imports = [
       ../../home
-    ];
+    ] ++ lib.optional (builtins.pathExists ../../home/hosts/${config.networking.hostName}.nix) ../../home/hosts/${config.networking.hostName}.nix;
   };
   nix.settings.trusted-users = [ "ashleyst" ];
 }

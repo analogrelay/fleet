@@ -24,7 +24,7 @@
     };
     nix-vscode-extensions.url = "github:nix-community/nix-vscode-extensions";
     nixos-wsl = {
-      url = "github:nix-community/NixOS-WSL/2505.7.0";
+      url = "github:nix-community/nixos-wsl/release-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -139,7 +139,10 @@
 
         # WSLs
         zach = mkWslSystem "x86_64-linux" [ ./machines/hosts/zach ];
-        ashleyst-alphaprime = mkWslSystem "x86_64-linux" [ ./machines/hosts/ashleyst-alphaprime ];
+        ashleyst-alphaprime =
+          mkWslSystem "x86_64-linux" [ ./machines/hosts/ashleyst-alphaprime ];
+        ashleyst-omegaprime =
+          mkWslSystem "x86_64-linux" [ ./machines/hosts/ashleyst-omegaprime ];
 
         # Raspberry Pis
         jessie = mkSystem "aarch64-linux" [ ./machines/hosts/jessie ];
