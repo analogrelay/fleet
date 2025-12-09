@@ -24,7 +24,11 @@
     openFirewall = true;
   };
 
-  virtualisation.docker.enable = true;
+  virtualisation.containers.enable = true;
+  virtualisation.podman = {
+    enable = true;
+    dockerCompat = true;
+  };
 
   environment.localBinInPath = true;
   environment.systemPackages = with pkgs; [

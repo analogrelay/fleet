@@ -47,7 +47,6 @@ in {
     nixfmt-rfc-style
     zip
     unzip
-    nodejs
   ];
 
   home.file.".local/bin" = {

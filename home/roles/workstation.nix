@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 
 {
   imports = [ ];
@@ -22,4 +22,8 @@
   home.sessionVariables = {
     GOPRIVATE = "github.com/Azure/azure-cosmos-client-engine";
   };
+  home.file.".npmrc".text = ''
+    prefix=${config.home.homeDirectory}/.npm-global
+  '';
+  home.sessionPath = [ "$HOME/.npm-global/bin" ];
 }
