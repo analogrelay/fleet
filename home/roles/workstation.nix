@@ -21,6 +21,7 @@
     pipx
     nodejs_24
     cmake
+    gnumake
   ];
 
   home.sessionVariables = {
