@@ -4,7 +4,6 @@ kind: Namespace
 metadata:
   name: postgres
 ---
-
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -19,15 +18,15 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: existing-local-volume
   local:
-    path: /var/volumes/postgres
+    path: /mnt/data/k3s/volumes/postgres
   nodeAffinity:
     required:
       nodeSelectorTerms:
         - matchExpressions:
-          - key: kubernetes.io/hostname
-            operator: In
-            values:
-              - shinra
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - avalanche
 
 ---
 apiVersion: v1
@@ -57,7 +56,7 @@ spec:
       app: postgres
   template:
     metadata:
-      labels: 
+      labels:
         app: postgres
     spec:
       containers:
@@ -91,12 +90,96 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-  - name: postgres
-    port: 5432
-    targetPort: postgres 
-    protocol: TCP
+    - name: postgres
+      port: 5432
+      targetPort: postgres
+      protocol: TCP
   selector:
     app: postgres
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgadmin
+  namespace: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pgadmin
+  template:
+    metadata:
+      labels:
+        app: pgadmin
+    spec:
+      containers:
+        - name: pgadmin-container
+          image: dpage/pgadmin4
+          volumeMounts:
+            - name: pgadmin-data
+              mountPath: /var/lib/pgadmin
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - name: PGADMIN_DEFAULT_EMAIL
+              value: ashley@stanton-nurse.com
+            - name: PGADMIN_DEFAULT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pgadmin
+                  key: password
+      volumes:
+        - name: pgadmin-data
+          nfs:
+            server: avalanche.node.analogrelay.net
+            path: /mnt/data/k3s/shares/pgadmin.config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgadmin-svc
+  namespace: postgres
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: pgadmin.home.analogrelay.net
+spec:
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+  selector:
+    app: pgadmin
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pgadmin-ingress
+  namespace: postgres
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: pgadmin.home.analogrelay.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pgadmin-svc
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - pgadmin.home.analogrelay.net
+      secretName: pgadmin-ingress-cert
 
 ---
 apiVersion: batch/v1
@@ -113,27 +196,27 @@ spec:
       template:
         spec:
           containers:
-          - name: postgres-backup
-            image: analogrelay/pg-backup:v1.3
-            env:
-            - name: HEALTHCHECK_URL
-              value: https://hc-ping.com/41e63574-95c1-4492-991c-68230c315c77
-            - name: BACKUP_ROOT
-              value: /target
-            - name: PGUSER
-              value: postgres
-            - name: PGHOST
-              value: postgres-svc.postgres.svc.cluster.local
-            - name: PGDATABASE
-              value: paperless
-            - name: PGPASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: postgres
-                  key: root-password
-            volumeMounts:
-            - mountPath: /target
-              name: target
+            - name: postgres-backup
+              image: analogrelay/pg-backup:v1.6
+              env:
+                - name: HEALTHCHECK_URL
+                  value: https://hc-ping.com/41e63574-95c1-4492-991c-68230c315c77
+                - name: BACKUP_ROOT
+                  value: /target
+                - name: PGUSER
+                  value: postgres
+                - name: PGHOST
+                  value: postgres-svc.postgres.svc.cluster.local
+                - name: PGDATABASE
+                  value: paperless
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres
+                      key: root-password
+              volumeMounts:
+                - mountPath: /target
+                  name: target
           restartPolicy: Never
           volumes:
             - name: target

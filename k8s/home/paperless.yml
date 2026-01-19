@@ -200,7 +200,7 @@ spec:
     spec:
       containers:
         - name: paperless
-          image: paperlessngx/paperless-ngx:2.14
+          image: paperlessngx/paperless-ngx:2.20
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: cabinet

@@ -1,28 +1,28 @@
-{ pkgs, config, ... }:
+{ pkgs, lib, config, realm, ... }:
 
 {
   imports = [ ];
 
-  home.packages = with pkgs; [
-    kubectl
-    k9s
-    powershell
-    (azure-cli.withExtensions [
-      azure-cli.extensions.azure-devops
-    ])
-    rustup
-    git-credential-manager
-    gh
-    lazygit
-    jq
-    devenv
-    go
-    python3
-    pipx
-    nodejs_24
-    cmake
-    gnumake
-  ];
+  home.packages = with pkgs;
+    [
+      kubectl
+      k9s
+      powershell
+      (azure-cli.withExtensions [ azure-cli.extensions.azure-devops ])
+      rustup
+      git-credential-manager
+      gh
+      lazygit
+      jq
+      devenv
+      go
+      python3
+      pipx
+      nodejs_24
+      cmake
+      gnumake
+      uv
+    ] ++ (if (realm == "analoghome") then [ pkgs.claude-code ] else [ ]);
 
   home.sessionVariables = {
     GOPRIVATE = "github.com/Azure/azure-cosmos-client-engine";

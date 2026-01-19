@@ -39,3 +39,17 @@ fi
 if type -p oh-my-posh > /dev/null; then
   eval "$(oh-my-posh init zsh --config ~/.config/analogposh.omp.json)"
 fi
+
+if [ -f /etc/paths ]; then
+  while read p; do
+    PATH="$PATH:$p"
+  done < /etc/paths
+fi
+
+if [ -d /etc/paths.d ]; then
+  for p in /etc/paths.d/*; do
+    if [ -r $p ]; then
+      PATH="$PATH:$(cat $p)"
+    fi
+  done
+fi
