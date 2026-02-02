@@ -1,23 +1,33 @@
-{ lib, pkgs, role, os, wsl, username, ... }:
+{
+  lib,
+  pkgs,
+  role,
+  os,
+  wsl,
+  username,
+  ...
+}:
 let
-  commonImports = [ ./${os}.nix ]
-    ++ (lib.optional (builtins.pathExists ./roles/${role}.nix)
-      ./roles/${role}.nix)
-    ++ (lib.optional (builtins.pathExists ./roles/${role}.${os}.nix)
-      ./roles/${role}.${os}.nix) ++ [
-        ./profiles/shell.nix
-        ./profiles/git.nix
-        ./profiles/vim.nix
-        ./profiles/ssh.nix
-        ./profiles/tmux.nix
-        ./profiles/gaming.nix
+  commonImports = [
+    ./${os}.nix
+  ]
+  ++ (lib.optional (builtins.pathExists ./roles/${role}.nix) ./roles/${role}.nix)
+  ++ (lib.optional (builtins.pathExists ./roles/${role}.${os}.nix) ./roles/${role}.${os}.nix)
+  ++ [
+    ./profiles/shell.nix
+    ./profiles/git.nix
+    ./profiles/vim.nix
+    ./profiles/ssh.nix
+    ./profiles/tmux.nix
+    ./profiles/gaming.nix
 
-        ./users/${username}.nix
-      ];
+    ./users/${username}.nix
+  ];
   nonWslImports = if (!wsl) then [ ./profiles/vscode.nix ] else [ ];
   wslImports = if (wsl) then [ ./profiles/wsl.nix ] else [ ];
   allImports = commonImports ++ nonWslImports ++ wslImports;
-in {
+in
+{
   imports = allImports;
 
   home.stateVersion = "24.05";
@@ -54,10 +64,17 @@ in {
     recursive = true;
     executable = true;
   };
-  home.file.".config/eza/theme.yml" = { source = ../eza/theme.yml; };
-  home.sessionPath =
-    [ "$HOME/.local/bin" "$HOME/.npm-packages/bin" "$HOME/.cargo/bin" ];
-  home.sessionVariables = { NODE_PATH = "~/.npm-packages/lib/node_modules"; };
+  home.file.".config/eza/theme.yml" = {
+    source = ../eza/theme.yml;
+  };
+  home.sessionPath = [
+    "$HOME/.local/bin"
+    "$HOME/.npm-packages/bin"
+    "$HOME/.cargo/bin"
+  ];
+  home.sessionVariables = {
+    NODE_PATH = "~/.npm-packages/lib/node_modules";
+  };
   home.file.".npmrc" = {
     text = ''
       prefix = ''${HOME}/.npm-packages

@@ -30,10 +30,24 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, nixpkgs-analogrelay
-    , nixos-hardware, flake-utils, ssh-to-age, nix-darwin, sops-nix
-    , home-manager, mac-app-util, nix-vscode-extensions, nixos-wsl
-    , vscode-server, ... }@inputs:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      nixpkgs-unstable,
+      nixpkgs-analogrelay,
+      nixos-hardware,
+      flake-utils,
+      ssh-to-age,
+      nix-darwin,
+      sops-nix,
+      home-manager,
+      mac-app-util,
+      nix-vscode-extensions,
+      nixos-wsl,
+      vscode-server,
+      ...
+    }@inputs:
     let
       inherit (self) outputs;
 
@@ -46,52 +60,73 @@
         sops-nix.nixosModules.sops
         home-manager.nixosModules.home-manager
         vscode-server.nixosModule
-        ({ config, pkgs, ... }: { services.vscode-server.enable = true; })
+        (
+          { config, pkgs, ... }:
+          {
+            services.vscode-server.enable = true;
+          }
+        )
       ];
       defaultDarwinModules = [ home-manager.darwinModules.home-manager ];
-      mkSpecialArgs = system: platform:
+      mkSpecialArgs =
+        system: platform:
         let
           pkgs-unstable = mkPkgsUnstable system;
           pkgs-analogrelay = mkPkgsAnalogrelay system;
-        in { inherit inputs outputs platform pkgs-unstable pkgs-analogrelay; };
-      mkPkgs = system:
+        in
+        {
+          inherit
+            inputs
+            outputs
+            platform
+            pkgs-unstable
+            pkgs-analogrelay
+            ;
+        };
+      mkPkgs =
+        system:
         import nixpkgs {
           inherit system overlays;
           config.allowUnfree = true;
         };
-      mkPkgsUnstable = system:
+      mkPkgsUnstable =
+        system:
         import nixpkgs-unstable {
           inherit system overlays;
           config.allowUnfree = true;
         };
-      mkPkgsAnalogrelay = system:
+      mkPkgsAnalogrelay =
+        system:
         import nixpkgs-analogrelay {
           inherit system overlays;
           config.allowUnfree = true;
         };
-      mkSystem = system: extraModules:
+      mkSystem =
+        system: extraModules:
         nixpkgs.lib.nixosSystem rec {
           inherit system;
           pkgs = mkPkgs system;
           modules = defaultModules ++ extraModules;
           specialArgs = mkSpecialArgs system "nixos";
         };
-      mkWslSystem = system: extraModules:
+      mkWslSystem =
+        system: extraModules:
         nixpkgs.lib.nixosSystem rec {
           inherit system;
           pkgs = mkPkgs system;
-          modules = defaultModules ++ [ nixos-wsl.nixosModules.wsl ]
-            ++ extraModules;
+          modules = defaultModules ++ [ nixos-wsl.nixosModules.wsl ] ++ extraModules;
           specialArgs = mkSpecialArgs system "wsl";
         };
-      mkDarwinSystem = system: extraModules:
+      mkDarwinSystem =
+        system: extraModules:
         nix-darwin.lib.darwinSystem rec {
           inherit system;
           pkgs = mkPkgs system;
           modules = defaultDarwinModules ++ extraModules;
           specialArgs = mkSpecialArgs system "darwin";
         };
-    in rec {
+    in
+    rec {
       lib = { inherit mkSystem; };
 
       nixosConfigurations = {
@@ -105,10 +140,8 @@
 
         # WSLs
         zach = mkWslSystem "x86_64-linux" [ ./machines/hosts/zach ];
-        ashleyst-alphaprime =
-          mkWslSystem "x86_64-linux" [ ./machines/hosts/ashleyst-alphaprime ];
-        ashleyst-omegaprime =
-          mkWslSystem "x86_64-linux" [ ./machines/hosts/ashleyst-omegaprime ];
+        ashleyst-alphaprime = mkWslSystem "x86_64-linux" [ ./machines/hosts/ashleyst-alphaprime ];
+        ashleyst-omegaprime = mkWslSystem "x86_64-linux" [ ./machines/hosts/ashleyst-omegaprime ];
 
         # Raspberry Pis
         jessie = mkSystem "aarch64-linux" [ ./machines/hosts/jessie ];
@@ -121,8 +154,7 @@
       };
       darwinConfigurations = {
         # MacBook Workstation
-        sephiroth =
-          mkDarwinSystem "aarch64-darwin" [ ./machines/hosts/sephiroth ];
+        sephiroth = mkDarwinSystem "aarch64-darwin" [ ./machines/hosts/sephiroth ];
       };
 
       homeConfigurations = {
@@ -153,11 +185,14 @@
       };
 
       overlays = import ./overlays { inherit inputs; };
-    } // flake-utils.lib.eachDefaultSystem (system:
+    }
+    // flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
         pkgs-unstable = nixpkgs-unstable.legacyPackages.${system};
-      in {
+      in
+      {
         packages = import ./pkgs { pkgs = nixpkgs.legacyPackages.${system}; };
 
         formatter = nixpkgs.legacyPackages.${system}.alejandra;
@@ -174,9 +209,10 @@
             pkgs.nodejs
             pkgs.python3
             pkgs.yq
-          ] ++ (pkgs.lib.lists.optional
-            (pkgs.lib.strings.hasSuffix "-darwin" "${system}")
-            [ nix-darwin.packages.${system}.darwin-rebuild ]);
+          ]
+          ++ (pkgs.lib.lists.optional (pkgs.lib.strings.hasSuffix "-darwin" "${system}") [
+            nix-darwin.packages.${system}.darwin-rebuild
+          ]);
 
           shellHook = ''
             export FLEET_IN_SHELL=1
@@ -185,5 +221,6 @@
             pip install -r requirements.txt
           '';
         };
-      });
+      }
+    );
 }
