@@ -34,6 +34,9 @@
       opencode
       github-copilot-cli
     ]);
+      uv
+      bun
+    ] ++ (if (realm == "analoghome") then [ pkgs.claude-code ] else [ ]);
 
   home.sessionVariables = {
     GOPRIVATE = "github.com/Azure/azure-cosmos-client-engine";
