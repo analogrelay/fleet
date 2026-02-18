@@ -14,9 +14,10 @@ try_brew() {
 }
 
 # Mark all files with no extension in the 'functions' directory as autoloaded
-FUNCS_TO_AUTOLOAD=("''${(@f)$(find "$HOME/.config/zsh/functions" \! -name "*.*")}")
-for func in $FUNCS_TO_AUTOLOAD; do
-    autoload $func
+fpath=("$HOME/.config/zsh/functions" $fpath)
+for func in "$HOME"/.config/zsh/functions/*(N); do
+    [[ "${func:t}" = *.* ]] && continue
+    autoload -Uz "${func:t}"
 done
 
 # Load Git keys
