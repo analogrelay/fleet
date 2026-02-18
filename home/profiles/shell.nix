@@ -1,4 +1,8 @@
 { lib, config, ... }:
+let
+  fleetLink = path:
+    config.lib.file.mkOutOfStoreSymlink "${config.fleet.repoDir}/${path}";
+in
 
 {
   programs.zsh = {
@@ -8,15 +12,10 @@
     enableCompletion = true;
     initContent = lib.mkOrder 1000 "source ~/.config/zsh/analogzsh.zsh";
   };
-  home.file.".config/zsh/analogzsh.zsh" = { source = ../../zsh/.zshrc; };
-  home.file.".config/zsh/functions" = {
-    source = ../../zsh/functions;
-    recursive = true;
-  };
-  home.file.".config/analogposh.omp.json" = {
-    source = ../analogposh.omp.json;
-    recursive = true;
-  };
+  home.file.".config/zsh/analogzsh.zsh".source = fleetLink "zsh/.zshrc";
+  home.file.".config/zsh/functions".source = fleetLink "zsh/functions";
+  home.file.".config/analogposh.omp.json".source =
+    fleetLink "home/analogposh.omp.json";
 
   programs.bash = { enable = true; };
 

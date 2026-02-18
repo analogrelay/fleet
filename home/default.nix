@@ -1,6 +1,8 @@
-{ lib, pkgs, role, os, wsl, username, ... }:
+{ lib, pkgs, config, role, os, wsl, username, ... }:
 let
-  commonImports = [ ./${os}.nix ]
+  fleetLink = path:
+    config.lib.file.mkOutOfStoreSymlink "${config.fleet.repoDir}/${path}";
+  commonImports = [ ./fleet.nix ./${os}.nix ]
     ++ (lib.optional (builtins.pathExists ./roles/${role}.nix)
       ./roles/${role}.nix)
     ++ (lib.optional (builtins.pathExists ./roles/${role}.${os}.nix)
@@ -49,12 +51,8 @@ in {
     unzip
   ];
 
-  home.file.".local/bin" = {
-    source = ../bin;
-    recursive = true;
-    executable = true;
-  };
-  home.file.".config/eza/theme.yml" = { source = ../eza/theme.yml; };
+  home.file.".local/bin".source = fleetLink "bin";
+  home.file.".config/eza/theme.yml".source = fleetLink "eza/theme.yml";
   home.sessionPath = [ "$HOME/.local/bin" "$HOME/.cargo/bin" ];
   home.sessionVariables = { XDG_CONFIG_DIR = "$HOME/.config"; };
 }
