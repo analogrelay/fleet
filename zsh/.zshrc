@@ -37,6 +37,10 @@ if [ -f /Applications/Zed.app/Contents/MacOS/cli ]; then
   alias zed="/Applications/Zed.app/Contents/MacOS/cli"
 fi
 
+if type -p jj > /dev/null; then
+  source <(jj util completion zsh)
+fi
+
 if type -p oh-my-posh > /dev/null; then
   eval "$(oh-my-posh init zsh --config ~/.config/analogposh.omp.json)"
 fi

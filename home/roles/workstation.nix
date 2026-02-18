@@ -23,6 +23,7 @@
     gnumake
     uv
     bun
+    jujutsu
   ]);
 
   home.sessionVariables = {
