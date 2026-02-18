@@ -14,6 +14,7 @@
     lazygit
     jq
     devenv
+    werx
     go
     python3
     pipx

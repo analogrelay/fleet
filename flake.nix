@@ -28,6 +28,10 @@
       url = "github:nix-community/nixos-wsl/release-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    werx = {
+      url = "git+ssh://git@github.com/analogrelay/werx";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -46,6 +50,7 @@
       nix-vscode-extensions,
       nixos-wsl,
       vscode-server,
+      werx,
       ...
     }@inputs:
     let
@@ -54,6 +59,7 @@
       overlays = [
         outputs.overlays.additions
         outputs.overlays.modifications
+        werx.overlays.default
         nix-vscode-extensions.overlays.default
       ];
       defaultModules = [
