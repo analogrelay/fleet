@@ -9,14 +9,14 @@ echo "Configuring Codespace dotfiles..."
 
 ./machines/hosts/common/configure --package-manager brew
 
-make_link "$dotfiles_root/zsh" "$HOME/.config/zsh"
-make_link "$dotfiles_root/home/analogposh.omp.json" "$HOME/.config/analogposh.omp.json"
-make_link "$dotfiles_root/git" "$HOME/.config/git/config.d"
-make_link "$dotfiles_root/eza" "$HOME/.config/eza"
+make_link "$dotfiles_root/config/zsh" "$HOME/.config/zsh"
+make_link "$dotfiles_root/config/analogposh.omp.json" "$HOME/.config/analogposh.omp.json"
+make_link "$dotfiles_root/config/git/config.d" "$HOME/.config/git/config.d"
+make_link "$dotfiles_root/config/eza" "$HOME/.config/eza"
 
-# Source '.config/zsh/.zshrc' from our ~/.zshrc
+# Source '.config/zsh/analogzsh.zsh' from our ~/.zshrc
 # It's OK to replace whatever default zshrc existed. We're not worried about what came before.
-echo 'source $HOME/.config/zsh/.zshrc' > ~/.zshrc
+echo 'source $HOME/.config/zsh/analogzsh.zsh' > ~/.zshrc
 
 # Generate the appropriate config imports
 git config set --global "include.path" "~/.config/git/config.d/base.gitconfig"

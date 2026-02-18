@@ -4,5 +4,5 @@ let
     config.lib.file.mkOutOfStoreSymlink "${config.fleet.repoDir}/${path}";
 in {
   home.file.".config/retroarch/retroarch.cfg".source =
-    fleetLink "home/profiles/retroarch.cfg";
+    fleetLink "config/retroarch/retroarch.cfg";
 }

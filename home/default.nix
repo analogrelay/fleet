@@ -52,7 +52,7 @@ in {
   ];
 
   home.file.".local/bin".source = fleetLink "bin";
-  home.file.".config/eza/theme.yml".source = fleetLink "eza/theme.yml";
+  home.file.".config/eza".source = fleetLink "config/eza";
   home.sessionPath = [ "$HOME/.local/bin" "$HOME/.cargo/bin" ];
   home.sessionVariables = { XDG_CONFIG_DIR = "$HOME/.config"; };
 }

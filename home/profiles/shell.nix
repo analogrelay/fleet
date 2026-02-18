@@ -12,10 +12,10 @@ in
     enableCompletion = true;
     initContent = lib.mkOrder 1000 "source ~/.config/zsh/analogzsh.zsh";
   };
-  home.file.".config/zsh/analogzsh.zsh".source = fleetLink "zsh/.zshrc";
-  home.file.".config/zsh/functions".source = fleetLink "zsh/functions";
+  home.file.".config/zsh/analogzsh.zsh".source = fleetLink "config/zsh/analogzsh.zsh";
+  home.file.".config/zsh/functions".source = fleetLink "config/zsh/functions";
   home.file.".config/analogposh.omp.json".source =
-    fleetLink "home/analogposh.omp.json";
+    fleetLink "config/analogposh.omp.json";
 
   programs.bash = { enable = true; };
 
@@ -24,6 +24,6 @@ in
     enableZshIntegration = true;
     enableBashIntegration = true;
     settings = builtins.fromJSON (builtins.unsafeDiscardStringContext
-      (builtins.readFile ../analogposh.omp.json));
+      (builtins.readFile ../../config/analogposh.omp.json));
   };
 }

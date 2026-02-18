@@ -1,4 +1,8 @@
-{ pkgs, wsl, role, ... }:
+{ pkgs, wsl, role, config, ... }:
+let
+  fleetLink = path:
+    config.lib.file.mkOutOfStoreSymlink "${config.fleet.repoDir}/${path}";
+in
 
 {
   programs.git = {
@@ -32,4 +36,5 @@
       { path = "~/.config/git/config.d/local.gitconfig"; }
     ];
   };
+  home.file.".config/git/config.d".source = fleetLink "config/git/config.d";
 }

@@ -9,5 +9,5 @@ in {
     vimAlias = true;
     defaultEditor = true;
   };
-  home.file.".config/nvim".source = fleetLink "nvim";
+  home.file.".config/nvim".source = fleetLink "config/nvim";
 }
