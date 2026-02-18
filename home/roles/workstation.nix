@@ -1,7 +1,7 @@
 { pkgs, pkgs-unstable, config, ... }:
 
 {
-  imports = [ ../profiles/nvim.nix ../profiles/copilot.nix ];
+  imports = [ ../profiles/nvim.nix ../profiles/lsp.nix ../profiles/copilot.nix ];
 
   home.packages = (with pkgs; [
     kubectl
