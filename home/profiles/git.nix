@@ -18,7 +18,9 @@
       credential = {
         useHttpPath = true;
         credentialStore = "gpg";
-        helper = "${pkgs.git-credential-manager}/bin/git-credential-manager";
+        helper = if (wsl) then
+          "/mnt/c/Program\\ Files/Git/mingw64/bin/git-credential-manager.exe"
+        else "${pkgs.git-credential-manager}/bin/git-credential-manager";
       };
     };
     signing = {

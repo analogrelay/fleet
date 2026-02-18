@@ -8,6 +8,11 @@ fi
 
 local PATH_SEGMENT="[-a-zA-Z0-9_\.]+"
 
+# Organizations that require HTTPS URLs because they require SSO
+local GITHUB_SSO_ORGS=(
+    "ashleyst_microsoft"
+)
+
 # Detect input types.
 if [[ $repo =~ "^(ssh://)?git@ssh.dev.azure.com:v3/($PATH_SEGMENT)/($PATH_SEGMENT)/($PATH_SEGMENT)/?$" ]]; then
     owner="${match[2]}@dev.azure.com"
@@ -30,7 +35,11 @@ elif [[ $repo =~ "^($PATH_SEGMENT)/($PATH_SEGMENT)$" ]]; then
     echo "MATCHES: ${match[@]}"
     owner=$match[1]
     repoName=$match[2]
-    repo="git@github.com:$owner/$repoName.git"
+    if [[ " ${GITHUB_SSO_ORGS[@]} " =~ " ${owner} " ]]; then
+        repo="https://ashleyst_microsoft@github.com/$owner/$repoName.git"
+    else
+        repo="git@github.com:$owner/$repoName.git"
+    fi
     subPath="$owner/$repoName"
 elif [[ $repo =~ "^(ssh://)git@github.com/($PATH_SEGMENT)/($PATH_SEGMENT)\.git/?$" ]]; then
     owner=$match[2]
