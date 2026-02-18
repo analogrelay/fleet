@@ -1,41 +1,28 @@
-{
-  pkgs,
-  pkgs-unstable,
-  config,
-  ...
-}:
+{ pkgs, pkgs-unstable, config, ... }:
 
 {
-  imports = [ ];
+  imports = [ ../profiles/nvim.nix ../profiles/copilot.nix ];
 
-  home.packages =
-    (with pkgs; [
-      kubectl
-      k9s
-      powershell
-      (azure-cli.withExtensions [
-        azure-cli.extensions.azure-devops
-      ])
-      rustup
-      git-credential-manager
-      gh
-      lazygit
-      jq
-      devenv
-      go
-      python3
-      pipx
-      nodejs_24
-      cmake
-      gnumake
-      uv
-      bun
-    ])
-    ++ (with pkgs-unstable; [
-      claude-code
-      opencode
-      github-copilot-cli
-    ]);
+  home.packages = (with pkgs; [
+    kubectl
+    k9s
+    powershell
+    (azure-cli.withExtensions [ azure-cli.extensions.azure-devops ])
+    rustup
+    git-credential-manager
+    gh
+    lazygit
+    jq
+    devenv
+    go
+    python3
+    pipx
+    nodejs_24
+    cmake
+    gnumake
+    uv
+    bun
+  ]);
 
   home.sessionVariables = {
     GOPRIVATE = "github.com/Azure/azure-cosmos-client-engine";
