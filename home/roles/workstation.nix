@@ -1,7 +1,7 @@
 { pkgs, pkgs-unstable, config, ... }:
 
 {
-  imports = [ ../profiles/nvim.nix ../profiles/lsp.nix ../profiles/copilot.nix ];
+  imports = [ ../profiles/nvim.nix ../profiles/lsp.nix ../profiles/copilot.nix ../profiles/jujutsu.nix ];
 
   home.packages = (with pkgs; [
     kubectl
@@ -23,7 +23,6 @@
     gnumake
     uv
     bun
-    jujutsu
   ]);
 
   home.sessionVariables = {
