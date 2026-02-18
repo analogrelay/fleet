@@ -10,7 +10,7 @@
     if wsl then
       {
         "gpg \"ssh\"".program = pkgs.lib.mkDefault "/mnt/c/Program Files/1Password/app/8/op-ssh-sign-wsl";
-        core.sshCommand = "ssh.exe";
+        core.sshCommand = "/mnt/c/Windows/System32/OpenSSH/ssh.exe";
       }
     else
       {
