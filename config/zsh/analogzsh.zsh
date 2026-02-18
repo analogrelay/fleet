@@ -41,6 +41,10 @@ if type -p jj > /dev/null; then
   source <(jj util completion zsh)
 fi
 
+if type -p werx > /dev/null; then
+  eval "$(werx shell init zsh)"
+fi
+
 if type -p oh-my-posh > /dev/null; then
   eval "$(oh-my-posh init zsh --config ~/.config/analogposh.omp.json)"
 fi
