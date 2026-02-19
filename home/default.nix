@@ -49,6 +49,7 @@ in {
     nixfmt-rfc-style
     zip
     unzip
+		fd
   ];
 
   home.file.".local/bin".source = fleetLink "bin";
