@@ -23,6 +23,7 @@
     gnumake
     uv
     bun
+    ripgrep
   ]);
 
   home.sessionVariables = {
