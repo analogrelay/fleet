@@ -7,7 +7,10 @@
 }:
 
 {
-  imports = [ ./${platform}.nix ];
+  imports = [
+    ./fleet.nix
+    ./${platform}.nix
+  ];
 
   nix = {
     settings.experimental-features = [
