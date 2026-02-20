@@ -1,4 +1,4 @@
-{ pkgs, pkgs-analogrelay, ... }:
+{ ... }:
 
 {
   imports =
@@ -17,8 +17,4 @@
   home-manager.extraSpecialArgs = {
     username = "ashleyst";
   };
-
-  environment.systemPackages = [
-    pkgs-analogrelay.jetbrains.rust-rover
-  ];
 }

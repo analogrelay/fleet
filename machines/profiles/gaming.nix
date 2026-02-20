@@ -10,7 +10,6 @@
   environment.systemPackages = [
     pkgs.steamcmd
     pkgs.steam-tui
-    pkgs.moonlight-qt
     pkgs.es-de
     (pkgs.retroarch.override {
       cores = with pkgs.libretro; [
