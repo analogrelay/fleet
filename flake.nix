@@ -57,6 +57,9 @@
     let
       inherit (self) outputs;
 
+      secretsFile = ./. + "/.secrets.nix";
+      secrets = if builtins.pathExists secretsFile then import secretsFile else { };
+
       overlays = [
         outputs.overlays.additions
         outputs.overlays.modifications
@@ -88,6 +91,7 @@
             outputs
             pkgs-unstable
             pkgs-analogrelay
+            secrets
             ;
         };
       mkPkgs =
