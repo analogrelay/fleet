@@ -50,6 +50,9 @@ in {
     zip
     unzip
 		fd
+    wget
+    curl
+    nix-index
   ];
 
   home.file.".local/bin".source = fleetLink "bin";

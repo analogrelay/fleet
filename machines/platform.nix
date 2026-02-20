@@ -27,14 +27,7 @@
   programs.zsh.enable = true;
 
   environment.systemPackages = with pkgs; [
-    vim
-    git
-    wget
-    curl
     zsh
-    nix-index
-    tmux
     nix
-    nixpkgs-fmt
   ];
 }
