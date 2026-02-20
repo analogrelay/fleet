@@ -1,7 +1,10 @@
 { config, lib, pkgs, ... }:
 
 let
-  adminHome = config.users.users.${config.fleet.admin}.home;
+  cfg = config.fleet;
+  adminHome = config.users.users.${cfg.admin}.home;
+  os = if cfg.platform == "darwin" then "darwin" else "linux";
+  wsl = cfg.platform == "wsl";
 in
 {
   options.fleet = {
@@ -15,16 +18,35 @@ in
       default = "${adminHome}/.config/fleet";
       description = "Absolute path to the fleet repository checkout.";
     };
+
+    platform = lib.mkOption {
+      type = lib.types.enum [ "nixos" "wsl" "darwin" ];
+      description = "The platform type for this machine.";
+    };
+
+    role = lib.mkOption {
+      type = lib.types.enum [ "server" "workstation" ];
+      description = "The role of this machine.";
+    };
+
+    realm = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "The network realm this machine belongs to.";
+    };
   };
 
   config = {
     environment.variables = {
-      FLEET_ADMIN = config.fleet.admin;
-      FLEET_ROOT = config.fleet.root;
+      FLEET_ADMIN = cfg.admin;
+      FLEET_ROOT = cfg.root;
     };
 
     home-manager.extraSpecialArgs = {
-      username = config.fleet.admin;
+      username = cfg.admin;
+      inherit os wsl;
+      role = cfg.role;
+      realm = cfg.realm;
     };
   };
 }
