@@ -157,7 +157,7 @@
         sephiroth = mkDarwinSystem "aarch64-darwin" [ ./machines/hosts/sephiroth ];
       };
 
-      overlays = import ./overlays { inherit inputs; };
+      overlays = import ./nix/overlays { inherit inputs; };
     }
     // flake-utils.lib.eachDefaultSystem (
       system:
@@ -166,7 +166,7 @@
         pkgs-unstable = nixpkgs-unstable.legacyPackages.${system};
       in
       {
-        packages = import ./pkgs { pkgs = nixpkgs.legacyPackages.${system}; };
+        packages = import ./nix/pkgs { pkgs = nixpkgs.legacyPackages.${system}; };
 
         formatter = nixpkgs.legacyPackages.${system}.alejandra;
 
