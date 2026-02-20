@@ -151,13 +151,7 @@
         cloud = mkSystem "x86_64-linux" [ ./machines/hosts/cloud ];
 
         # WSLs
-        zach = mkWslSystem "x86_64-linux" [ ./machines/hosts/zach ];
-        ashleyst-alphaprime = mkWslSystem "x86_64-linux" [ ./machines/hosts/ashleyst-alphaprime ];
         ashleyst-omegaprime = mkWslSystem "x86_64-linux" [ ./machines/hosts/ashleyst-omegaprime ];
-
-        # Raspberry Pis
-        jessie = mkSystem "aarch64-linux" [ ./machines/hosts/jessie ];
-        wedge = mkSystem "aarch64-linux" [ ./machines/hosts/wedge ];
 
         # Live Image
         live = {
@@ -167,33 +161,6 @@
       darwinConfigurations = {
         # MacBook Workstation
         sephiroth = mkDarwinSystem "aarch64-darwin" [ ./machines/hosts/sephiroth ];
-      };
-
-      homeConfigurations = {
-        "ashley@zach" = home-manager.lib.homeManagerConfiguration {
-          pkgs = mkPkgs "x86_64-linux";
-          extraSpecialArgs = {
-            username = "ashley";
-            os = "linux";
-            distro = "fedora";
-            role = "workstation";
-            wsl = false;
-            realm = "analoghome";
-          };
-          modules = [ ./home ];
-        };
-        "ashleyst@ashleyst-delta" = home-manager.lib.homeManagerConfiguration {
-          pkgs = mkPkgs "x86_64-linux";
-          extraSpecialArgs = {
-            username = "ashleyst";
-            os = "linux";
-            distro = "ubuntu";
-            role = "workstation";
-            wsl = true;
-            realm = "microsoft";
-          };
-          modules = [ ./home ];
-        };
       };
 
       overlays = import ./overlays { inherit inputs; };
