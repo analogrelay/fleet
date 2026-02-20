@@ -15,6 +15,9 @@
 #/                    Config is a homeConfigurations attribute name
 #/                    (e.g. ashley@linux-workstation).
 #/
+#/ ENVIRONMENT DETECTION
+#/   In a GitHub Codespace, automatically uses --home $USER@codespace.
+#/
 #/ ARGUMENTS
 #/   <hostname>  The hostname of the NixOS/Darwin configuration to use.
 #/               Defaults to the current machine's hostname.
@@ -54,7 +57,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [ -z "$home_config" ] && [ -z "$target_hostname" ]; then
-  target_hostname="$(hostname)"
+  # Autodetect GitHub Codespaces
+  if [ "${CODESPACES:-}" = "true" ]; then
+    home_config="${USER}@codespace"
+    log "Detected GitHub Codespace, using home configuration: $home_config"
+  else
+    target_hostname="$(hostname)"
+  fi
 fi
 
 if [ -n "$home_config" ]; then
