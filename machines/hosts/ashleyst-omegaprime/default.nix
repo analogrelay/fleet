@@ -1,4 +1,4 @@
-{ pkgs, pkgs-analogrelay, ... }:
+{ ... }:
 
 {
   imports =
@@ -14,7 +14,5 @@
  
   system.stateVersion = "23.11";
 
-  home-manager.extraSpecialArgs = {
-    username = "ashleyst";
-  };
+  fleet.admin = "ashleyst";
 }

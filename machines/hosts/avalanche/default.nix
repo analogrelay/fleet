@@ -20,12 +20,10 @@
 
   system.stateVersion = "24.11";
 
+  fleet.admin = "ashley";
+
   # We want to do ARM things sometimes
   boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
-
-  home-manager.extraSpecialArgs = {
-    username = "ashley";
-  };
 
   environment.systemPackages = with pkgs; [
     linuxKernel.packages.linux_6_1.gasket

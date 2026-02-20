@@ -16,7 +16,5 @@
 
   system.stateVersion = 4;
 
-  home-manager.extraSpecialArgs = {
-    username = "ashley";
-  };
+  fleet.admin = "ashley";
 }

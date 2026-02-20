@@ -21,9 +21,7 @@
 
   system.stateVersion = "24.11";
 
-  home-manager.extraSpecialArgs = {
-    username = "ashley";
-  };
+  fleet.admin = "ashley";
 
   services.blueman.enable = true;
 
