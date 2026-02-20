@@ -6,8 +6,6 @@
     nixpkgs.url = "github:NixOS/nixpkgs/release-25.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs-analogrelay.url = "github:analogrelay/nixpkgs/analogrelay-main";
-    nixos-hardware.url = "github:NixOS/nixos-hardware";
-    mac-app-util.url = "github:hraban/mac-app-util";
     home-manager = {
       url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -44,13 +42,11 @@
       nixpkgs,
       nixpkgs-unstable,
       nixpkgs-analogrelay,
-      nixos-hardware,
       flake-utils,
       ssh-to-age,
       nix-darwin,
       sops-nix,
       home-manager,
-      mac-app-util,
       nix-vscode-extensions,
       nixos-wsl,
       vscode-server,
@@ -139,8 +135,6 @@
         };
     in
     rec {
-      lib = { inherit mkSystem; };
-
       nixosConfigurations = {
         # Standard x64 servers
         avalanche = mkSystem "x86_64-linux" [ ./machines/hosts/avalanche ];
