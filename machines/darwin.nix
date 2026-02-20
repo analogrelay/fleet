@@ -24,6 +24,4 @@
     os = "darwin";
     wsl = false;
   };
-
-  environment.systemPackages = with pkgs; [ ];
 }
