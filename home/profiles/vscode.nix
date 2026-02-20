@@ -3,7 +3,7 @@
 {
   programs.vscode = if tags.os == "linux" then {
     enable = true;
-    package = pkgs.vscode.fhs;
+    package = if tags.platform == "nixos" then pkgs.vscode.fhs else pkgs.vscode;
   } else
     { };
 }
