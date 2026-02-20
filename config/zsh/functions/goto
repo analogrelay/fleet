@@ -15,7 +15,7 @@ EOF
 if [ "$CODESPACES" = "true" ]; then
     workspaces=$(find /workspaces -maxdepth 1 -mindepth 1 -type d -not -name '.*')
     candidates=$(cat <<EOF
-/workspaces/.codespaces/.persistedshare/dotfiles
+$workspaces
 EOF
 )
 fi
