@@ -1,7 +1,0 @@
-name: fleet-cloud
-runtime:
-  name: nodejs
-  options:
-    # See https://github.com/TypeStrong/ts-node/issues/1007
-    nodeargs: "--loader ts-node/esm --no-warnings"
-description: Personal Fleet Cloud
