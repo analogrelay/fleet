@@ -20,7 +20,6 @@ let
   nonWslImports = if (!wsl) then [ ./profiles/vscode.nix ] else [ ];
   wslImports = if (wsl) then [ ./profiles/wsl.nix ] else [ ];
   allImports = commonImports ++ nonWslImports ++ wslImports;
-  allImports = commonImports ++ nonWslImports ++ wslImports;
 in {
   imports = allImports;
 
