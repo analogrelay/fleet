@@ -3,8 +3,6 @@
 {
   imports = [
     ../../platform.nix
-    ../../realms/analoghome.nix
-    ../../roles/workstation.nix
 
     ../../profiles/tailnet.darwin.nix
 
@@ -17,4 +15,7 @@
   system.stateVersion = 4;
 
   fleet.admin = "ashley";
+  fleet.platform = "darwin";
+  fleet.role = "workstation";
+  fleet.realm = "analoghome";
 }

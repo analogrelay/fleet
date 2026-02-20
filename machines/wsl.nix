@@ -5,8 +5,6 @@
 {
   imports = [ ./nixos.nix ];
 
-  home-manager.extraSpecialArgs = { wsl = true; };
-
   programs.nix-ld.enable = true;
 
   wsl = {

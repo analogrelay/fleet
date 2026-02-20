@@ -1,4 +1,4 @@
-{ config, lib, pkgs, inputs, ... }:
+{ ... }:
 
 {
   security.pam.services.sudo_local.touchIdAuth = true;
@@ -18,10 +18,5 @@
       };
       options = "--delete-older-than 30d";
     };
-  };
-
-  home-manager.extraSpecialArgs = {
-    os = "darwin";
-    wsl = false;
   };
 }

@@ -77,7 +77,7 @@
       ];
       defaultDarwinModules = [ home-manager.darwinModules.home-manager ];
       mkSpecialArgs =
-        system: platform:
+        system:
         let
           pkgs-unstable = mkPkgsUnstable system;
           pkgs-analogrelay = mkPkgsAnalogrelay system;
@@ -86,7 +86,6 @@
           inherit
             inputs
             outputs
-            platform
             pkgs-unstable
             pkgs-analogrelay
             ;
@@ -115,7 +114,7 @@
           inherit system;
           pkgs = mkPkgs system;
           modules = defaultModules ++ extraModules;
-          specialArgs = mkSpecialArgs system "nixos";
+          specialArgs = mkSpecialArgs system;
         };
       mkWslSystem =
         system: extraModules:
@@ -123,7 +122,7 @@
           inherit system;
           pkgs = mkPkgs system;
           modules = defaultModules ++ [ nixos-wsl.nixosModules.wsl ] ++ extraModules;
-          specialArgs = mkSpecialArgs system "wsl";
+          specialArgs = mkSpecialArgs system;
         };
       mkDarwinSystem =
         system: extraModules:
@@ -131,7 +130,7 @@
           inherit system;
           pkgs = mkPkgs system;
           modules = defaultDarwinModules ++ extraModules;
-          specialArgs = mkSpecialArgs system "darwin";
+          specialArgs = mkSpecialArgs system;
         };
     in
     rec {

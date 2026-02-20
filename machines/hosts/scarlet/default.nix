@@ -5,8 +5,6 @@
     [
       ./hardware-configuration.nix
       ../../platform.nix
-      ../../realms/analoghome.nix
-      ../../roles/workstation.nix
 
       ../../users
       ../../users/kiosk.nix
@@ -22,6 +20,9 @@
   system.stateVersion = "24.11";
 
   fleet.admin = "ashley";
+  fleet.platform = "nixos";
+  fleet.role = "workstation";
+  fleet.realm = "analoghome";
 
   services.blueman.enable = true;
 

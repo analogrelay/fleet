@@ -4,8 +4,6 @@
   imports =
     [ ./hardware-configuration.nix
       ../../platform.nix
-      ../../realms/analoghome.nix
-      ../../roles/server.nix
 
       ../../users
 
@@ -21,6 +19,9 @@
   system.stateVersion = "24.11";
 
   fleet.admin = "ashley";
+  fleet.platform = "nixos";
+  fleet.role = "server";
+  fleet.realm = "analoghome";
 
   # We want to do ARM things sometimes
   boot.binfmt.emulatedSystems = [ "aarch64-linux" ];

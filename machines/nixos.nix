@@ -41,12 +41,6 @@
 
   programs.nix-ld.enable = true;
 
-  home-manager.extraSpecialArgs = {
-    os = "linux";
-    distro = "nixos";
-    wsl = false;
-  };
-
   users = {
     groups = {
       unattend = {

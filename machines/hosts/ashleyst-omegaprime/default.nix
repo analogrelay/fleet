@@ -3,8 +3,6 @@
 {
   imports =
     [ ../../platform.nix
-      ../../realms/microsoft.nix
-      ../../roles/workstation.nix
 
       ../../users/ashleyst.nix
     ];
@@ -15,4 +13,7 @@
   system.stateVersion = "23.11";
 
   fleet.admin = "ashleyst";
+  fleet.platform = "wsl";
+  fleet.role = "workstation";
+  fleet.realm = "microsoft";
 }

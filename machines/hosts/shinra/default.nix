@@ -4,11 +4,8 @@
   imports = [
     ./hardware-configuration.nix
     ../../platform.nix
-    ../../realms/analoghome.nix
 
     ../../users
-
-    ../../roles/workstation.nix
 
     ../../profiles/syncthing.nix
     ../../profiles/k3s/agent.nix
@@ -20,6 +17,9 @@
   system.stateVersion = "24.05";
 
   fleet.admin = "ashley";
+  fleet.platform = "nixos";
+  fleet.role = "workstation";
+  fleet.realm = "analoghome";
 
   # Create volumes for Kubernetes
   systemd.tmpfiles.rules = [
