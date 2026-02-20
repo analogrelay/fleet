@@ -1,5 +1,6 @@
-{ pkgs, wsl, role, config, ... }:
+{ pkgs, tags, config, ... }:
 let
+  inherit (tags) wsl;
   fleetLink = path:
     config.lib.file.mkOutOfStoreSymlink "${config.fleet.repoDir}/${path}";
 in

@@ -1,5 +1,6 @@
-{ lib, pkgs, config, role, os, wsl, username, ... }:
+{ lib, pkgs, config, tags, username, ... }:
 let
+  inherit (tags) os wsl role;
   fleetLink = path:
     config.lib.file.mkOutOfStoreSymlink "${config.fleet.repoDir}/${path}";
   commonImports = [ ./fleet.nix ./${os}.nix ]
@@ -18,6 +19,7 @@ let
       ];
   nonWslImports = if (!wsl) then [ ./profiles/vscode.nix ] else [ ];
   wslImports = if (wsl) then [ ./profiles/wsl.nix ] else [ ];
+  allImports = commonImports ++ nonWslImports ++ wslImports;
   allImports = commonImports ++ nonWslImports ++ wslImports;
 in {
   imports = allImports;

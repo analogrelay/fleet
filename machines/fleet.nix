@@ -44,9 +44,12 @@ in
 
     home-manager.extraSpecialArgs = {
       username = cfg.admin;
-      inherit os wsl;
-      role = cfg.role;
-      realm = cfg.realm;
+      tags = {
+        inherit os wsl;
+        role = cfg.role;
+        realm = cfg.realm;
+        platform = cfg.platform;
+      };
     };
   };
 }

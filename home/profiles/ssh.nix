@@ -1,4 +1,4 @@
-{ pkgs, role, ... }:
+{ pkgs, ... }:
 
 {
   programs.ssh = {
