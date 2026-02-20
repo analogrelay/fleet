@@ -132,6 +132,27 @@
           modules = defaultDarwinModules ++ extraModules;
           specialArgs = mkSpecialArgs system;
         };
+      mkHome =
+        system:
+        {
+          username,
+          role,
+          os ? (if builtins.match ".*-darwin" system != null then "darwin" else "linux"),
+          wsl ? false,
+          realm ? null,
+          extraModules ? [ ],
+        }:
+        home-manager.lib.homeManagerConfiguration {
+          pkgs = mkPkgs system;
+          extraSpecialArgs = (mkSpecialArgs system) // {
+            inherit username;
+            tags = {
+              inherit os wsl role realm;
+              platform = "standalone";
+            };
+          };
+          modules = [ ./home ] ++ extraModules;
+        };
     in
     rec {
       nixosConfigurations = {
@@ -156,6 +177,22 @@
         sephiroth = mkDarwinSystem "aarch64-darwin" [ ./machines/hosts/sephiroth ];
       };
 
+      homeConfigurations = {
+        # Standalone home-manager configurations for non-NixOS/non-nix-darwin environments
+        "ashley@linux-workstation" = mkHome "x86_64-linux" {
+          username = "ashley";
+          role = "workstation";
+        };
+        "ashley@darwin-workstation" = mkHome "aarch64-darwin" {
+          username = "ashley";
+          role = "workstation";
+        };
+        "ashley@codespace" = mkHome "x86_64-linux" {
+          username = "ashley";
+          role = "workstation";
+        };
+      };
+
       overlays = import ./nix/overlays { inherit inputs; };
     }
     // flake-utils.lib.eachDefaultSystem (
@@ -172,6 +209,7 @@
         devShells.default = pkgs.mkShell {
           packages = [
             ssh-to-age.packages.${system}.ssh-to-age
+            home-manager.packages.${system}.home-manager
             pkgs.zsh
             pkgs.bashInteractive
             pkgs.nix
