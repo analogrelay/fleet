@@ -3,12 +3,13 @@
 #/ Rebuild the current system using the latest configuration.
 #/
 #/ OPTIONS
-#/   -h, --help   Display this help message.
-#/   --home       Use home-manager only (no sudo required).
-#/   --test       Run a 'nixos-rebuild test' instead of a 'nixos-rebuild switch'.
-#/   --dry-run    Conduct a dry run and don't actually modify anything.
-#/   --show-trace Show a trace whenever there's a Nix error.
-#/   --update     Update the flake lockfile before rebuilding.
+#/   -h, --help         Display this help message.
+#/   --home             Use home-manager only (no sudo required).
+#/   --test             Run a 'nixos-rebuild test' instead of a 'nixos-rebuild switch'.
+#/   --dry-run          Conduct a dry run and don't actually modify anything.
+#/   --show-trace       Show a trace whenever there's a Nix error.
+#/   --update           Update the flake lockfile before rebuilding.
+#/   --non-interactive  Skip prompts (passed to refresh-secrets).
 #/
 #/ ARGUMENTS
 #/   <name>       The configuration name.
@@ -34,6 +35,7 @@ nixos_rebuild_command="switch"
 rebuild_args=()
 update=false
 home_only=false
+non_interactive=false
 while [[ $# -gt 0 ]]; do
   key="$1"
   shift
@@ -60,11 +62,28 @@ while [[ $# -gt 0 ]]; do
     --update)
       update=true
       ;;
+    --non-interactive)
+      non_interactive=true
+      ;;
     *)
       config_name="$key"
       ;;
   esac
 done
+
+# Determine the hostname for secret loading.
+# For --home mode use the current system hostname; secrets are per-host not per-config.
+if $home_only; then
+  effective_hostname=$(hostname)
+else
+  effective_hostname="${config_name:-$(hostname)}"
+fi
+
+# Refresh secrets from 1Password (writes .secrets.nix if token is available).
+# If no token is found and running non-interactively, this is a no-op.
+"$script_dir/refresh-secrets" \
+  ${non_interactive:+--non-interactive} \
+  "$effective_hostname"
 
 if $home_only; then
   if [ -z "$config_name" ]; then
