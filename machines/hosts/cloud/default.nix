@@ -13,7 +13,6 @@
       ../../profiles/desktop-environment.nix
       ../../profiles/gaming.nix
       ../../profiles/tailnet.nix
-      ../../profiles/qemu.nix
     ];
 
   networking.hostName = "cloud";
