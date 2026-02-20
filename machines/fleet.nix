@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, secrets ? {}, ... }:
 
 let
   cfg = config.fleet;
@@ -44,6 +44,7 @@ in
 
     home-manager.extraSpecialArgs = {
       username = cfg.admin;
+      inherit secrets;
       tags = {
         inherit os wsl;
         role = cfg.role;
