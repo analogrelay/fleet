@@ -1,4 +1,4 @@
-{ ... }:
+{ config, ... }:
 
 {
   imports =
@@ -7,7 +7,8 @@
       ../../users/ashleyst.nix
     ];
 
-  networking.hostName = "ashleyst-omegaprime";
+  fleet.identity = "ashleyst-omegaprime";
+  networking.hostName = config.fleet.identity;
   wsl.defaultUser = "ashleyst";
  
   system.stateVersion = "23.11";

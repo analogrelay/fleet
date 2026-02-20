@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ config, lib, ... }:
 
 {
   imports = [
@@ -12,7 +12,8 @@
     ../../profiles/tailnet.nix
   ];
 
-  networking.hostName = "shinra";
+  fleet.identity = "shinra";
+  networking.hostName = config.fleet.identity;
 
   system.stateVersion = "24.05";
 

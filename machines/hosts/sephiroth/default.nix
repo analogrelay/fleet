@@ -1,4 +1,4 @@
-{ ... }:
+{ config, ... }:
 
 {
   imports = [
@@ -9,8 +9,9 @@
     ../../users/ashley.nix
   ];
 
+  fleet.identity = "sephiroth";
   networking.computerName = "Sephiroth";
-  networking.hostName = "sephiroth";
+  networking.hostName = config.fleet.identity;
 
   system.stateVersion = 4;
 

@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 {
   imports =
@@ -13,7 +13,8 @@
       ../../profiles/tailnet.nix
     ];
 
-  networking.hostName = "avalanche";
+  fleet.identity = "avalanche";
+  networking.hostName = config.fleet.identity;
   networking.hostId = "19cc4826";
 
   system.stateVersion = "24.11";

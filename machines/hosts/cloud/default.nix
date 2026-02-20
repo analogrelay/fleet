@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 {
   imports =
@@ -13,7 +13,8 @@
       ../../profiles/tailnet.nix
     ];
 
-  networking.hostName = "cloud";
+  fleet.identity = "cloud";
+  networking.hostName = config.fleet.identity;
   boot.kernelPackages = pkgs.linuxPackages_6_13;
   boot.loader.grub.device = "nodev";
 

@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 {
   imports =
@@ -15,7 +15,8 @@
       ../../profiles/syncthing.nix
     ];
 
-  networking.hostName = "scarlet";
+  fleet.identity = "scarlet";
+  networking.hostName = config.fleet.identity;
 
   system.stateVersion = "24.11";
 
