@@ -72,6 +72,7 @@ log "Found configuration for '$target_hostname'"
 
 # --- Step 5: Run rebuild ---
 
+export FLEET_ROOT="$FLEET_DIR"
 cd "$FLEET_DIR"
 log "Running script/rebuild $target_hostname..."
 exec script/rebuild "$target_hostname"
