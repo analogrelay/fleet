@@ -34,12 +34,19 @@ in
       default = null;
       description = "The network realm this machine belongs to.";
     };
+
+    identity = lib.mkOption {
+      type = lib.types.str;
+      default = config.networking.hostName;
+      description = "The fleet identity of this machine. Used for secret loading and fleet management.";
+    };
   };
 
   config = {
     environment.variables = {
       FLEET_ADMIN = cfg.admin;
       FLEET_ROOT = cfg.root;
+      FLEET_IDENTITY = cfg.identity;
     };
 
     home-manager.extraSpecialArgs = {
@@ -50,6 +57,7 @@ in
         role = cfg.role;
         realm = cfg.realm;
         platform = cfg.platform;
+        identity = cfg.identity;
       };
     };
   };
