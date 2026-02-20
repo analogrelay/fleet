@@ -12,9 +12,9 @@
 #/   --non-interactive  Skip prompts (passed to refresh-secrets).
 #/
 #/ ARGUMENTS
-#/   <name>       The configuration name.
-#/                  System mode: hostname (default: `hostname`).
-#/                  Home mode: homeConfigurations attribute (e.g. ashley@linux-workstation).
+#/   <name>       The configuration name, in [user@]identity format.
+#/                  System mode: identity (read from ~/.local/share/fleet/identity if omitted).
+#/                  Home mode:   homeConfigurations attribute (e.g. ashley@codespace).
 # Resolve the absolute path of this script's directory.
 script_dir=$(dirname $(readlink -f $0))
 repo_root=$(dirname $script_dir)
@@ -71,19 +71,30 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Determine the hostname for secret loading.
-# For --home mode use the current system hostname; secrets are per-host not per-config.
-if $home_only; then
-  effective_hostname=$(hostname)
-else
-  effective_hostname="${config_name:-$(hostname)}"
+IDENTITY_FILE="$HOME/.local/share/fleet/identity"
+
+# Identity is extracted from config_name if provided (works for both
+# "sephiroth" and "ashley@codespace" formats).
+# For system mode only: fall back to the identity file, then error.
+if [ -n "$config_name" ]; then
+  identity="${config_name#*@}"
+elif ! $home_only && [ -f "$IDENTITY_FILE" ]; then
+  identity=$(cat "$IDENTITY_FILE")
+  config_name="$identity"
+elif ! $home_only; then
+  echo "Error: No fleet identity found."
+  echo "Run 'script/bootstrap' to set up your fleet identity,"
+  echo "or pass the identity explicitly: script/rebuild <identity>"
+  exit 1
 fi
+# Home mode without config_name is caught below by the existing
+# "--home requires a configuration name" check.
 
 # Refresh secrets from 1Password (writes .secrets.nix if token is available).
 # If no token is found and running non-interactively, this is a no-op.
 "$script_dir/refresh-secrets" \
   ${non_interactive:+--non-interactive} \
-  "$effective_hostname"
+  "${identity:-}"
 
 if $home_only; then
   if [ -z "$config_name" ]; then
@@ -109,10 +120,6 @@ if $home_only; then
   # Use nix run to invoke home-manager so it doesn't need to be pre-installed
   nix run "$repo_root#homeConfigurations.\"$config_name\".activationPackage" "${rebuild_args[@]}"
 else
-  if [ -z "$config_name" ]; then
-    config_name=$(hostname)
-  fi
-
   echo "Rebuilding system from configuration for $config_name"
   echo "Continue? [y/N]"
   read -r answer
