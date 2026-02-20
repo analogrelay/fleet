@@ -1,25 +1,77 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#/ Usage: bootstrap [<hostname>]
+#/ Bootstrap a Unix system with Nix and the fleet configuration.
+#/
+#/ Can be run standalone:
+#/   curl -fsSL <raw-url>/script/bootstrap | bash -s -- [hostname]
+#/
+#/ Or from a local clone:
+#/   script/bootstrap [hostname]
+#/
+#/ ARGUMENTS
+#/   <hostname>  The hostname of the configuration to use.
+#/               Defaults to the current machine's hostname.
+set -euo pipefail
 
-if [ "$CODESPACES" = "true" ]; then
-  exec machines/hosts/codespace/configure
-fi
+FLEET_REPO="https://github.com/analogrelay/fleet.git"
+FLEET_DIR="$HOME/.config/fleet"
 
-if [ "$(uname)" = "Darwin" ]; then
-  echo "Nix-less bootstrap is not supported on macOS, yet."
-  exit 1
-fi
+# --- Helpers ---
 
-distro_name=$(cat /etc/os-release | grep "^NAME=" | sed s/NAME=//g)
-if [ "$distro_name" = "NixOS" ]; then
-  echo "Use 'script/rebuild' to build a nix configuration for this machine."
-  exit 1
-fi
+log() { echo "==> $*"; }
+err() { echo "ERROR: $*" >&2; exit 1; }
 
-hostname=$(hostname)
-if [ -f "machines/hosts/$hostname/configure" ]; then
-  echo "Using host-specific configure script"
-  exec "machines/hosts/$hostname/configure"
+# --- Step 1: Determine hostname ---
+
+target_hostname="${1:-$(hostname)}"
+log "Target hostname: $target_hostname"
+
+# --- Step 2: Install Nix ---
+
+if command -v nix >/dev/null 2>&1; then
+  log "Nix is already installed, skipping."
 else
-  echo "Host-specific configure script not found, using 'common' configure script"
-  exec "machines/hosts/common/configure"
+  log "Installing Nix via Determinate Systems installer..."
+  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
+
+  # Source nix-daemon so nix is available in this shell
+  if [ -e "/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh" ]; then
+    . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+  elif [ -e "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
+    . "$HOME/.nix-profile/etc/profile.d/nix.sh"
+  fi
+
+  command -v nix >/dev/null 2>&1 || err "Nix installation failed — 'nix' not found on PATH."
 fi
+
+# --- Step 3: Clone or locate fleet repo ---
+
+# If we're already inside the fleet repo, use it
+if [ -f "flake.nix" ] && grep -q 'NixOS Configurations' flake.nix 2>/dev/null; then
+  FLEET_DIR="$(pwd)"
+  log "Running from existing fleet repo at $FLEET_DIR"
+elif [ -d "$FLEET_DIR/.git" ]; then
+  log "Fleet repo already exists at $FLEET_DIR, pulling latest..."
+  nix-shell -p git --run "git -C '$FLEET_DIR' pull --ff-only" || true
+else
+  log "Cloning fleet repo to $FLEET_DIR..."
+  mkdir -p "$(dirname "$FLEET_DIR")"
+  nix-shell -p git --run "git clone '$FLEET_REPO' '$FLEET_DIR'"
+fi
+
+# --- Step 4: Validate config exists ---
+
+if [ ! -d "$FLEET_DIR/machines/hosts/$target_hostname" ]; then
+  echo ""
+  err "No configuration found for hostname '$target_hostname'.
+Available hosts:
+$(ls -1 "$FLEET_DIR/machines/hosts/" | grep -v '^common$' | sed 's/^/  - /')"
+fi
+
+log "Found configuration for '$target_hostname'"
+
+# --- Step 5: Run rebuild ---
+
+cd "$FLEET_DIR"
+log "Running script/rebuild $target_hostname..."
+exec script/rebuild "$target_hostname"
