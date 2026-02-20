@@ -1,6 +1,0 @@
-- name: Enable TouchID Sudo
-  become: true
-  ansible.builtin.lineinfile:
-    path: /etc/pam.d/sudo
-    line: "auth sufficient pam_tid.so"
-    insertbefore: BOF # Put it at the very beginning of the file

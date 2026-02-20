@@ -1,5 +1,0 @@
-- name: Install workstation packages
-  include_tasks: "packages.{{ ansible_distribution | lower }}.yml"
-
-- name: Configure 1Password SSH
-  include_tasks: "ssh.yml"
