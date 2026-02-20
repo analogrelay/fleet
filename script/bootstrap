@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-#/ Usage: bootstrap [--home <config>] [<hostname>]
+#/ Usage: bootstrap [--home <config>] [<identity>]
 #/ Bootstrap a Unix system with Nix and the fleet configuration.
 #/
 #/ Can be run standalone:
-#/   curl -fsSL <raw-url>/script/bootstrap | bash -s -- [hostname]
+#/   curl -fsSL <raw-url>/script/bootstrap | bash -s -- [identity]
 #/   curl -fsSL <raw-url>/script/bootstrap | bash -s -- --home ashley@codespace
 #/
 #/ Or from a local clone:
-#/   script/bootstrap [hostname]
+#/   script/bootstrap [identity]
 #/   script/bootstrap --home ashley@linux-workstation
 #/
 #/ OPTIONS
@@ -19,9 +19,9 @@
 #/   In a GitHub Codespace, automatically uses --home $USER@codespace.
 #/
 #/ ARGUMENTS
-#/   <hostname>  The hostname of the NixOS/Darwin configuration to use.
-#/               Defaults to the current machine's hostname.
-#/               Ignored when --home is used.
+#/   <identity>  The fleet identity for this machine, in [user@]identity format.
+#/               Defaults to hostname (or 'codespace' in GitHub Codespaces).
+#/               Written to ~/.local/share/fleet/identity for future rebuilds.
 set -euo pipefail
 
 FLEET_REPO="https://github.com/analogrelay/fleet.git"
@@ -35,7 +35,8 @@ err() { echo "ERROR: $*" >&2; exit 1; }
 # --- Parse arguments ---
 
 home_config=""
-target_hostname=""
+config_name=""
+identity=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -50,26 +51,36 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     *)
-      target_hostname="$1"
+      config_name="$1"
       shift
       ;;
   esac
 done
 
-if [ -z "$home_config" ] && [ -z "$target_hostname" ]; then
-  # Autodetect GitHub Codespaces
+if [ -n "$config_name" ]; then
+  # Positional arg provided: extract identity from [user@]identity format
+  identity="${config_name#*@}"
+elif [ -z "$home_config" ]; then
+  # No args at all: auto-detect
   if [ "${CODESPACES:-}" = "true" ]; then
     home_config="${USER}@codespace"
-    log "Detected GitHub Codespace, using home configuration: $home_config"
+    identity="codespace"
+    log "Detected GitHub Codespace, using identity: $identity"
   else
-    target_hostname="$(hostname)"
+    identity="$(hostname)"
   fi
+else
+  # --home provided but no positional arg: extract identity from home_config
+  identity="${home_config#*@}"
 fi
+
+IDENTITY_FILE="$HOME/.local/share/fleet/identity"
+install -dm 0700 "$(dirname "$IDENTITY_FILE")"
+printf '%s' "$identity" > "$IDENTITY_FILE"
+log "Fleet identity: $identity"
 
 if [ -n "$home_config" ]; then
   log "Home-manager configuration: $home_config"
-else
-  log "Target hostname: $target_hostname"
 fi
 
 # --- Install Nix ---
@@ -124,13 +135,13 @@ $(nix eval "$FLEET_DIR#homeConfigurations" --apply 'x: builtins.concatStringsSep
   fi
   log "Found home configuration '$home_config'"
 else
-  if [ ! -d "$FLEET_DIR/machines/hosts/$target_hostname" ]; then
+  if [ ! -d "$FLEET_DIR/machines/hosts/$identity" ]; then
     echo ""
-    err "No configuration found for hostname '$target_hostname'.
+    err "No configuration found for identity '$identity'.
 Available hosts:
 $(ls -1 "$FLEET_DIR/machines/hosts/" | grep -v '^common$' | sed 's/^/  - /')"
   fi
-  log "Found configuration for '$target_hostname'"
+  log "Found configuration for '$identity'"
 fi
 
 # --- Run rebuild ---
@@ -142,6 +153,6 @@ if [ -n "$home_config" ]; then
   log "Running script/rebuild --home $home_config..."
   exec script/rebuild --home "$home_config"
 else
-  log "Running script/rebuild $target_hostname..."
-  exec script/rebuild "$target_hostname"
+  log "Running script/rebuild $identity..."
+  exec script/rebuild "$identity"
 fi
