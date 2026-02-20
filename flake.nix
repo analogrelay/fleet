@@ -218,9 +218,6 @@
             pkgs.sops
             pkgs.git
             pkgs.jq
-            pkgs.nodejs
-            pkgs.python3
-            pkgs.yq
           ]
           ++ (pkgs.lib.lists.optional (pkgs.lib.strings.hasSuffix "-darwin" "${system}") [
             nix-darwin.packages.${system}.darwin-rebuild
@@ -228,9 +225,6 @@
 
           shellHook = ''
             export FLEET_IN_SHELL=1
-            python -m venv .venv --copies
-            source .venv/bin/activate
-            pip install -r requirements.txt
           '';
         };
       }
