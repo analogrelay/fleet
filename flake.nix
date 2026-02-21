@@ -118,7 +118,7 @@
           inherit system;
           pkgs = mkPkgs system;
           modules = defaultModules ++ extraModules;
-          specialArgs = mkSpecialArgs system;
+          specialArgs = (mkSpecialArgs system) // { isDarwin = false; isWsl = false; };
         };
       mkWslSystem =
         system: extraModules:
@@ -126,7 +126,7 @@
           inherit system;
           pkgs = mkPkgs system;
           modules = defaultModules ++ [ nixos-wsl.nixosModules.wsl ] ++ extraModules;
-          specialArgs = mkSpecialArgs system;
+          specialArgs = (mkSpecialArgs system) // { isDarwin = false; isWsl = true; };
         };
       mkDarwinSystem =
         system: extraModules:
@@ -134,7 +134,7 @@
           inherit system;
           pkgs = mkPkgs system;
           modules = defaultDarwinModules ++ extraModules;
-          specialArgs = mkSpecialArgs system;
+          specialArgs = (mkSpecialArgs system) // { isDarwin = true; isWsl = false; };
         };
       mkHome =
         system:

@@ -1,9 +1,14 @@
-{ ... }:
+{ config, lib, ... }:
 
+let
+  cfg = config.fleet;
+in
 {
-  services.iperf3 = {
-    enable = true;
-    openFirewall = true;
-    port = 7575;
+  config = lib.mkIf (cfg.role == "server") {
+    services.iperf3 = {
+      enable = true;
+      openFirewall = true;
+      port = 7575;
+    };
   };
 }

@@ -1,35 +1,31 @@
-{
-  config,
-  lib,
-  pkgs,
-  pkgs-unstable,
-  pkgs-analogrelay,
-  ...
-}:
+{ lib, isDarwin, isWsl, pkgs, pkgs-unstable, pkgs-analogrelay, ... }:
 
-let
-  cfg = config.fleet;
-in
 {
   imports = [
     ./fleet.nix
-    ./${cfg.platform}.nix
+    ./roles/server.nix
+    ./roles/workstation.nix
+    ./realms/analoghome.nix
+    ./realms/microsoft.nix
   ]
-  ++ (lib.optional (builtins.pathExists ./roles/${cfg.role}.nix)
-    ./roles/${cfg.role}.nix)
-  ++ (lib.optional (builtins.pathExists ./roles/${cfg.role}.${cfg.platform}.nix)
-    ./roles/${cfg.role}.${cfg.platform}.nix)
-  ++ (lib.optional (cfg.realm != null && builtins.pathExists ./realms/${cfg.realm}.nix)
-    ./realms/${cfg.realm}.nix)
-  ++ (lib.optional (cfg.realm != null && builtins.pathExists ./realms/${cfg.realm}.${cfg.platform}.nix)
-    ./realms/${cfg.realm}.${cfg.platform}.nix);
+  ++ lib.optionals isDarwin [
+    ./darwin.nix
+  ]
+  ++ lib.optionals (!isDarwin) [
+    ./nixos.nix
+    ./roles/server.nixos.nix
+    ./roles/workstation.nixos.nix
+    ./realms/analoghome.nixos.nix
+  ]
+  ++ lib.optionals isWsl [
+    ./wsl.nix
+    ./roles/workstation.wsl.nix
+  ];
 
-  nix = {
-    settings.experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
-  };
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
 
   home-manager = {
     useGlobalPkgs = true;
