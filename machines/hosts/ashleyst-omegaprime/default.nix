@@ -1,4 +1,4 @@
-{ config, ... }:
+{ ... }:
 
 {
   imports =
@@ -7,14 +7,8 @@
       ../../users/ashleyst.nix
     ];
 
-  fleet.identity = "ashleyst-omegaprime";
-  networking.hostName = config.fleet.identity;
+  networking.hostName = "ashleyst-omegaprime";
   wsl.defaultUser = "ashleyst";
- 
-  system.stateVersion = "23.11";
 
-  fleet.admin = "ashleyst";
-  fleet.platform = "wsl";
-  fleet.role = "workstation";
-  fleet.realm = "microsoft";
+  system.stateVersion = "23.11";
 }

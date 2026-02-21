@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ pkgs, ... }:
 
 {
   imports =
@@ -15,15 +15,9 @@
       ../../profiles/syncthing.nix
     ];
 
-  fleet.identity = "scarlet";
-  networking.hostName = config.fleet.identity;
+  networking.hostName = "scarlet";
 
   system.stateVersion = "24.11";
-
-  fleet.admin = "ashley";
-  fleet.platform = "nixos";
-  fleet.role = "workstation";
-  fleet.realm = "analoghome";
 
   services.blueman.enable = true;
 

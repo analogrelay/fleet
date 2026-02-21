@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ ... }:
 
 {
   imports = [
@@ -12,15 +12,9 @@
     ../../profiles/tailnet.nix
   ];
 
-  fleet.identity = "shinra";
-  networking.hostName = config.fleet.identity;
+  networking.hostName = "shinra";
 
   system.stateVersion = "24.05";
-
-  fleet.admin = "ashley";
-  fleet.platform = "nixos";
-  fleet.role = "workstation";
-  fleet.realm = "analoghome";
 
   # Create volumes for Kubernetes
   systemd.tmpfiles.rules = [

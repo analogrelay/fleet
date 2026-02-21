@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ pkgs, ... }:
 
 {
   imports =
@@ -13,15 +13,9 @@
       ../../profiles/tailnet.nix
     ];
 
-  fleet.identity = "cloud";
-  networking.hostName = config.fleet.identity;
+  networking.hostName = "cloud";
   boot.kernelPackages = pkgs.linuxPackages_6_13;
   boot.loader.grub.device = "nodev";
 
   system.stateVersion = "24.11";
-
-  fleet.admin = "ashley";
-  fleet.platform = "nixos";
-  fleet.role = "workstation";
-  fleet.realm = "analoghome";
 }
