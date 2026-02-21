@@ -58,7 +58,7 @@ in {
 
   home.file = (lib.mapAttrs' (name: _: lib.nameValuePair ".local/bin/${name}" {
     source = fleetLink "bin/${name}";
-  }) (builtins.filterAttrs (name: type: type == "regular") (builtins.readDir ../bin))) // {
+  }) (lib.filterAttrs (name: type: type == "regular") (builtins.readDir ../bin))) // {
     ".config/eza".source = fleetLink "config/eza";
   };
   home.sessionPath = [ "$HOME/.local/bin" "$HOME/.cargo/bin" ];
