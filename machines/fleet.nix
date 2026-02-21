@@ -1,4 +1,4 @@
-{ config, lib, pkgs, secrets ? {}, ... }:
+{ config, lib, pkgs, tags, secrets ? {}, ... }:
 
 let
   cfg = config.fleet;
@@ -43,6 +43,12 @@ in
   };
 
   config = {
+    fleet.platform = lib.mkDefault tags.platform;
+    fleet.role = lib.mkDefault tags.role;
+    fleet.realm = lib.mkDefault (if tags ? realm then tags.realm else null);
+    fleet.admin = lib.mkDefault tags.admin;
+    fleet.identity = lib.mkDefault tags.identity;
+
     environment.variables = {
       FLEET_ADMIN = cfg.admin;
       FLEET_ROOT = cfg.root;

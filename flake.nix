@@ -60,6 +60,7 @@
       secretsFile = ./. + "/.secrets.nix";
       secrets = if builtins.pathExists secretsFile then import secretsFile else { };
 
+      lib = nixpkgs.lib;
       overlays = [
         outputs.overlays.additions
         outputs.overlays.modifications
@@ -67,7 +68,7 @@
         jj.overlays.default
         nix-vscode-extensions.overlays.default
       ];
-      defaultModules = [
+      defaultNixosModules = [
         sops-nix.nixosModules.sops
         home-manager.nixosModules.home-manager
         vscode-server.nixosModule
@@ -113,28 +114,21 @@
           config.allowUnfree = true;
         };
       mkSystem =
-        system: extraModules:
-        nixpkgs.lib.nixosSystem rec {
-          inherit system;
-          pkgs = mkPkgs system;
-          modules = defaultModules ++ extraModules;
-          specialArgs = (mkSpecialArgs system) // { isDarwin = false; isWsl = false; };
-        };
-      mkWslSystem =
-        system: extraModules:
-        nixpkgs.lib.nixosSystem rec {
-          inherit system;
-          pkgs = mkPkgs system;
-          modules = defaultModules ++ [ nixos-wsl.nixosModules.wsl ] ++ extraModules;
-          specialArgs = (mkSpecialArgs system) // { isDarwin = false; isWsl = true; };
-        };
-      mkDarwinSystem =
-        system: extraModules:
-        nix-darwin.lib.darwinSystem rec {
+        system: tags: extraModules:
+        if tags.platform == "darwin"
+        then nix-darwin.lib.darwinSystem {
           inherit system;
           pkgs = mkPkgs system;
           modules = defaultDarwinModules ++ extraModules;
-          specialArgs = (mkSpecialArgs system) // { isDarwin = true; isWsl = false; };
+          specialArgs = (mkSpecialArgs system) // { inherit tags; };
+        }
+        else nixpkgs.lib.nixosSystem {
+          inherit system;
+          pkgs = mkPkgs system;
+          modules = defaultNixosModules
+            ++ lib.optional (tags.platform == "wsl") nixos-wsl.nixosModules.wsl
+            ++ extraModules;
+          specialArgs = (mkSpecialArgs system) // { inherit tags; };
         };
       mkHome =
         system:
@@ -161,24 +155,38 @@
     rec {
       nixosConfigurations = {
         # Standard x64 servers
-        avalanche = mkSystem "x86_64-linux" [ ./machines/hosts/avalanche ];
-        shinra = mkSystem "x86_64-linux" [ ./machines/hosts/shinra ];
-        scarlet = mkSystem "x86_64-linux" [ ./machines/hosts/scarlet ];
+        avalanche = mkSystem "x86_64-linux"
+          { platform = "nixos"; role = "server"; realm = "analoghome"; admin = "ashley"; identity = "avalanche"; }
+          [ ./machines/hosts/avalanche ];
+        shinra = mkSystem "x86_64-linux"
+          { platform = "nixos"; role = "workstation"; realm = "analoghome"; admin = "ashley"; identity = "shinra"; }
+          [ ./machines/hosts/shinra ];
+        scarlet = mkSystem "x86_64-linux"
+          { platform = "nixos"; role = "workstation"; realm = "analoghome"; admin = "ashley"; identity = "scarlet"; }
+          [ ./machines/hosts/scarlet ];
 
         # Workstations
-        cloud = mkSystem "x86_64-linux" [ ./machines/hosts/cloud ];
+        cloud = mkSystem "x86_64-linux"
+          { platform = "nixos"; role = "workstation"; realm = "analoghome"; admin = "ashley"; identity = "cloud"; }
+          [ ./machines/hosts/cloud ];
 
         # WSLs
-        ashleyst-omegaprime = mkWslSystem "x86_64-linux" [ ./machines/hosts/ashleyst-omegaprime ];
+        ashleyst-omegaprime = mkSystem "x86_64-linux"
+          { platform = "wsl"; role = "workstation"; realm = "microsoft"; admin = "ashleyst"; identity = "ashleyst-omegaprime"; }
+          [ ./machines/hosts/ashleyst-omegaprime ];
 
         # Live Image
         live = {
-          "x86_64" = mkSystem "x86_64-linux" [ ./machines/images/live ];
+          "x86_64" = mkSystem "x86_64-linux"
+            { platform = "nixos"; role = "server"; realm = null; admin = "root"; identity = "live"; }
+            [ ./machines/images/live ];
         };
       };
       darwinConfigurations = {
         # MacBook Workstation
-        sephiroth = mkDarwinSystem "aarch64-darwin" [ ./machines/hosts/sephiroth ];
+        sephiroth = mkSystem "aarch64-darwin"
+          { platform = "darwin"; role = "workstation"; realm = "analoghome"; admin = "ashley"; identity = "sephiroth"; }
+          [ ./machines/hosts/sephiroth ];
       };
 
       homeConfigurations = {
