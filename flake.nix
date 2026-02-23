@@ -146,6 +146,7 @@
             inherit username;
             tags = {
               inherit os wsl role realm;
+              runtime = "bare";
               platform = "standalone";
             };
           };
@@ -156,36 +157,36 @@
       nixosConfigurations = {
         # Standard x64 servers
         avalanche = mkSystem "x86_64-linux"
-          { platform = "nixos"; role = "server"; realm = "analoghome"; admin = "ashley"; identity = "avalanche"; }
+          { platform = "nixos"; role = "server"; runtime = "bare"; realm = "analoghome"; admin = "ashley"; identity = "avalanche"; }
           [ ./machines/hosts/avalanche ];
         shinra = mkSystem "x86_64-linux"
-          { platform = "nixos"; role = "workstation"; realm = "analoghome"; admin = "ashley"; identity = "shinra"; }
+          { platform = "nixos"; role = "workstation"; runtime = "bare"; realm = "analoghome"; admin = "ashley"; identity = "shinra"; }
           [ ./machines/hosts/shinra ];
         scarlet = mkSystem "x86_64-linux"
-          { platform = "nixos"; role = "workstation"; realm = "analoghome"; admin = "ashley"; identity = "scarlet"; }
+          { platform = "nixos"; role = "workstation"; runtime = "bare"; realm = "analoghome"; admin = "ashley"; identity = "scarlet"; }
           [ ./machines/hosts/scarlet ];
 
         # Workstations
         cloud = mkSystem "x86_64-linux"
-          { platform = "nixos"; role = "workstation"; realm = "analoghome"; admin = "ashley"; identity = "cloud"; }
+          { platform = "nixos"; role = "workstation"; runtime = "bare"; realm = "analoghome"; admin = "ashley"; identity = "cloud"; }
           [ ./machines/hosts/cloud ];
 
         # WSLs
         ashleyst-omegaprime = mkSystem "x86_64-linux"
-          { platform = "wsl"; role = "workstation"; realm = "microsoft"; admin = "ashleyst"; identity = "ashleyst-omegaprime"; }
+          { platform = "wsl"; role = "workstation"; runtime = "bare"; realm = "microsoft"; admin = "ashleyst"; identity = "ashleyst-omegaprime"; }
           [ ./machines/hosts/ashleyst-omegaprime ];
 
         # Live Image
         live = {
           "x86_64" = mkSystem "x86_64-linux"
-            { platform = "nixos"; role = "server"; realm = null; admin = "root"; identity = "live"; }
+            { platform = "nixos"; role = "server"; runtime = "bare"; realm = null; admin = "root"; identity = "live"; }
             [ ./machines/images/live ];
         };
       };
       darwinConfigurations = {
         # MacBook Workstation
         sephiroth = mkSystem "aarch64-darwin"
-          { platform = "darwin"; role = "workstation"; realm = "analoghome"; admin = "ashley"; identity = "sephiroth"; }
+          { platform = "darwin"; role = "workstation"; runtime = "bare"; realm = "analoghome"; admin = "ashley"; identity = "sephiroth"; }
           [ ./machines/hosts/sephiroth ];
       };
 

@@ -24,6 +24,12 @@ in
       description = "The platform type for this machine.";
     };
 
+    runtime = lib.mkOption {
+      type = lib.types.enum [ "bare" "container" ];
+      default = "bare";
+      description = "The runtime environment: bare (machine/VM) or container (Docker/OCI).";
+    };
+
     role = lib.mkOption {
       type = lib.types.enum [ "server" "workstation" ];
       description = "The role of this machine.";
@@ -44,6 +50,7 @@ in
 
   config = {
     fleet.platform = lib.mkDefault tags.platform;
+    fleet.runtime = lib.mkDefault (if tags ? runtime then tags.runtime else "bare");
     fleet.role = lib.mkDefault tags.role;
     fleet.realm = lib.mkDefault (if tags ? realm then tags.realm else null);
     fleet.admin = lib.mkDefault tags.admin;
@@ -61,6 +68,7 @@ in
       tags = {
         inherit os wsl;
         role = cfg.role;
+        runtime = cfg.runtime;
         realm = cfg.realm;
         platform = cfg.platform;
         identity = cfg.identity;

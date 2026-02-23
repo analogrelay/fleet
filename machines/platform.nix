@@ -9,6 +9,8 @@
     ./roles/${tags.role}.nix
   ++ lib.optional (builtins.pathExists ./roles/${tags.role}.${tags.platform}.nix)
     ./roles/${tags.role}.${tags.platform}.nix
+  ++ lib.optional (tags ? runtime && builtins.pathExists ./runtimes/${tags.runtime}.nix)
+    ./runtimes/${tags.runtime}.nix
   ++ lib.optional (tags.realm != null && builtins.pathExists ./realms/${tags.realm}.nix)
     ./realms/${tags.realm}.nix
   ++ lib.optional (tags.realm != null && builtins.pathExists ./realms/${tags.realm}.${tags.platform}.nix)
