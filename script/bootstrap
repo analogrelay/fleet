@@ -4,7 +4,7 @@
 #/
 #/ Can be run standalone:
 #/   curl -fsSL <raw-url>/script/bootstrap | bash -s -- [identity]
-#/   curl -fsSL <raw-url>/script/bootstrap | bash -s -- --home ashley@codespace
+#/   curl -fsSL <raw-url>/script/bootstrap | bash -s -- --home ashley@devcontainer
 #/
 #/ Or from a local clone:
 #/   script/bootstrap [identity]
@@ -16,11 +16,11 @@
 #/                    (e.g. ashley@linux-workstation).
 #/
 #/ ENVIRONMENT DETECTION
-#/   In a GitHub Codespace, automatically uses --home $USER@codespace.
+#/   In a GitHub Codespace or dev container, automatically uses --home $USER@devcontainer.
 #/
 #/ ARGUMENTS
 #/   <identity>  The fleet identity for this machine, in [user@]identity format.
-#/               Defaults to hostname (or 'codespace' in GitHub Codespaces).
+#/               Defaults to hostname (or 'devcontainer' in GitHub Codespaces).
 #/               Written to ~/.local/share/fleet/identity for future rebuilds.
 set -euo pipefail
 
@@ -63,8 +63,8 @@ if [ -n "$config_name" ]; then
 elif [ -z "$home_config" ]; then
   # No args at all: auto-detect
   if [ "${CODESPACES:-}" = "true" ]; then
-    home_config="${USER}@codespace"
-    identity="codespace"
+    home_config="${USER}@devcontainer"
+    identity="devcontainer"
     log "Detected GitHub Codespace, using identity: $identity"
   else
     identity="$(hostname)"

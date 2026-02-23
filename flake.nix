@@ -205,7 +205,7 @@
           username = "ashley";
           role = "workstation";
         };
-        "ashley@codespace" = mkHome "x86_64-linux" {
+        "ashley@devcontainer" = mkHome "x86_64-linux" {
           username = "ashley";
           role = "workstation";
         };

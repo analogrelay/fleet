@@ -14,7 +14,7 @@
 #/ ARGUMENTS
 #/   <name>       The configuration name, in [user@]identity format.
 #/                  System mode: identity (read from ~/.local/share/fleet/identity if omitted).
-#/                  Home mode:   homeConfigurations attribute (e.g. ashley@codespace).
+#/                  Home mode:   homeConfigurations attribute (e.g. ashley@devcontainer).
 # Resolve the absolute path of this script's directory.
 script_dir=$(dirname $(readlink -f $0))
 repo_root=$(dirname $script_dir)
@@ -74,7 +74,7 @@ done
 IDENTITY_FILE="$HOME/.local/share/fleet/identity"
 
 # Identity is extracted from config_name if provided (works for both
-# "sephiroth" and "ashley@codespace" formats).
+# "sephiroth" and "ashley@devcontainer" formats).
 # For system mode only: fall back to the identity file, then error.
 if [ -n "$config_name" ]; then
   identity="${config_name#*@}"
