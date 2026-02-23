@@ -14,7 +14,7 @@
 #/   --home <config>  Bootstrap home-manager only (no sudo required).
 #/                    Config is a homeConfigurations attribute name
 #/                    (e.g. ashley@linux-workstation).
-#/   --no-systemd     Install Nix without systemd integration (init none).
+#/   --no-systemd     Install Nix in single-user mode (no daemon, no systemd).
 #/                    Useful in containers or environments without systemd.
 #/
 #/ ENVIRONMENT DETECTION
@@ -95,20 +95,18 @@ fi
 if command -v nix >/dev/null 2>&1; then
   log "Nix is already installed, skipping."
 else
-  # Use single-user install if we don't have root access
+  # Use single-user install if we don't have root access or are in a container
   install_args=""
-  if [ -n "$home_config" ] && ! sudo -n true 2>/dev/null; then
+  if $no_systemd; then
+    log "Installing Nix via Determinate Systems installer (single-user, no systemd)..."
+    install_args="--single-user"
+  elif [ -n "$home_config" ] && ! sudo -n true 2>/dev/null; then
     log "Installing Nix via Determinate Systems installer (single-user, no root)..."
     install_args="--single-user"
   else
     log "Installing Nix via Determinate Systems installer..."
   fi
-  if $no_systemd; then
-    log "Using --init none (no systemd)..."
-    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux --init none --no-confirm $install_args
-  else
-    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm $install_args
-  fi
+  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm $install_args
 
   # Source nix-daemon so nix is available in this shell
   if [ -e "/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh" ]; then
