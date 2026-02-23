@@ -8,7 +8,7 @@
 #/
 #/ OPTIONS
 #/   -h, --help    Display this help message.
-#/   -n, --name    Container name (default: auto-generated fleet-dev-XXXX).
+#/   -n, --name    Container name (default: Docker auto-generated).
 #/
 #/ ARGUMENTS
 #/   IMAGE   Base image to use (default: alpine).
@@ -43,9 +43,9 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Auto-generate container name if not provided
-if [ -z "$container_name" ]; then
-  container_name="fleet-dev-$(head -c 4 /dev/urandom | xxd -p)"
+name_args=()
+if [ -n "$container_name" ]; then
+  name_args=(--name "$container_name")
 fi
 
 # --- Locate fleet repo ---
@@ -58,19 +58,18 @@ if [ ! -f "$fleet_dir/flake.nix" ]; then
 fi
 
 log "Base image: $base_image"
-log "Container name: $container_name"
 
 # --- Start container ---
 
 log "Starting container..."
-docker run -d \
+container_name=$(docker run -d \
   --init \
-  --name "$container_name" \
+  "${name_args[@]}" \
   -v "$fleet_dir:/home/ashley/.config/fleet:ro" \
   "$base_image" \
-  sleep infinity >/dev/null
+  sleep infinity)
 
-log "Container started."
+log "Container started: $container_name"
 
 # --- Install prerequisites ---
 
