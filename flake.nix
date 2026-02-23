@@ -182,6 +182,11 @@
             { platform = "nixos"; role = "server"; runtime = "bare"; realm = null; admin = "root"; identity = "live"; }
             [ ./machines/images/live ];
         };
+
+        # Container Images
+        devenv = mkSystem "x86_64-linux"
+          { platform = "nixos"; role = "workstation"; runtime = "container"; realm = null; admin = "ashley"; identity = "devenv"; }
+          [ ./machines/images/devenv ];
       };
       darwinConfigurations = {
         # MacBook Workstation
