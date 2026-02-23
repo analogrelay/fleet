@@ -14,6 +14,8 @@
 #/   --home <config>  Bootstrap home-manager only (no sudo required).
 #/                    Config is a homeConfigurations attribute name
 #/                    (e.g. ashley@linux-workstation).
+#/   --no-systemd     Install Nix without systemd integration (init none).
+#/                    Useful in containers or environments without systemd.
 #/
 #/ ENVIRONMENT DETECTION
 #/   In a GitHub Codespace or dev container, automatically uses --home $USER@devcontainer.
@@ -37,6 +39,7 @@ err() { echo "ERROR: $*" >&2; exit 1; }
 home_config=""
 config_name=""
 identity=""
+no_systemd=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -44,6 +47,10 @@ while [[ $# -gt 0 ]]; do
       shift
       home_config="${1:-}"
       [ -z "$home_config" ] && err "--home requires a configuration name (e.g. ashley@linux-workstation)"
+      shift
+      ;;
+    --no-systemd)
+      no_systemd=true
       shift
       ;;
     -h|--help)
@@ -96,7 +103,12 @@ else
   else
     log "Installing Nix via Determinate Systems installer..."
   fi
-  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install $install_args
+  if $no_systemd; then
+    log "Using --init none (no systemd)..."
+    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux --init none --no-confirm $install_args
+  else
+    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm $install_args
+  fi
 
   # Source nix-daemon so nix is available in this shell
   if [ -e "/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh" ]; then
