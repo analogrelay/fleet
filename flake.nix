@@ -27,7 +27,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     werx = {
-      url = "git+ssh://git@github.com/analogrelay/werx";
+      url = "github:analogrelay/werx";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     jj = {
@@ -152,6 +152,9 @@
           };
           modules = [ ./home ] ++ extraModules;
         };
+      mkHomes =
+        systems: args:
+        lib.genAttrs systems (system: mkHome system args);
     in
     rec {
       nixosConfigurations = {
@@ -197,15 +200,15 @@
 
       homeConfigurations = {
         # Standalone home-manager configurations for non-NixOS/non-nix-darwin environments
-        "ashley@linux-workstation" = mkHome "x86_64-linux" {
+        "ashley@linux-workstation" = mkHomes [ "x86_64-linux" "aarch64-linux" ] {
           username = "ashley";
           role = "workstation";
         };
-        "ashley@darwin-workstation" = mkHome "aarch64-darwin" {
+        "ashley@darwin-workstation" = mkHomes [ "aarch64-darwin" ] {
           username = "ashley";
           role = "workstation";
         };
-        "ashley@devcontainer" = mkHome "x86_64-linux" {
+        "ashley@devcontainer" = mkHomes [ "x86_64-linux" "aarch64-linux" ] {
           username = "ashley";
           role = "workstation";
         };
