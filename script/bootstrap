@@ -99,14 +99,28 @@ else
   install_args=""
   if $no_systemd; then
     log "Installing Nix via Determinate Systems installer (single-user, no systemd)..."
-    install_args="--single-user"
+		install_args=("--init=none")
   elif [ -n "$home_config" ] && ! sudo -n true 2>/dev/null; then
     log "Installing Nix via Determinate Systems installer (single-user, no root)..."
-    install_args="--single-user"
+		install_args=("--init=none")
   else
-    log "Installing Nix via Determinate Systems installer..."
+		log "Installing Nix via Determinate Systems installer (multi-user, using systemd)..."
   fi
-  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm $install_args
+
+  # The Determinate installer requires root. If we're not root, use sudo.
+  if [ "$(id -u)" -ne 0 ]; then
+    log "sudo is required to install Nix; you may see a password prompt."
+    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sudo sh -s -- install linux --no-confirm ${install_args[@]+"${install_args[@]}"}
+  else
+    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux --no-confirm ${install_args[@]+"${install_args[@]}"}
+  fi
+
+  # For non-root single-user installs, chown /nix to the current user so
+  # nix commands work without root.
+  if [ "$(id -u)" -ne 0 ] && [[ " ${install_args[*]+"${install_args[*]}"} " == *"--init=none"* ]]; then
+    log "Changing ownership of /nix to $(whoami)..."
+    sudo chown -R "$(id -u):$(id -g)" /nix
+  fi
 
   # Source nix-daemon so nix is available in this shell
   if [ -e "/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh" ]; then
