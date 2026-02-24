@@ -29,6 +29,19 @@ else
   platform=$(uname)
 fi
 
+# Detect system architecture for home-manager configuration resolution
+arch="$(uname -m)"
+case "$arch" in
+  x86_64)  arch="x86_64" ;;
+  aarch64|arm64) arch="aarch64" ;;
+  *) echo "Warning: Unknown architecture '$arch'" >&2 ;;
+esac
+if [ "$(uname)" = "Darwin" ]; then
+  nix_system="${arch}-darwin"
+else
+  nix_system="${arch}-linux"
+fi
+
 # Parse arguments
 config_name=""
 nixos_rebuild_command="switch"
@@ -118,7 +131,7 @@ if $home_only; then
   fi
 
   # Use nix run to invoke home-manager so it doesn't need to be pre-installed
-  nix run "$repo_root#homeConfigurations.\"$config_name\".activationPackage" "${rebuild_args[@]}"
+  nix run --no-write-lock-file "$repo_root#homeConfigurations.\"$config_name\".\"$nix_system\".activationPackage" "${rebuild_args[@]}"
 else
   echo "Rebuilding system from configuration for $config_name"
   echo "Continue? [y/N]"
