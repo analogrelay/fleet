@@ -10,6 +10,7 @@
 #/   --show-trace       Show a trace whenever there's a Nix error.
 #/   --update           Update the flake lockfile before rebuilding.
 #/   --non-interactive  Skip prompts (passed to refresh-secrets).
+#/   --no-confirm       Skip the confirmation prompt before rebuilding.
 #/
 #/ ARGUMENTS
 #/   <name>       The configuration name, in [user@]identity format.
@@ -49,6 +50,7 @@ rebuild_args=()
 update=false
 home_only=false
 non_interactive=false
+no_confirm=false
 while [[ $# -gt 0 ]]; do
   key="$1"
   shift
@@ -77,6 +79,9 @@ while [[ $# -gt 0 ]]; do
       ;;
     --non-interactive)
       non_interactive=true
+      ;;
+    --no-confirm)
+      no_confirm=true
       ;;
     *)
       config_name="$key"
@@ -118,11 +123,13 @@ if $home_only; then
   fi
 
   echo "Rebuilding home configuration: $config_name"
-  echo "Continue? [y/N]"
-  read -r answer
-  if [ "$answer" != "y" ]; then
-    echo "Aborting"
-    exit 1
+  if ! $no_confirm; then
+    echo "Continue? [y/N]"
+    read -r answer
+    if [ "$answer" != "y" ]; then
+      echo "Aborting"
+      exit 1
+    fi
   fi
 
   if $update; then
@@ -134,11 +141,13 @@ if $home_only; then
   nix run --no-write-lock-file "$repo_root#homeConfigurations.\"$config_name\".\"$nix_system\".activationPackage" "${rebuild_args[@]}"
 else
   echo "Rebuilding system from configuration for $config_name"
-  echo "Continue? [y/N]"
-  read -r answer
-  if [ "$answer" != "y" ]; then
-    echo "Aborting"
-    exit 1
+  if ! $no_confirm; then
+    echo "Continue? [y/N]"
+    read -r answer
+    if [ "$answer" != "y" ]; then
+      echo "Aborting"
+      exit 1
+    fi
   fi
 
   if $update; then

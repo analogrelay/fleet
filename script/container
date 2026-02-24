@@ -109,7 +109,7 @@ docker exec "$container_name" sh -c '
 
 log "Bootstrapping home-manager configuration..."
 docker exec -u ashley "$container_name" \
-  bash -c 'cd ~/.config/fleet && script/bootstrap --no-systemd --home ashley@devcontainer'
+  bash -c 'cd ~/.config/fleet && script/bootstrap --no-systemd --no-confirm --home ashley@devcontainer'
 
 log "Bootstrap complete."
 
