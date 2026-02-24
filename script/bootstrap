@@ -147,17 +147,32 @@ else
   nix-shell -p git --run "git clone '$FLEET_REPO' '$FLEET_DIR'"
 fi
 
+# --- Detect system architecture ---
+
+arch="$(uname -m)"
+case "$arch" in
+  x86_64)  arch="x86_64" ;;
+  aarch64|arm64) arch="aarch64" ;;
+  *) log "Warning: Unknown architecture '$arch'" ;;
+esac
+if [ "$(uname)" = "Darwin" ]; then
+  nix_system="${arch}-darwin"
+else
+  nix_system="${arch}-linux"
+fi
+log "Detected system: $nix_system"
+
 # --- Validate config exists ---
 
 if [ -n "$home_config" ]; then
-  log "Validating homeConfigurations.$home_config exists..."
-  if ! nix eval "$FLEET_DIR#homeConfigurations.\"$home_config\"" --apply 'x: true' >/dev/null 2>&1; then
+  log "Validating homeConfigurations.$home_config.$nix_system exists..."
+  if ! nix eval "$FLEET_DIR#homeConfigurations.\"$home_config\".\"$nix_system\"" --apply 'x: true' >/dev/null 2>&1; then
     echo ""
-    err "No home configuration found for '$home_config'.
+    err "No home configuration found for '$home_config' on system '$nix_system'.
 Available homeConfigurations:
 $(nix eval "$FLEET_DIR#homeConfigurations" --apply 'x: builtins.concatStringsSep "\n" (map (n: "  - " + n) (builtins.attrNames x))' --raw 2>/dev/null || echo "  (unable to list)")"
   fi
-  log "Found home configuration '$home_config'"
+  log "Found home configuration '$home_config' for $nix_system"
 else
   if [ ! -d "$FLEET_DIR/machines/hosts/$identity" ]; then
     echo ""
