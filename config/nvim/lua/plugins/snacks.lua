@@ -130,7 +130,12 @@ return {
 			vim.api.nvim_create_autocmd("WinClosed", {
 				callback = function()
 					vim.schedule(function()
-						local sidebar_fts = { snacks_explorer = true }
+						local sidebar_fts = {
+							snacks_explorer = true,
+							snacks_layout_box = true,
+							snacks_picker_list = true,
+							snacks_picker_input = true,
+						}
 						for _, win in ipairs(vim.api.nvim_list_wins()) do
 							local buf = vim.api.nvim_win_get_buf(win)
 							local ft = vim.bo[buf].filetype
