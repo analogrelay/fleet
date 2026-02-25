@@ -6,13 +6,20 @@
 #/ After bootstrapping, the container name is printed to stdout.
 #/ Attach with: docker exec -it <name> zsh
 #/
+#/ The container is named flenv-<dir> (based on the current working directory),
+#/ with a numeric suffix (-1, -2, ...) if that name is already taken.
+#/ After bootstrap, the container is committed as a reusable image named
+#/ analogrelay/fleet/env/<dir> so subsequent containers start faster.
+#/
 #/ OPTIONS
 #/   -h, --help    Display this help message.
-#/   -n, --name    Container name (default: Docker auto-generated).
+#/   -n, --name    Container name (default: flenv-<cwd-basename>[-<num>]).
 #/
 #/ ARGUMENTS
 #/   IMAGE   Base image to use (default: alpine).
 set -euo pipefail
+
+dir=$(basename "$PWD")
 
 # --- Helpers ---
 
@@ -43,9 +50,17 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-name_args=()
-if [ -n "$container_name" ]; then
-  name_args=(--name "$container_name")
+if [ -z "$container_name" ]; then
+  base_name="flenv-$dir"
+  if ! docker ps -a --format '{{.Names}}' | grep -qx "$base_name"; then
+    container_name="$base_name"
+  else
+    num=1
+    while docker ps -a --format '{{.Names}}' | grep -qx "${base_name}-${num}"; do
+      num=$((num + 1))
+    done
+    container_name="${base_name}-${num}"
+  fi
 fi
 
 # --- Locate fleet repo ---
@@ -64,7 +79,8 @@ log "Base image: $base_image"
 log "Starting container..."
 container_name=$(docker run -d \
   --init \
-  "${name_args[@]}" \
+  --name "$container_name" \
+  -e USER=ashley \
   -v "$fleet_dir:/home/ashley/.config/fleet:ro" \
   "$base_image" \
   sleep infinity)
@@ -103,15 +119,23 @@ docker exec "$container_name" sh -c '
     fi
     echo "ashley ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ashley
   fi
+
+	# Give the main user ownership over the .config directory that got bind mounted 
+	chown ashley:ashley /home/ashley/.config
 '
 
 # --- Bootstrap home-manager ---
 
 log "Bootstrapping home-manager configuration..."
-docker exec -u ashley "$container_name" \
+docker exec -u ashley -e USER=ashley "$container_name" \
   bash -c 'cd ~/.config/fleet && script/bootstrap --no-systemd --no-confirm --home ashley@devcontainer'
 
 log "Bootstrap complete."
+
+image_name="analogrelay/fleet/env/$dir"
+log "Committing container as image $image_name..."
+docker commit "$container_name" "$image_name"
+log "Image created: $image_name"
 
 # Print the container name to stdout
 echo "$container_name"
