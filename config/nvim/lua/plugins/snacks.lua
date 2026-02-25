@@ -126,6 +126,24 @@ return {
 			}
 		},
 		init = function()
+			-- Auto-quit when only sidebar panes (like the explorer) remain open
+			vim.api.nvim_create_autocmd("WinClosed", {
+				callback = function()
+					vim.schedule(function()
+						local sidebar_fts = { snacks_explorer = true }
+						for _, win in ipairs(vim.api.nvim_list_wins()) do
+							local buf = vim.api.nvim_win_get_buf(win)
+							local ft = vim.bo[buf].filetype
+							local is_floating = vim.api.nvim_win_get_config(win).relative ~= ""
+							if not is_floating and not sidebar_fts[ft] then
+								return
+							end
+						end
+						vim.cmd("quitall")
+					end)
+				end,
+			})
+
 			vim.api.nvim_create_autocmd("User", {
 				pattern = "VeryLazy",
 				callback = function()
