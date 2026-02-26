@@ -775,17 +775,17 @@
         "rust-overlay": "rust-overlay_2"
       },
       "locked": {
-        "lastModified": 1771430904,
-        "narHash": "sha256-nQPsP2Wy27CiN3vgr9RV1unAOjyKK0BRz9eXLKFHYLI=",
-        "ref": "refs/heads/main",
-        "rev": "bbb557620629cfd7099af6cccad59fdbc8717103",
-        "revCount": 83,
-        "type": "git",
-        "url": "ssh://git@github.com/analogrelay/werx"
+        "lastModified": 1771449542,
+        "narHash": "sha256-VtD7FxG3nRsmyaySAqcn4jBZrOxqBYM04kdtfg+SiQA=",
+        "owner": "analogrelay",
+        "repo": "werx",
+        "rev": "c8ce25b3444d6734aead8279a370903ce5219ff5",
+        "type": "github"
       },
       "original": {
-        "type": "git",
-        "url": "ssh://git@github.com/analogrelay/werx"
+        "owner": "analogrelay",
+        "repo": "werx",
+        "type": "github"
       }
     }
   },

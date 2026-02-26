@@ -1,9 +1,11 @@
 {
+  "barbar.nvim": { "branch": "master", "commit": "53b5a2f34b68875898f0531032fbf090e3952ad7" },
   "barbecue": { "branch": "main", "commit": "cd7e7da622d68136e13721865b4d919efd6325ed" },
   "blink.cmp": { "branch": "main", "commit": "4b18c32adef2898f95cdef6192cbd5796c1a332d" },
   "ergoterm.nvim": { "branch": "main", "commit": "0fd6870bbbd3de5ab198bff0fceaa6f694ead01c" },
   "fluoromachine.nvim": { "branch": "main", "commit": "a279f667168e742df059caf1f1f4daf1de24f4f8" },
   "friendly-snippets": { "branch": "main", "commit": "6cd7280adead7f586db6fccbd15d2cac7e2188b9" },
+  "gitsigns.nvim": { "branch": "main", "commit": "9f3c6dd7868bcc116e9c1c1929ce063b978fa519" },
   "lazy.nvim": { "branch": "main", "commit": "306a05526ada86a7b30af95c5cc81ffba93fef97" },
   "lspkind.nvim": { "branch": "master", "commit": "c7274c48137396526b59d86232eabcdc7fed8a32" },
   "mini.nvim": { "branch": "main", "commit": "ca9adcfc4e796b292cc9072f4952318ef5a7f6c0" },
