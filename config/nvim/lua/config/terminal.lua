@@ -41,4 +41,5 @@ exitTerm = function ()
 	vim.cmd(":ToggleTerm")
 end
 
-map("t", "<esc><esc>", exitTerm, { desc = "Toggle terminal mode" })
+map("t", "<esc><esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
+map("t", "<C-w>", "<C-\\><C-n><C-w>", { desc = "Window commands from terminal mode" })
