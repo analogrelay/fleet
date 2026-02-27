@@ -11,6 +11,7 @@ let
         ./profiles/shell.nix
         ./profiles/git.nix
         ./profiles/vim.nix
+        ./profiles/nvim.nix
         ./profiles/ssh.nix
         ./profiles/tmux.nix
         ./profiles/gaming.nix
