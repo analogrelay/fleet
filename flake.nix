@@ -163,7 +163,7 @@
           { platform = "nixos"; role = "server"; runtime = "bare"; realm = "analoghome"; admin = "ashley"; identity = "avalanche"; }
           [ ./machines/hosts/avalanche ];
         shinra = mkSystem "x86_64-linux"
-          { platform = "nixos"; role = "workstation"; runtime = "bare"; realm = "analoghome"; admin = "ashley"; identity = "shinra"; }
+          { platform = "nixos"; role = "server"; runtime = "bare"; realm = "analoghome"; admin = "ashley"; identity = "shinra"; }
           [ ./machines/hosts/shinra ];
         scarlet = mkSystem "x86_64-linux"
           { platform = "nixos"; role = "workstation"; runtime = "bare"; realm = "analoghome"; admin = "ashley"; identity = "scarlet"; }
