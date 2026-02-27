@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Look for the fleet repo
-fleet_repo="$HOME/code/analogrelay/fleet"
+fleet_repo="$HOME/.config/fleet"
 if [ ! -d "$fleet_repo" ]; then
   echo "Fleet repo not found at $fleet_repo"
   exit 1
