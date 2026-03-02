@@ -16,7 +16,8 @@
 #/                    (e.g. ashley@linux-workstation).
 #/   --no-systemd     Install Nix in single-user mode (no daemon, no systemd).
 #/                    Useful in containers or environments without systemd.
-#/   --no-confirm     Skip confirmation prompts (passed to script/rebuild).
+#/   --no-confirm     Accepted for backward compatibility (bootstrap always
+#/                    skips the rebuild confirmation prompt).
 #/
 #/ ENVIRONMENT DETECTION
 #/   In a GitHub Codespace or dev container, automatically uses --home $USER@devcontainer.
@@ -41,8 +42,6 @@ home_config=""
 config_name=""
 identity=""
 no_systemd=false
-no_confirm=false
-
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --home)
@@ -56,7 +55,8 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --no-confirm)
-      no_confirm=true
+      # Accepted for backward compatibility; bootstrap always skips
+      # the rebuild confirmation prompt.
       shift
       ;;
     -h|--help)
@@ -194,10 +194,7 @@ fi
 export FLEET_ROOT="$FLEET_DIR"
 cd "$FLEET_DIR"
 
-rebuild_flags=()
-if $no_confirm; then
-  rebuild_flags+=(--no-confirm)
-fi
+rebuild_flags=(--no-confirm)
 
 if [ -n "$home_config" ]; then
   log "Running script/rebuild --home $home_config ${rebuild_flags[*]+"${rebuild_flags[*]}"}..."
