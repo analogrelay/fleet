@@ -7,7 +7,6 @@
     kubectl
     k9s
     powershell
-    (azure-cli.withExtensions [ azure-cli.extensions.azure-devops ])
     rustup
     git-credential-manager
     gh
