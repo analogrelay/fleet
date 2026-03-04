@@ -19,7 +19,7 @@
 
   # NFS mounts from avalanche — lazy automount, won't block boot if unreachable
   fileSystems."/mnt/avalanche/shares/public" = {
-    device = "avalanche:/mnt/data/shares/public";
+    device = "avalanche.node.analogrelay.net:/mnt/data/shares/public";
     fsType = "nfs";
     options = [
       "_netdev"
@@ -32,7 +32,7 @@
   };
 
   fileSystems."/mnt/avalanche/k3s/shares" = {
-    device = "avalanche:/mnt/data/k3s/shares";
+    device = "avalanche.node.analogrelay.net:/mnt/data/k3s/shares";
     fsType = "nfs";
     options = [
       "_netdev"
