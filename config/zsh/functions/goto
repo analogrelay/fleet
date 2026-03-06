@@ -31,12 +31,12 @@ EOF
 
 fi
 
-werx_dirs=$(find $HOME/werx -maxdepth 1 -mindepth 1 -type d 2>/dev/null)
+# Find all git worktrees under ~/werx (identified by .git file/dir), excluding .werx
+werx_dirs=$(find $HOME/werx -name ".git" \( -type f -o -type d \) -not -path "$HOME/werx/.werx*" 2>/dev/null | sed 's|/\.git$||')
 
 candidates=$(cat <<EOF
 $candidates
 $werx_dirs
-$HOME/werx
 $HOME/kb
 $HOME/code
 $HOME/.config/fleet
