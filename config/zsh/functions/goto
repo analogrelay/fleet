@@ -31,10 +31,15 @@ EOF
 
 fi
 
+werx_dirs=$(find $HOME/werx -maxdepth 1 -mindepth 1 -type d 2>/dev/null)
+
 candidates=$(cat <<EOF
 $candidates
+$werx_dirs
+$HOME/werx
 $HOME/kb
 $HOME/code
+$HOME/.config/fleet
 EOF
 )
 
