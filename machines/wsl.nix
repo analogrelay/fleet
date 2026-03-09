@@ -7,6 +7,7 @@
 
   wsl = {
     enable = true;
+    docker-desktop.enable = true;
     usbip.enable = true;
   };
 
