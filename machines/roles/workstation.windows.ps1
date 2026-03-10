@@ -59,6 +59,30 @@ if(-not (Test-Path $gitLocalConfigFile)) {
   git config --file "$gitLocalConfigFile" user.name "$userName"
 }
 
+# Symlink SSH config and keys
+$sshDir = Join-Path $env:USERPROFILE ".ssh"
+if (-not (Test-Path $sshDir)) {
+  New-Item -Path $sshDir -ItemType Directory
+}
+
+$sshConfigFile = Join-Path $sshDir "config"
+$fleetSshConfigFile = Join-Path $RepoRoot "config\ssh\config"
+if (Test-Path $fleetSshConfigFile) {
+  if (Test-Path $sshConfigFile) {
+    Remove-Item -Path $sshConfigFile
+  }
+  New-Item -Path $sshConfigFile -ItemType SymbolicLink -Value $fleetSshConfigFile
+}
+
+$sshKeyFile = Join-Path $sshDir "github-msft.pub"
+$fleetSshKeyFile = Join-Path $RepoRoot "keys\github-msft.pub"
+if (Test-Path $fleetSshKeyFile) {
+  if (Test-Path $sshKeyFile) {
+    Remove-Item -Path $sshKeyFile
+  }
+  New-Item -Path $sshKeyFile -ItemType SymbolicLink -Value $fleetSshKeyFile
+}
+
 $Local1PPath = "$env:USERPROFILE\AppData\Local\1Password\app\8\op-ssh-sign.exe"
 if (Test-Path $Local1PPath) {
   $Local1PPath = $Local1PPath.Replace("\", "/")

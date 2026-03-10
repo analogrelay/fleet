@@ -28,7 +28,6 @@ in {
   home.username = username;
 
   programs.home-manager.enable = true;
-  programs.ssh.enable = true;
   programs.fzf.enable = true;
   programs.gpg.enable = true;
   programs.eza = {
