@@ -9,9 +9,9 @@ function Set-MachineContext {
         [Parameter(Mandatory=$false)][string[]]$Profiles
     )
 
-  Set-EnvironmentVariable "FLEET_ROLE" "workstation" -Target "User"
-  Set-EnvironmentVariable "FLEET_MACHINE" "ashleyst-delta" -Target "User"
-  Set-EnvironmentVariable "FLEET_REALM" "microsoft" -Target "User"
+  Set-EnvironmentVariable "FLEET_MACHINE" $Name -Target "User"
+  Set-EnvironmentVariable "FLEET_ROLE" $Role -Target "User"
+  Set-EnvironmentVariable "FLEET_REALM" $Realm -Target "User"
 
   if ($Profiles) {
     Set-EnvironmentVariable "FLEET_PROFILES" ([string]::Join(";", $Profiles)) -Target "User"
