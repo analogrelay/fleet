@@ -31,5 +31,5 @@
   home.file.".npmrc".text = ''
     prefix=${config.home.homeDirectory}/.npm-global
   '';
-  home.sessionPath = [ "$HOME/.npm-global/bin" ];
+  home.sessionPath = [ "$HOME/.npm-global/bin" "$HOME/.config/agency/CurrentVersion" ];
 }
