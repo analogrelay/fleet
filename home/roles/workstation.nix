@@ -13,7 +13,7 @@
     lazygit
     jq
     devenv
-    werx
+    # werx # temporarily disabled — package is broken
     go
     python3
     pipx
