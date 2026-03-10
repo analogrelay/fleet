@@ -13,12 +13,18 @@
 .PARAMETER Identity
   The fleet identity for this machine. Defaults to the local computer name.
   Written to $env:LOCALAPPDATA\fleet\identity for future rebuilds.
+.PARAMETER Install
+  Always use ~/.config/fleet as the fleet directory, even when running
+  from a local clone elsewhere. Clones or updates the repo at that
+  location so future rebuilds use the standard path.
 .PARAMETER NoConfirm
   Skip the confirmation prompt before rebuilding.
 #>
 param(
   [Parameter(Position = 0)]
   [string]$Identity,
+
+  [switch]$Install,
 
   [switch]$NoConfirm
 )
@@ -108,8 +114,8 @@ if ($sshCmd) {
 
 # --- Clone or locate fleet repo ---
 
-if ($PSScriptRoot -and (Test-Path (Join-Path (Split-Path $PSScriptRoot) "flake.nix"))) {
-  # Running from inside the fleet repo
+if (-not $Install -and $PSScriptRoot -and (Test-Path (Join-Path (Split-Path $PSScriptRoot) "flake.nix"))) {
+  # Running from inside the fleet repo and not forced to install to ~/.config/fleet
   $FleetDir = Split-Path $PSScriptRoot
   Log "Running from existing fleet repo at $FleetDir"
 } elseif (Test-Path (Join-Path $FleetDir ".git")) {
