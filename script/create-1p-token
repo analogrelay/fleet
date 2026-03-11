@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+#/ Usage: script/create-1p-token [--force]
+#/ Create a 1Password service account token for this fleet host.
+#/
+#/ OPTIONS
+#/   --force    Overwrite existing token without prompting.
+#/   -h, --help Show this help message.
+#/
+#/ PREREQUISITES
+#/   - Sign in as an admin user: eval $(op signin)
+#/   - Fleet identity must exist: ~/.local/share/fleet/identity
+set -eo pipefail
+
+OP_TOKEN_FILE="$HOME/.local/share/fleet/op-token"
+IDENTITY_FILE="$HOME/.local/share/fleet/identity"
+
+# Parse arguments
+force=false
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --force)
+      force=true
+      ;;
+    -h|--help)
+      grep '^#/' "$0" | cut -c4-
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      grep '^#/' "$0" | cut -c4-
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+# Verify admin sign-in
+whoami_output=$(op whoami 2>&1) || {
+  echo "Error: Not signed in to 1Password CLI." >&2
+  echo "Run: eval \$(op signin)" >&2
+  exit 1
+}
+if echo "$whoami_output" | grep -qi "service account"; then
+  echo "Error: Signed in as a service account, not a human user." >&2
+  echo "Run: eval \$(op signin) to sign in with your personal account." >&2
+  exit 1
+fi
+
+# Read fleet identity
+if [ ! -f "$IDENTITY_FILE" ]; then
+  echo "Error: Fleet identity not found at $IDENTITY_FILE." >&2
+  echo "Run bootstrap to set the identity first." >&2
+  exit 1
+fi
+raw_identity=$(cat "$IDENTITY_FILE")
+
+# Strip user@ prefix — keep only the machine part
+identity="${raw_identity#*@}"
+
+# Check for existing token
+if [ -f "$OP_TOKEN_FILE" ] && ! $force; then
+  printf "Token already exists at %s. Overwrite? [y/N] " "$OP_TOKEN_FILE"
+  read -r answer
+  case "$answer" in
+    [yY]|[yY][eE][sS]) ;;
+    *)
+      echo "Aborted."
+      exit 0
+      ;;
+  esac
+fi
+
+# Create service account
+echo "Creating 1Password service account: fleet-${identity}"
+token=$(op service-account create --raw "fleet-${identity}" --vault Fleet:read_items)
+
+if [ -z "$token" ]; then
+  echo "Error: No token returned from op service-account create." >&2
+  exit 1
+fi
+
+# Save token
+install -dm 0700 "$(dirname "$OP_TOKEN_FILE")"
+printf '%s' "$token" > "$OP_TOKEN_FILE"
+chmod 0600 "$OP_TOKEN_FILE"
+
+echo "Token saved to $OP_TOKEN_FILE"
