@@ -4,6 +4,8 @@
   imports = [ ../profiles/nvim.nix ../profiles/lsp.nix ../profiles/copilot.nix ../profiles/jujutsu.nix ];
 
   home.packages = (with pkgs; [
+    pkg-config
+    openssl
     kubectl
     k9s
     powershell
@@ -27,6 +29,7 @@
 
   home.sessionVariables = {
     GOPRIVATE = "github.com/Azure/azure-cosmos-client-engine";
+    PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
   };
   home.file.".npmrc".text = ''
     prefix=${config.home.homeDirectory}/.npm-global
