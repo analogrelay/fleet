@@ -25,6 +25,8 @@
     uv
     bun
     ripgrep
+  ]) ++ (with pkgs-unstable; [
+    azure-cli
   ]);
 
   home.sessionVariables = {
