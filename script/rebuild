@@ -110,9 +110,9 @@ fi
 
 # Refresh secrets from 1Password (writes .secrets.nix if token is available).
 # If no token is found and running non-interactively, this is a no-op.
-"$script_dir/refresh-secrets" \
-  ${non_interactive:+--non-interactive} \
-  "${identity:-}"
+# "$script_dir/refresh-secrets" \
+#   ${non_interactive:+--non-interactive} \
+#   "${identity:-}"
 
 if $home_only; then
   if [ -z "$config_name" ]; then

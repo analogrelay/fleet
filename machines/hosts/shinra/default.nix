@@ -6,6 +6,8 @@
     ../../platform.nix
     ../../users
     ../../services/traefik.nix
+    ../../services/homedb.nix
+    ../../services/paperless.nix
   ];
 
   networking.hostName = "shinra";

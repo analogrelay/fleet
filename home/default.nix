@@ -10,7 +10,6 @@ let
       ./roles/${role}.${os}.nix) ++ [
         ./profiles/shell.nix
         ./profiles/git.nix
-        ./profiles/vim.nix
         ./profiles/nvim.nix
         ./profiles/ssh.nix
         ./profiles/tmux.nix
@@ -54,6 +53,14 @@ in {
     wget
     curl
     nix-index
+    kubectl
+    k9s
+    gh
+    lazygit
+    jq
+    ripgrep
+    powershell
+    (azure-cli.withExtensions [ azure-cli.extensions.azure-devops ])
   ];
 
   home.file = (lib.mapAttrs' (name: _: lib.nameValuePair ".local/bin/${name}" {

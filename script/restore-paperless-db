@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BACKUP="/mnt/avalanche/shares/public/backups/postgres/paperless.latest.backup.tar.gz"
+TMPDIR=$(mktemp -d)
+trap "rm -rf $TMPDIR" EXIT
+
+echo "Extracting backup..."
+tar -xzf "$BACKUP" -C "$TMPDIR"
+
+# Locate the pg_dump directory regardless of tar structure
+DUMP_DIR=$(dirname "$(find "$TMPDIR" -name toc.dat | head -1)")
+
+echo "Restoring into database 'paperless' from $DUMP_DIR ..."
+# --no-owner: skip ALTER OWNER from dump (original role name may differ)
+# --role=paperless: SET ROLE paperless so restored objects are owned by it
+sudo -u postgres pg_restore \
+  --dbname=paperless \
+  --no-owner \
+  --role=paperless \
+  --exit-on-error \
+  "$DUMP_DIR"
+
+echo "Done."

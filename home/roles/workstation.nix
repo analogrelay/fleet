@@ -6,14 +6,9 @@
   home.packages = (with pkgs; [
     pkg-config
     openssl
-    kubectl
-    k9s
     powershell
     rustup
     git-credential-manager
-    gh
-    lazygit
-    jq
     devenv
     # werx # temporarily disabled — package is broken
     go
