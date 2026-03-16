@@ -1,4 +1,38 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "autoupdate": false
+  "autoupdate": false,
+
+  "mcp": {
+    // GitHub MCP Server (full toolset - all read + write tools)
+    // Use this in agents that need write access (issues, PRs, etc.)
+    "github": {
+      "type": "remote",
+      "url": "https://api.githubcopilot.com/mcp/x/all",
+      "enabled": true
+    },
+
+    // GitHub MCP Server (read-only toolset)
+    // Used in the default build agent for safe, read-only GitHub access
+    "github_readonly": {
+      "type": "remote",
+      "url": "https://api.githubcopilot.com/mcp/x/all/readonly",
+      "enabled": true
+    }
+  },
+
+  // Disable all GitHub MCP tools globally so they don't load in every agent.
+  // Each agent opts in to whichever server it needs.
+  "tools": {
+    "github_*": false,
+    "github_readonly_*": false
+  },
+
+  "agent": {
+    // Default build agent: read-only GitHub access
+    "build": {
+      "tools": {
+        "github_readonly_*": true
+      }
+    }
+  }
 }
