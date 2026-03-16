@@ -9,6 +9,10 @@
   };
   users.groups.paperless = {};
 
+  systemd.tmpfiles.rules = [
+    "d /var/data/paperless 0755 paperless paperless - -"
+  ];
+
   # Postgres role + database (merged into the list from homedb.nix — no conflict)
   services.postgresql.ensureDatabases = [ "paperless" ];
   services.postgresql.ensureUsers = [
