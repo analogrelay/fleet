@@ -1,7 +1,7 @@
-# Code Review Agent — Configuration
+# Arvee — Configuration
 
-This file contains static tunable knobs. Edit it manually to adjust the agent's behavior.
-The agent reads this at the start of every session but never modifies it.
+This file contains static tunable knobs. Edit it manually to adjust Arvee's behavior.
+Arvee reads this at the start of every session but never modifies it.
 
 ---
 

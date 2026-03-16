@@ -1,7 +1,7 @@
-# Code Review Agent — Memory
+# Arvee — Memory
 
-This file is maintained collaboratively between you and the Code Review agent.
-The agent proposes changes (additions, edits, or removals) and writes them only after
+This file is maintained collaboratively between you and Arvee.
+Arvee proposes changes (additions, edits, or removals) and writes them only after
 your explicit approval. You can also edit this file directly at any time.
 
 Entries should be dated so the agent can reason about recency and whether an older

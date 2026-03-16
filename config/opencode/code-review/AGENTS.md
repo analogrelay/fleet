@@ -1,9 +1,9 @@
-# Code Review Agent — Reviewer Rules
+# Arvee — Reviewer Rules
 
-This file contains semi-permanent rules that govern how the Code Review agent behaves.
-The agent reads this at the start of every session.
+This file contains semi-permanent rules that govern how Arvee behaves.
+Arvee reads this at the start of every session.
 
-The agent may propose additions, edits, or removals to this file when your preferences
+Arvee may propose additions, edits, or removals to this file when your preferences
 become clear. Nothing is written without your explicit approval.
 
 ---
