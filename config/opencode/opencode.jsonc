@@ -17,21 +17,31 @@
       "type": "remote",
       "url": "https://api.githubcopilot.com/mcp/x/all/readonly",
       "enabled": true
+    },
+
+    // Azure DevOps MCP Server (azure-sdk org, all domains)
+    // Authentication: browser-based Microsoft account login on first use
+    "azure_devops": {
+      "type": "local",
+      "command": ["npx", "-y", "@azure-devops/mcp", "azure-sdk"],
+      "enabled": true
     }
   },
 
-  // Disable all GitHub MCP tools globally so they don't load in every agent.
-  // Each agent opts in to whichever server it needs.
+  // Disable all MCP tools globally so they don't load in every agent.
+  // Each agent opts in to whichever servers it needs.
   "tools": {
     "github_*": false,
-    "github_readonly_*": false
+    "github_readonly_*": false,
+    "azure_devops_*": false
   },
 
   "agent": {
-    // Default build agent: read-only GitHub access
+    // Default build agent: read-only GitHub access + Azure DevOps (azure-sdk org)
     "build": {
       "tools": {
-        "github_readonly_*": true
+        "github_readonly_*": true,
+        "azure_devops_*": true
       }
     }
   }
