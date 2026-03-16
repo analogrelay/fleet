@@ -1,7 +1,7 @@
 { pkgs, pkgs-unstable, config, ... }:
 
 {
-  imports = [ ../profiles/nvim.nix ../profiles/lsp.nix ../profiles/copilot.nix ../profiles/jujutsu.nix ];
+  imports = [ ../profiles/nvim.nix ../profiles/lsp.nix ../profiles/copilot.nix ../profiles/jujutsu.nix ../profiles/opencode.nix ];
 
   home.packages = (with pkgs; [
     pkg-config
