@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+# wsl-proxy — on-demand localhost port forwarding from WSL2 to the Windows host
+#
+# Usage:
+#   wsl-proxy start <port>    Forward localhost:<port> → windows-host:<port>
+#   wsl-proxy stop <port>     Stop forwarding <port>
+#   wsl-proxy list            Show all active forwards
+#   wsl-proxy status <port>   Print status for <port>
+#
+# State is kept in ~/.local/share/wsl-proxy/<port>.pid
+# The Windows host IP is resolved dynamically on each `start` via the default
+# route, so this works correctly after WSL restarts.
+
+set -euo pipefail
+
+STATE_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/wsl-proxy"
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+die() { printf 'wsl-proxy: error: %s\n' "$*" >&2; exit 1; }
+
+windows_host_ip() {
+  # The Windows host is always the default gateway for WSL2's virtual NIC.
+  ip route show default 2>/dev/null | awk '/default via/ { print $3; exit }'
+}
+
+pid_file() { printf '%s/%s.pid' "$STATE_DIR" "$1"; }
+
+is_running() {
+  local port="$1"
+  local pidfile
+  pidfile="$(pid_file "$port")"
+  [[ -f "$pidfile" ]] || return 1
+  local pid
+  pid="$(cat "$pidfile")"
+  kill -0 "$pid" 2>/dev/null
+}
+
+# ---------------------------------------------------------------------------
+# Subcommands
+# ---------------------------------------------------------------------------
+
+cmd_start() {
+  local port="${1:-}"
+  [[ -n "$port" ]] || die "usage: wsl-proxy start <port>"
+  [[ "$port" =~ ^[0-9]+$ ]] || die "port must be a number"
+
+  if is_running "$port"; then
+    printf 'wsl-proxy: port %s is already being forwarded (pid %s)\n' \
+      "$port" "$(cat "$(pid_file "$port")")"
+    return 0
+  fi
+
+  local win_ip
+  win_ip="$(windows_host_ip)"
+  [[ -n "$win_ip" ]] || die "could not determine Windows host IP from default route"
+
+  mkdir -p "$STATE_DIR"
+
+  # socat forks into the background; we capture the PID of the listener.
+  socat TCP-LISTEN:"$port",bind=127.0.0.1,fork,reuseaddr \
+        TCP:"$win_ip":"$port" &
+  local pid=$!
+  printf '%s' "$pid" > "$(pid_file "$port")"
+
+  printf 'wsl-proxy: forwarding localhost:%s → %s:%s (pid %s)\n' \
+    "$port" "$win_ip" "$port" "$pid"
+}
+
+cmd_stop() {
+  local port="${1:-}"
+  [[ -n "$port" ]] || die "usage: wsl-proxy stop <port>"
+
+  local pidfile
+  pidfile="$(pid_file "$port")"
+
+  if ! is_running "$port"; then
+    # Clean up a stale pid file if present
+    [[ -f "$pidfile" ]] && rm -f "$pidfile"
+    printf 'wsl-proxy: port %s is not being forwarded\n' "$port"
+    return 0
+  fi
+
+  local pid
+  pid="$(cat "$pidfile")"
+  kill "$pid" 2>/dev/null && printf 'wsl-proxy: stopped forward for port %s (pid %s)\n' "$port" "$pid"
+  rm -f "$pidfile"
+}
+
+cmd_list() {
+  mkdir -p "$STATE_DIR"
+  local found=0
+  for pidfile in "$STATE_DIR"/*.pid; do
+    [[ -e "$pidfile" ]] || continue  # glob matched nothing
+    local port
+    port="$(basename "$pidfile" .pid)"
+    if is_running "$port"; then
+      printf '  %s  →  windows:%s  (pid %s)\n' "$port" "$port" "$(cat "$pidfile")"
+      found=1
+    else
+      # Stale entry — clean it up silently
+      rm -f "$pidfile"
+    fi
+  done
+  if [[ "$found" -eq 0 ]]; then
+    printf 'wsl-proxy: no active forwards\n'
+  fi
+}
+
+cmd_status() {
+  local port="${1:-}"
+  [[ -n "$port" ]] || die "usage: wsl-proxy status <port>"
+
+  if is_running "$port"; then
+    printf 'wsl-proxy: port %s is active (pid %s)\n' "$port" "$(cat "$(pid_file "$port")")"
+  else
+    printf 'wsl-proxy: port %s is not forwarded\n' "$port"
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# Dispatch
+# ---------------------------------------------------------------------------
+
+cmd="${1:-}"
+shift || true
+
+case "$cmd" in
+  start)  cmd_start  "$@" ;;
+  stop)   cmd_stop   "$@" ;;
+  list)   cmd_list        ;;
+  status) cmd_status "$@" ;;
+  "")     die "usage: wsl-proxy <start|stop|list|status> [port]" ;;
+  *)      die "unknown subcommand '${cmd}'; valid: start, stop, list, status" ;;
+esac
