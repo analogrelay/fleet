@@ -1,48 +1,47 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "autoupdate": false,
-
   "mcp": {
-    // GitHub MCP Server (full toolset - all read + write tools)
-    // Use this in agents that need write access (issues, PRs, etc.)
     "github": {
       "type": "remote",
       "url": "https://api.githubcopilot.com/mcp/x/all",
       "enabled": true
     },
-
-    // GitHub MCP Server (read-only toolset)
-    // Used in the default build agent for safe, read-only GitHub access
     "github_readonly": {
       "type": "remote",
       "url": "https://api.githubcopilot.com/mcp/x/all/readonly",
       "enabled": true
     },
-
-    // Azure DevOps MCP Server (azure-sdk org, all domains)
-    // Authentication: browser-based Microsoft account login on first use
     "azure_devops": {
       "type": "local",
-      "command": ["npx", "-y", "@azure-devops/mcp", "azure-sdk"],
+      "command": [
+        "npx",
+        "-y",
+        "@azure-devops/mcp",
+        "azure-sdk"
+      ],
       "enabled": true
     }
   },
-
-  // Disable all MCP tools globally so they don't load in every agent.
-  // Each agent opts in to whichever servers it needs.
   "tools": {
     "github_*": false,
     "github_readonly_*": false,
     "azure_devops_*": false
   },
-
   "agent": {
-    // Default build agent: read-only GitHub access + Azure DevOps (azure-sdk org)
     "build": {
       "tools": {
         "github_readonly_*": true,
         "azure_devops_*": true
       }
+    }
+  },
+  "permission": {
+    "read": {
+      "~/.config/opencode/get-shit-done/*": "allow"
+    },
+    "external_directory": {
+      "~/.config/opencode/get-shit-done/*": "allow"
     }
   }
 }
