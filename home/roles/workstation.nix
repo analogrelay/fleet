@@ -10,6 +10,9 @@
     rustup
     git-credential-manager
     devenv
+    gh
+    lazygit
+    jq
     # werx # temporarily disabled — package is broken
     go
     python3
@@ -22,6 +25,7 @@
     ripgrep
   ]) ++ (with pkgs-unstable; [
     azure-cli
+		devenv
   ]);
 
   home.sessionVariables = {
