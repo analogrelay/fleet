@@ -32,6 +32,7 @@
 
   environment.localBinInPath = true;
   environment.systemPackages = with pkgs; [
+    bun
     cifs-utils
     nfs-utils
     usbutils
