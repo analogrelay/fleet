@@ -8,6 +8,7 @@
     ../../services/traefik.nix
     ../../services/homedb.nix
     ../../services/paperless.nix
+    ../../services/redis.nix
   ];
 
   networking.hostName = "shinra";
