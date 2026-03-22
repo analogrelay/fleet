@@ -9,10 +9,6 @@
   };
   users.groups.paperless = {};
 
-  systemd.tmpfiles.rules = [
-    "d /var/data/paperless 0755 paperless paperless - -"
-  ];
-
   # Postgres role + database (merged into the list from homedb.nix — no conflict)
   services.postgresql.ensureDatabases = [ "paperless" ];
   services.postgresql.ensureUsers = [
@@ -21,4 +17,39 @@
       ensureDBOwnership = true;   # ALTER DATABASE paperless OWNER TO paperless
     }
   ];
+
+  services.paperless = {
+    enable = true;
+
+    # Directories on the NFS share
+    dataDir        = "/mnt/avalanche/shares/public/cabinet/data";
+    mediaDir       = "/mnt/avalanche/shares/public/cabinet/media";
+    consumptionDir = "/mnt/avalanche/shares/public/cabinet/consume";
+
+    settings = {
+      PAPERLESS_TRASH_DIR = "/mnt/avalanche/shares/public/cabinet/trash";
+
+      # Connect to postgres via unix socket using peer auth
+      # (OS user "paperless" → postgres role "paperless")
+      PAPERLESS_DBENGINE = "postgresql";
+      PAPERLESS_DBHOST   = "/run/postgresql";
+      PAPERLESS_DBNAME   = "paperless";
+      PAPERLESS_DBUSER   = "paperless";
+
+      # Point to our existing redis instance
+      PAPERLESS_REDIS = "unix:///run/redis-paperless/redis.sock";
+    };
+  };
+
+  # Force the NFS share to be mounted before any paperless service starts.
+  # Uses requires (hard dep) + after (ordering) on the mount unit so systemd
+  # activates the mount itself rather than relying on automount blocking.
+  systemd.services.paperless-scheduler.requires  = [ "mnt-avalanche-shares-public.mount" ];
+  systemd.services.paperless-scheduler.after     = [ "mnt-avalanche-shares-public.mount" ];
+  systemd.services.paperless-task-queue.requires = [ "mnt-avalanche-shares-public.mount" ];
+  systemd.services.paperless-task-queue.after    = [ "mnt-avalanche-shares-public.mount" ];
+  systemd.services.paperless-consumer.requires   = [ "mnt-avalanche-shares-public.mount" ];
+  systemd.services.paperless-consumer.after      = [ "mnt-avalanche-shares-public.mount" ];
+  systemd.services.paperless-web.requires        = [ "mnt-avalanche-shares-public.mount" ];
+  systemd.services.paperless-web.after           = [ "mnt-avalanche-shares-public.mount" ];
 }
