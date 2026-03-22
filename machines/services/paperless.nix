@@ -41,6 +41,14 @@
     };
   };
 
+  # The module's ProtectSystem=strict makes all paths read-only except those in
+  # ReadWritePaths (dataDir, mediaDir, consumptionDir). PAPERLESS_TRASH_DIR is
+  # not covered, so grant write access explicitly on every service unit.
+  systemd.services.paperless-scheduler.serviceConfig.ReadWritePaths  = [ "/mnt/avalanche/shares/public/cabinet/trash" ];
+  systemd.services.paperless-task-queue.serviceConfig.ReadWritePaths = [ "/mnt/avalanche/shares/public/cabinet/trash" ];
+  systemd.services.paperless-consumer.serviceConfig.ReadWritePaths   = [ "/mnt/avalanche/shares/public/cabinet/trash" ];
+  systemd.services.paperless-web.serviceConfig.ReadWritePaths        = [ "/mnt/avalanche/shares/public/cabinet/trash" ];
+
   # Force the NFS share to be mounted before any paperless service starts.
   # Uses requires (hard dep) + after (ordering) on the mount unit so systemd
   # activates the mount itself rather than relying on automount blocking.
