@@ -5,27 +5,7 @@ Host github-msft
     IdentityFile ~/.ssh/github-msft.pub
     IdentitiesOnly yes
 
-Host gaia.node.analogrelay.net
-    User admin
-
-Host zach.node.analogrelay.net
-    HostName cloud.node.analogrelay.net
-    Port 2222
-
-Host zach.bicorn-bebop.ts.net
-    HostName cloud.bicorn-bebop.ts.net
-    Port 2222
-
-# TP-Link Access Points use ssh-rsa host keys
-Host wutai.node.analogrelay.net
-    PubkeyAcceptedAlgorithms +ssh-rsa
-    HostkeyAlgorithms +ssh-rsa
-
-Host midgar.node.analogrelay.net
-    PubkeyAcceptedAlgorithms +ssh-rsa
-    HostkeyAlgorithms +ssh-rsa
-
-Host *.node.analogrelay.net
+Host *.analogno.de
     ForwardAgent yes
     User ashley
 
@@ -33,11 +13,3 @@ Host *.bicorn-bebop.ts.net
     ForwardAgent yes
     User ashley
 
-Host *.internal.analogrelay.cloud
-    User azureuser
-    ProxyJump analogrelay.cloud
-    ForwardAgent yes
-
-Host *.analogrelay.cloud analogrelay.cloud
-    ForwardAgent yes
-    User azureuser
