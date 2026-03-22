@@ -38,6 +38,9 @@
 
       # Point to our existing redis instance
       PAPERLESS_REDIS = "unix:///run/redis-paperless/redis.sock";
+
+      PAPERLESS_ALLOWED_HOSTS = "cabinet.bicorn-bebop.ts.net,cabinet.analogrelay.net,shinra.bicorn-bebop.ts.net";
+      PAPERLESS_CORS_ALLOWED_HOSTS = "https://cabinet.bicorn-bebop.ts.net,https://cabinet.analogrelay.net,https://shinra.bicorn-bebop.ts.net";
     };
   };
 
