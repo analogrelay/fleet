@@ -4,10 +4,11 @@
   # Linux system user — matches the Postgres role name for peer auth
   users.users.paperless = {
     isSystemUser = true;
+    uid = 315;
     group = "paperless";
     description = "Paperless service user";
   };
-  users.groups.paperless = {};
+  users.groups.paperless = { gid = 315; };
 
   # Postgres role + database (merged into the list from homedb.nix — no conflict)
   services.postgresql.ensureDatabases = [ "paperless" ];
@@ -40,6 +41,7 @@
       PAPERLESS_REDIS = "unix:///run/redis-paperless/redis.sock";
 
       PAPERLESS_ALLOWED_HOSTS = "cabinet.bicorn-bebop.ts.net,cabinet.analogrelay.net,shinra.bicorn-bebop.ts.net";
+      PAPERLESS_CORS_TRUSTED_ORIGINS = "https://cabinet.bicorn-bebop.ts.net,https://cabinet.analogrelay.net,https://shinra.bicorn-bebop.ts.net";
       PAPERLESS_CORS_ALLOWED_HOSTS = "https://cabinet.bicorn-bebop.ts.net,https://cabinet.analogrelay.net,https://shinra.bicorn-bebop.ts.net";
     };
   };
