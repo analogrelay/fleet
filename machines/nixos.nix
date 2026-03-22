@@ -3,6 +3,7 @@
 { pkgs, ... }:
 
 {
+  imports = [ ./profiles/tailnet.nix ];
   networking.domain = "node.analogrelay.net";
   networking.networkmanager.enable = true;
   systemd.services.NetworkManager-wait-online.enable = false;
@@ -38,7 +39,6 @@
     usbutils
     pciutils
     hw-probe
-    tailscale
   ];
 
   programs.nix-ld.enable = true;
