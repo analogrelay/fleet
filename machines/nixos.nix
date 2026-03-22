@@ -38,6 +38,7 @@
     usbutils
     pciutils
     hw-probe
+    tailscale
   ];
 
   programs.nix-ld.enable = true;
