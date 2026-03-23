@@ -18,6 +18,9 @@
 		package = pkgs-unstable.claude-code-bin;
 		enable = true;
 		settings = {
+			enabledPlugins = {
+				"plannotator@plannotator" = true;
+			};
 			statusLine = {
 				type = "command";
 				command = "npx -y ccstatusline@2.2.7";
