@@ -9,7 +9,6 @@
     powershell
     rustup
     git-credential-manager
-    devenv
     gh
     lazygit
     jq
