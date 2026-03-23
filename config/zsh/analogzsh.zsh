@@ -20,6 +20,11 @@ for func in "$HOME"/.config/zsh/functions/*(N); do
     autoload -Uz "${func:t}"
 done
 
+# Source profile.d scripts
+for script in "$HOME"/.config/zsh/profile.d/*.zsh(N); do
+    source "$script"
+done
+
 # Load Git keys
 if [ -f ~/.ssh/git_signing ]; then
   ssh-add ~/.ssh/git_signing

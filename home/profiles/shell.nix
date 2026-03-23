@@ -14,6 +14,7 @@ in
   };
   home.file.".config/zsh/analogzsh.zsh".source = fleetLink "config/zsh/analogzsh.zsh";
   home.file.".config/zsh/functions".source = fleetLink "config/zsh/functions";
+  home.file.".config/zsh/profile.d".source = fleetLink "config/zsh/profile.d";
   home.file.".config/analogposh.omp.json".source =
     fleetLink "config/analogposh.omp.json";
 
@@ -23,6 +24,6 @@ in
     enable = true;
     enableZshIntegration = true;
     enableBashIntegration = true;
-		useTheme = "json";
+		useTheme = "probua.minimal";
   };
 }
