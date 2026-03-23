@@ -14,15 +14,19 @@
 
 if (( ! $+functions[_goto_session_name] )); then
 
+function _log() {
+	echo "$@" 1>&2
+}
+
 function _goto_session_name() {
   local dir=$1
   local rel
   if [[ "$dir" == "$HOME/dev/"* ]]; then
     rel="${dir#$HOME/dev/}"
-    echo "${rel//\//.}"
+    echo "${rel//\//_}"
   elif [[ "$dir" == "$HOME/code/"* ]]; then
     rel="${dir#$HOME/code/}"
-    echo "${rel//\//.}"
+    echo "${rel//\//_}"
   elif [[ "$dir" == "$HOME/.config/fleet" ]]; then
     echo "fleet"
   else
@@ -43,15 +47,19 @@ function _goto_switch() {
   local target=$1
   local session
   session=$(_goto_session_name "$target")
+	_log "using tmux session $session"
 
   if [[ -n "$TMUX" ]]; then
     if tmux has-session -t "=$session" 2>/dev/null; then
+			_log "session $session found, switching..."
       tmux switch-client -t "=$session"
     else
+			_log "session $session not found, creating..."
       tmux new-session -d -s "$session" -c "$target"
       tmux switch-client -t "=$session"
     fi
   else
+		_log "session $session not found, starting tmux and creating..."
     # Not in tmux — create or attach
     tmux new-session -A -s "$session" -c "$target"
   fi
