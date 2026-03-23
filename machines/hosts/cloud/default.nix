@@ -17,5 +17,5 @@
   boot.kernelPackages = pkgs.linuxPackages_6_13;
   boot.loader.grub.device = "nodev";
 
-  system.stateVersion = "24.11";
+  system.stateVersion = "25.11";
 }

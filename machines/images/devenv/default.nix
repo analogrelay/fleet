@@ -8,7 +8,7 @@
 
   networking.hostName = "devenv";
 
-  system.stateVersion = "24.11";
+  system.stateVersion = "25.11";
 
   system.build.dockerImage = pkgs.dockerTools.buildLayeredImage {
     name = "fleet-devenv";

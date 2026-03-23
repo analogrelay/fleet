@@ -17,7 +17,7 @@
 
   networking.hostName = "scarlet";
 
-  system.stateVersion = "24.11";
+  system.stateVersion = "25.11";
 
   services.blueman.enable = true;
 

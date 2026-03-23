@@ -16,7 +16,7 @@
   networking.hostName = "avalanche";
   networking.hostId = "19cc4826";
 
-  system.stateVersion = "24.11";
+  system.stateVersion = "25.11";
 
   # We want to do ARM things sometimes
   boot.binfmt.emulatedSystems = [ "aarch64-linux" ];

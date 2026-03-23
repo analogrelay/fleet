@@ -10,7 +10,7 @@
 
   networking.hostName = "jessie";
 
-  system.stateVersion = "23.11";
+  system.stateVersion = "25.11";
 
   # No need to compress, we're just going to burn it immediately
   sdImage.compressImage = false;
