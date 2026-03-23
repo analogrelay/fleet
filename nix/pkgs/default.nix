@@ -2,4 +2,5 @@
 # You can build them using 'nix build .#example'
 { pkgs }: {
   es-de = pkgs.callPackage ./es-de {};
+  plannotator = pkgs.callPackage ./plannotator {};
 }

@@ -1,6 +1,7 @@
-{ pkgs-unstable, ... }:
+{ pkgs, pkgs-unstable, ... }:
 
 {
+  home.packages = [ pkgs.plannotator ];
 	programs.opencode = {
 		package = pkgs-unstable.opencode;
 		enable = true;
