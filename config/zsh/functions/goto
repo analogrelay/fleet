@@ -1,78 +1,315 @@
-target=$1
+# goto - smart project navigator with tmux session management
+#
+# Usage: goto [query]
+#
+# Navigates to ~/dev/[repo]/[worktree] directories (and legacy ~/code/[owner]/[repo]),
+# creating and switching tmux sessions per worktree along the way.
+#
+# Synthetic fzf entries (when inside a ~/dev repo):
+#   [+] clone repo into ~/dev
+#   [+] new worktree in [repo]
+#   [+] checkout PR in [repo]
 
-orgs=$(find $HOME/code -maxdepth 1 -mindepth 1 -type d)
+# ── helpers (defined once on first call, then globally available) ────────────
 
-github_repos=$(echo $orgs | grep "^$HOME/code/[^@]*$" | xargs -I ORG find "ORG" -maxdepth 1 -mindepth 1 -type d)
-ado_repos=$(echo $orgs | grep "^$HOME/code/[^@]*@[^@]*$" | xargs -I ORG find "ORG" -maxdepth 2 -mindepth 2 -type d)
+if (( ! $+functions[_goto_session_name] )); then
 
-# Collect all the candidates
-candidates=$(cat <<EOF
-$github_repos
-$ado_repos
-EOF
-)
-
-if [ "$CODESPACES" = "true" ]; then
-    workspaces=$(find /workspaces -maxdepth 1 -mindepth 1 -type d -not -name '.*')
-    candidates=$(cat <<EOF
-$workspaces
-EOF
-)
-fi
-
-if [ "$(uname)" = "Darwin" ]; then
-    candidates=$(cat <<EOF
-$candidates
-$HOME/Downloads
-$HOME/Desktop
-$HOME/Documents
-EOF
-)
-
-fi
-
-# Find all git worktrees under ~/werx (identified by .git file/dir), excluding .werx
-werx_dirs=$(find $HOME/werx -name ".git" \( -type f -o -type d \) -not -path "$HOME/werx/.werx*" 2>/dev/null | sed 's|/\.git$||')
-
-candidates=$(cat <<EOF
-$candidates
-$werx_dirs
-$HOME/kb
-$HOME/code
-$HOME/.config/fleet
-EOF
-)
-
-# Some useful aliases
-goto_aliases=(
-)
-
-for goto_alias in "${(k)goto_aliases}"; do
-    candidates=$(cat <<EOF
-$candidates
-$goto_alias
-EOF
-)
-done
-
-if [ "$DEBUG" = "1" ]; then
-    echo "Orgs: $orgs"
-    echo "Github Repos: $github_repos"
-    echo "ADO Repos: $ado_repos"
-    echo "Candidates: $candidates"
-else
-    qry_arg=()
-    if [ -n "$1" ]; then
-        qry_arg=("--query" "$1" "--select-1" "--exit-0")
-    fi
-    target=$(echo "$candidates" | fzf ${qry_arg[@]})
-    if [ $? != 0 ]; then
-        echo "failed to find target to goto" 1>&2
-        return
+function _goto_session_name() {
+  local dir=$1
+  local rel
+  if [[ "$dir" == "$HOME/dev/"* ]]; then
+    rel="${dir#$HOME/dev/}"
+    echo "${rel//\//.}"
+  elif [[ "$dir" == "$HOME/code/"* ]]; then
+    rel="${dir#$HOME/code/}"
+    echo "${rel//\//.}"
+  elif [[ "$dir" == "$HOME/.config/fleet" ]]; then
+    echo "fleet"
+  else
+    local parent base
+    parent="$(basename "$(dirname "$dir")")"
+    base="$(basename "$dir")"
+    local home_base
+    home_base="$(basename "$HOME")"
+    if [[ "$parent" == "$home_base" || "$parent" == "/" ]]; then
+      echo "$base"
     else
-        if [ -n "${aliases[$target]}" ]; then
-            target=${aliases[$target]}
-        fi
-        cd $target
+      echo "${parent}.${base}"
     fi
+  fi
+}
+
+function _goto_switch() {
+  local target=$1
+  local session
+  session=$(_goto_session_name "$target")
+
+  if [[ -n "$TMUX" ]]; then
+    if tmux has-session -t "=$session" 2>/dev/null; then
+      tmux switch-client -t "=$session"
+    else
+      tmux new-session -d -s "$session" -c "$target"
+      tmux switch-client -t "=$session"
+    fi
+  else
+    # Not in tmux — create or attach
+    tmux new-session -A -s "$session" -c "$target"
+  fi
+}
+
+function _goto_branch_to_dir() {
+  local branch=$1
+  echo "${branch//\//-}"
+}
+
+# Returns the path of the primary worktree (the one with a .git directory, not file)
+function _goto_primary_worktree() {
+  local repo_dir="$HOME/dev/$1"
+  [[ -d "$repo_dir" ]] || return 1
+  local wt
+  for wt in "$repo_dir"/*/; do
+    wt="${wt%/}"
+    [[ -d "$wt" ]] || continue
+    if [[ -d "$wt/.git" ]]; then
+      echo "$wt"
+      return 0
+    fi
+  done
+  # Fall back to any worktree (for linked-worktree-only setups)
+  local first
+  first=$(find "$repo_dir" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | head -1)
+  [[ -n "$first" ]] && echo "$first"
+}
+
+# Parse git@github.com:owner/repo.git or https://github.com/owner/repo into owner/repo
+function _goto_remote_slug() {
+  echo "$1" | sed -E 's|.*[:/]([^/]+/[^/]+?)(\.git)?$|\1|'
+}
+
+function _goto_clone_flow() {
+  echo -n "GitHub repo (owner/repo or URL): "
+  local input
+  read input
+  [[ -z "$input" ]] && return 1
+
+  local slug
+  if [[ "$input" == *"github.com"* ]]; then
+    slug=$(_goto_remote_slug "$input")
+  elif [[ "$input" == *"/"* ]]; then
+    slug="${input%.git}"
+  else
+    echo "goto: expected owner/repo or GitHub URL" >&2
+    return 1
+  fi
+
+  local owner="${slug%/*}"
+  local repo="${slug#*/}"
+  local dest_name="$repo"
+  local dest_dir="$HOME/dev/$dest_name"
+
+  # Collision check — existing dir with a different remote
+  if [[ -d "$dest_dir" ]]; then
+    local existing_primary existing_remote
+    existing_primary=$(_goto_primary_worktree "$dest_name")
+    if [[ -n "$existing_primary" ]]; then
+      existing_remote=$(git -C "$existing_primary" remote get-url origin 2>/dev/null)
+    fi
+    if [[ "$(_goto_remote_slug "$existing_remote")" != "$slug" ]]; then
+      echo "goto: ~/dev/$dest_name already exists for a different repo."
+      echo -n "Use $owner.$repo instead? [y/N] "
+      local ans
+      read ans
+      if [[ "$ans" == [yY]* ]]; then
+        dest_name="$owner.$repo"
+        dest_dir="$HOME/dev/$dest_name"
+      else
+        return 1
+      fi
+    fi
+  fi
+
+  local clone_url="git@github.com:${slug}.git"
+  echo "goto: cloning $slug → ~/dev/$dest_name/main ..."
+  git clone "$clone_url" "$HOME/dev/$dest_name/main" || return 1
+
+  # Detect default branch
+  local default_branch
+  default_branch=$(git -C "$HOME/dev/$dest_name/main" \
+    symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||')
+  [[ -z "$default_branch" ]] && default_branch="main"
+
+  # Rename clone dir to match default branch if needed
+  local final_wt="$HOME/dev/$dest_name/$default_branch"
+  if [[ "$default_branch" != "main" ]]; then
+    mv "$HOME/dev/$dest_name/main" "$final_wt"
+  else
+    final_wt="$HOME/dev/$dest_name/main"
+  fi
+
+  _goto_switch "$final_wt"
+}
+
+function _goto_new_worktree_flow() {
+  local repo=$1
+  local primary_wt
+  primary_wt=$(_goto_primary_worktree "$repo")
+  if [[ -z "$primary_wt" ]]; then
+    echo "goto: cannot find primary worktree for $repo" >&2
+    return 1
+  fi
+
+  # Show remote branches in fzf; --print-query lets the user type a new branch name too
+  local fzf_out
+  fzf_out=$(git -C "$primary_wt" branch -r 2>/dev/null \
+    | grep -v ' -> ' \
+    | sed 's|^ *origin/||' \
+    | fzf --prompt="branch> " --print-query)
+  [[ -z "$fzf_out" ]] && return 1
+
+  # Last non-empty line is either the selection or the typed query
+  local branch
+  branch=$(echo "$fzf_out" | grep -v '^$' | tail -1)
+  [[ -z "$branch" ]] && return 1
+
+  local worktree_dir dest
+  worktree_dir=$(_goto_branch_to_dir "$branch")
+  dest="$HOME/dev/$repo/$worktree_dir"
+
+  if [[ -d "$dest" ]]; then
+    echo "goto: $dest already exists, switching to it"
+    _goto_switch "$dest"
+    return
+  fi
+
+  echo "goto: adding worktree $dest for branch $branch"
+  git -C "$primary_wt" worktree add "$dest" "$branch" || return 1
+  _goto_switch "$dest"
+}
+
+function _goto_pr_flow() {
+  local repo=$1
+  local primary_wt
+  primary_wt=$(_goto_primary_worktree "$repo")
+  if [[ -z "$primary_wt" ]]; then
+    echo "goto: cannot find primary worktree for $repo" >&2
+    return 1
+  fi
+
+  local remote_url slug
+  remote_url=$(git -C "$primary_wt" remote get-url origin 2>/dev/null)
+  slug=$(_goto_remote_slug "$remote_url")
+  if [[ -z "$slug" ]]; then
+    echo "goto: could not determine GitHub repo from remote" >&2
+    return 1
+  fi
+
+  # List open PRs and let user pick via fzf
+  local pr_list
+  pr_list=$(gh pr list --repo "$slug" --json number,title,headRefName \
+    --template '{{range .}}#{{.number}}	{{.title}}	({{.headRefName}}){{"\n"}}{{end}}' 2>/dev/null)
+  if [[ -z "$pr_list" ]]; then
+    echo "goto: no open PRs found for $slug" >&2
+    return 1
+  fi
+
+  local selected
+  selected=$(echo "$pr_list" | fzf --prompt="PR> " --delimiter=$'\t' --with-nth=1,2,3)
+  [[ -z "$selected" ]] && return 1
+
+  # Extract PR number and look up the head branch
+  local pr_number branch
+  pr_number="${${selected%%$'\t'*}#\#}"
+  branch=$(gh pr view "$pr_number" --repo "$slug" --json headRefName -q .headRefName 2>/dev/null)
+  if [[ -z "$branch" ]]; then
+    echo "goto: could not get branch for PR #$pr_number" >&2
+    return 1
+  fi
+
+  local worktree_dir dest
+  worktree_dir=$(_goto_branch_to_dir "$branch")
+  dest="$HOME/dev/$repo/$worktree_dir"
+
+  if [[ -d "$dest" ]]; then
+    echo "goto: $dest already exists, switching to it"
+    _goto_switch "$dest"
+    return
+  fi
+
+  echo "goto: fetching PR #$pr_number ($branch) → $dest"
+  git -C "$primary_wt" fetch origin "pull/${pr_number}/head:${branch}" || return 1
+  git -C "$primary_wt" worktree add "$dest" "$branch" || return 1
+  _goto_switch "$dest"
+}
+
+fi  # end of one-time function definitions
+
+# ── main ─────────────────────────────────────────────────────────────────────
+
+# Detect context: are we inside ~/dev/[repo]/[worktree]?
+local _ctx_repo="" _ctx_worktree=""
+if [[ "$PWD" == "$HOME/dev/"* ]]; then
+  local _ctx_rel="${PWD#$HOME/dev/}"
+  local _ctx_parts=("${(@s:/:)_ctx_rel}")
+  if (( ${#_ctx_parts[@]} >= 2 )); then
+    _ctx_repo="${_ctx_parts[1]}"
+    _ctx_worktree="${_ctx_parts[2]}"
+  fi
 fi
+
+# Build candidates
+local candidates=()
+
+if [[ -d "$HOME/dev" ]]; then
+  local _dev_dirs
+  _dev_dirs=$(find "$HOME/dev" -mindepth 2 -maxdepth 2 -type d 2>/dev/null)
+  [[ -n "$_dev_dirs" ]] && candidates+=("${(f)_dev_dirs}")
+fi
+
+if [[ -d "$HOME/code" ]]; then
+  local _code_dirs
+  _code_dirs=$(find "$HOME/code" -mindepth 2 -maxdepth 2 -type d 2>/dev/null)
+  [[ -n "$_code_dirs" ]] && candidates+=("${(f)_code_dirs}")
+fi
+
+candidates+=(
+  "$HOME/.config/fleet"
+  "$HOME/dev"
+  "$HOME/code"
+)
+
+if [[ "$(uname)" == "Darwin" ]]; then
+  candidates+=("$HOME/Downloads" "$HOME/Desktop" "$HOME/Documents")
+fi
+
+# Synthetic entries
+candidates+=("[+] clone repo into ~/dev")
+if [[ -n "$_ctx_repo" ]]; then
+  candidates+=("[+] new worktree in $_ctx_repo")
+  candidates+=("[+] checkout PR in $_ctx_repo")
+fi
+
+# fzf
+local _qry_args=()
+if [[ -n "$1" ]]; then
+  _qry_args=(--query "$1" --select-1 --exit-0)
+fi
+
+local selected
+selected=$(printf '%s\n' "${candidates[@]}" | fzf "${_qry_args[@]}")
+[[ $? -ne 0 || -z "$selected" ]] && return
+
+# Dispatch
+case "$selected" in
+  "[+] clone repo into ~/dev")
+    _goto_clone_flow
+    ;;
+  "[+] new worktree in "*)
+    _goto_new_worktree_flow "$_ctx_repo" "$_ctx_worktree"
+    ;;
+  "[+] checkout PR in "*)
+    _goto_pr_flow "$_ctx_repo"
+    ;;
+  *)
+    _goto_switch "$selected"
+    ;;
+esac
