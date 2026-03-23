@@ -161,9 +161,9 @@ else
       exit 1
     fi
     echo "You may be prompted for your sudo password to run the rebuild script."
-    sudo darwin-rebuild switch "${rebuild_args[@]}" --flake "$repo_root#$config_name"
+    sudo darwin-rebuild switch "${rebuild_args[@]}" --flake "path:$repo_root#$config_name"
   else
     echo "You may be prompted for your sudo password to run the rebuild script."
-    sudo nixos-rebuild switch "${rebuild_args[@]}" --flake "$repo_root#$config_name"
+    sudo nixos-rebuild switch "${rebuild_args[@]}" --flake "path:$repo_root#$config_name"
   fi
 fi
