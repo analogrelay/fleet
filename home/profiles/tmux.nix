@@ -9,6 +9,7 @@ in
   programs.tmux = {
     enable = true;
 		keyMode = "vi";
+		shortcut = "a";
 		plugins = with pkgs; [
 			tmuxPlugins.sensible
 			tmuxPlugins.gruvbox
