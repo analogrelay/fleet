@@ -60,7 +60,6 @@ in {
     jq
     ripgrep
     powershell
-    (azure-cli.withExtensions [ azure-cli.extensions.azure-devops ])
   ];
 
   home.file = (lib.mapAttrs' (name: _: lib.nameValuePair ".local/bin/${name}" {
