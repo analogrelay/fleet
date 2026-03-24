@@ -81,6 +81,21 @@
         },
         {
           "properties": {
+            "cache_duration": "none"
+          },
+          "template": " \uf313 {{ .Output }} ",
+          "foreground": "#d6deeb",
+          "powerline_symbol": "\ue0b0",
+          "background": "#234d70",
+          "type": "command",
+          "style": "powerline",
+          "command": "fleet-status",
+          "background_templates": [
+            "{{ if contains \"~\" .Output }}#e4cf6a{{ end }}"
+          ]
+        },
+        {
+          "properties": {
             "cache_duration": "none",
             "style": "roundrock",
             "threshold": 0
