@@ -19,16 +19,20 @@
     }
   ];
 
+	services.cloudflared.tunnels."00000000-0000-0000-0000-000000000000".ingress = {
+		"cabinet.analogrelay.net" = "http://localhost:28981";
+	};
+
   services.paperless = {
     enable = true;
 
     # Directories on the NFS share
-    dataDir        = "/mnt/avalanche/shares/public/cabinet/data";
-    mediaDir       = "/mnt/avalanche/shares/public/cabinet/media";
-    consumptionDir = "/mnt/avalanche/shares/public/cabinet/consume";
+    dataDir        = "/mnt/tank/services/paperless/data";
+    mediaDir       = "/mnt/tank/services/paperless/media";
+    consumptionDir = "/mnt/tank/services/paperless/consume";
 
     settings = {
-      PAPERLESS_TRASH_DIR = "/mnt/avalanche/shares/public/cabinet/trash";
+      PAPERLESS_TRASH_DIR = "/mnt/tank/services/paperless/trash/";
 
       # Connect to postgres via unix socket using peer auth
       # (OS user "paperless" → postgres role "paperless")
@@ -40,17 +44,15 @@
       # Point to our existing redis instance
       PAPERLESS_REDIS = "unix:///run/redis-paperless/redis.sock";
 
-      PAPERLESS_ALLOWED_HOSTS = "cabinet.bicorn-bebop.ts.net,cabinet.analogrelay.net,shinra.bicorn-bebop.ts.net";
-      PAPERLESS_CORS_TRUSTED_ORIGINS = "https://cabinet.bicorn-bebop.ts.net,https://cabinet.analogrelay.net,https://shinra.bicorn-bebop.ts.net";
-      PAPERLESS_CORS_ALLOWED_HOSTS = "https://cabinet.bicorn-bebop.ts.net,https://cabinet.analogrelay.net,https://shinra.bicorn-bebop.ts.net";
+			PAPERLESS_URL = "https://cabinet.analogrelay.net";
     };
   };
 
   # The module's ProtectSystem=strict makes all paths read-only except those in
   # ReadWritePaths (dataDir, mediaDir, consumptionDir). PAPERLESS_TRASH_DIR is
   # not covered, so grant write access explicitly on every service unit.
-  systemd.services.paperless-scheduler.serviceConfig.ReadWritePaths  = [ "/mnt/avalanche/shares/public/cabinet/trash" ];
-  systemd.services.paperless-task-queue.serviceConfig.ReadWritePaths = [ "/mnt/avalanche/shares/public/cabinet/trash" ];
-  systemd.services.paperless-consumer.serviceConfig.ReadWritePaths   = [ "/mnt/avalanche/shares/public/cabinet/trash" ];
-  systemd.services.paperless-web.serviceConfig.ReadWritePaths        = [ "/mnt/avalanche/shares/public/cabinet/trash" ];
+  systemd.services.paperless-scheduler.serviceConfig.ReadWritePaths  = [ "/mnt/tank/services/paperless/trash" ];
+  systemd.services.paperless-task-queue.serviceConfig.ReadWritePaths = [ "/mnt/tank/services/paperless/trash" ];
+  systemd.services.paperless-consumer.serviceConfig.ReadWritePaths   = [ "/mnt/tank/services/paperless/trash" ];
+  systemd.services.paperless-web.serviceConfig.ReadWritePaths        = [ "/mnt/tank/services/paperless/trash" ];
 }

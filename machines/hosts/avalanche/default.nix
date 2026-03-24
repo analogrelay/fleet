@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 
 {
   imports =
@@ -8,6 +8,10 @@
       ../../users
 
       ../../profiles/tailnet.nix
+
+			../../services/postgres.nix
+			../../services/redis.nix
+			../../services/paperless.nix
     ];
 
   networking.hostName = "avalanche";
@@ -26,5 +30,35 @@
     linuxKernel.packages.linux_6_1.gasket
     zfs
   ];
+
+	services.samba = {
+		enable = true;
+		openFirewall = true;
+		settings = {
+			global = {
+				workgroup = "GAIA";
+				"server string" = config.networking.hostName;
+				"netbios name" = config.networking.hostName;
+				security = "user";
+				"guest account" = "nobody";
+			};
+			homes = {
+				path = "/mnt/tank/homes/%S";
+				browsable = true;
+				"read only" = false;
+				"create mask" = "0700";
+				"directory mask" = "0700";
+			};
+			public = {
+				path = "/mnt/tank/shares/public";
+				browsable = true;
+				"read only" = false;
+				"create mask" = "0775";
+				"directory mask" = "0775";
+				"force user" = "share";
+				"force group" = "share";
+			};
+		};
+	};
 }
 
