@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+#/ Usage: script/fleet-sync
+#/ Nightly sync: fetch origin/main, fast-forward if clean, build (but don't activate).
+#/ Writes state to ~/.local/state/fleet/status.json.
+
+set -eo pipefail
+
+script_dir=$(dirname "$(readlink -f "$0")")
+repo_root=$(dirname "$script_dir")
+
+IDENTITY_FILE="$HOME/.local/share/fleet/identity"
+STATE_DIR="$HOME/.local/state/fleet"
+STATUS_FILE="$STATE_DIR/status.json"
+
+mkdir -p "$STATE_DIR"
+
+# --- helpers ---
+
+iso_now() { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
+
+write_status() {
+  local dirty="$1" ahead="$2" behind="$3" ff_applied="$4" \
+        build_status="$5" build_commit="$6"
+  jq -n \
+    --argjson dirty        "$dirty"        \
+    --argjson ahead        "$ahead"        \
+    --argjson behind       "$behind"       \
+    --argjson ff_applied   "$ff_applied"   \
+    --arg     build_status "$build_status" \
+    --arg     build_commit "$build_commit" \
+    --arg     updated_at   "$(iso_now)"    \
+    '{
+      dirty:        $dirty,
+      ahead:        $ahead,
+      behind:       $behind,
+      ff_applied:   $ff_applied,
+      build_status: $build_status,
+      build_commit: $build_commit,
+      updated_at:   $updated_at
+    }' > "$STATUS_FILE"
+}
+
+# --- guard: git available ---
+if ! command -v git > /dev/null 2>&1; then
+  echo "fleet-sync: git not found, skipping" >&2
+  exit 0
+fi
+
+# --- guard: jq available ---
+if ! command -v jq > /dev/null 2>&1; then
+  echo "fleet-sync: jq not found, skipping" >&2
+  exit 0
+fi
+
+cd "$repo_root"
+
+# --- gather git state (before fetch) ---
+dirty=false
+if ! git diff --quiet HEAD 2>/dev/null || ! git diff --cached --quiet 2>/dev/null; then
+  dirty=true
+fi
+
+# Fetch origin (remote-tracking only — does not touch working tree)
+git fetch origin main --quiet 2>/dev/null || true
+
+# Count ahead/behind relative to origin/main
+ahead=$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)
+behind=$(git rev-list --count HEAD..origin/main 2>/dev/null || echo 0)
+head_commit=$(git rev-parse HEAD)
+
+ff_applied=false
+build_status="skipped"
+build_commit=""
+
+# --- fast-forward if eligible ---
+# Conditions: not dirty, not ahead of origin, behind by at least 1
+if [ "$dirty" = "false" ] && [ "$ahead" -eq 0 ] && [ "$behind" -gt 0 ]; then
+  if git merge --ff-only origin/main --quiet 2>/dev/null; then
+    ff_applied=true
+    behind=0
+    head_commit=$(git rev-parse HEAD)
+  fi
+fi
+
+# --- build (no activate) ---
+if [ ! -f "$IDENTITY_FILE" ]; then
+  write_status "$dirty" "$ahead" "$behind" "$ff_applied" "skipped" ""
+  exit 0
+fi
+
+identity=$(cat "$IDENTITY_FILE")
+
+if ! command -v nix > /dev/null 2>&1; then
+  write_status "$dirty" "$ahead" "$behind" "$ff_applied" "skipped" ""
+  exit 0
+fi
+
+if [ "$(uname)" = "Darwin" ]; then
+  build_cmd="darwin-rebuild"
+else
+  build_cmd="nixos-rebuild"
+fi
+
+if ! command -v "$build_cmd" > /dev/null 2>&1; then
+  write_status "$dirty" "$ahead" "$behind" "$ff_applied" "skipped" ""
+  exit 0
+fi
+
+build_commit="$head_commit"
+if "$build_cmd" build --flake "$repo_root#$identity" 2>/dev/null; then
+  build_status="pending"
+else
+  build_status="failed"
+fi
+
+write_status "$dirty" "$ahead" "$behind" "$ff_applied" "$build_status" "$build_commit"
