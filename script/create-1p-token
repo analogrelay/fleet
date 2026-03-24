@@ -58,8 +58,21 @@ raw_identity=$(cat "$IDENTITY_FILE")
 identity="${raw_identity#*@}"
 
 # Check for existing token
-if [ -f "$OP_TOKEN_FILE" ] && ! $force; then
-  printf "Token already exists at %s. Overwrite? [y/N] " "$OP_TOKEN_FILE"
+has_existing=false
+if [ "$(uname)" = "Darwin" ]; then
+  if security find-generic-password -s "fleet" -a "1p-service-account" -w >/dev/null 2>&1; then
+    has_existing=true
+  fi
+elif [ -f "$OP_TOKEN_FILE" ]; then
+  has_existing=true
+fi
+
+if $has_existing && ! $force; then
+  if [ "$(uname)" = "Darwin" ]; then
+    printf "Token already exists in macOS Keychain. Overwrite? [y/N] "
+  else
+    printf "Token already exists at %s. Overwrite? [y/N] " "$OP_TOKEN_FILE"
+  fi
   read -r answer
   case "$answer" in
     [yY]|[yY][eE][sS]) ;;
@@ -80,8 +93,14 @@ if [ -z "$token" ]; then
 fi
 
 # Save token
-install -dm 0700 "$(dirname "$OP_TOKEN_FILE")"
-printf '%s' "$token" > "$OP_TOKEN_FILE"
-chmod 0600 "$OP_TOKEN_FILE"
-
-echo "Token saved to $OP_TOKEN_FILE"
+if [ "$(uname)" = "Darwin" ]; then
+  # Store in macOS Keychain (matches fleet.secrets provision-secrets lookup)
+  security delete-generic-password -s "fleet" -a "1p-service-account" >/dev/null 2>&1 || true
+  security add-generic-password -s "fleet" -a "1p-service-account" -w "$token"
+  echo "Token saved to macOS Keychain (service: fleet, account: 1p-service-account)"
+else
+  install -dm 0700 "$(dirname "$OP_TOKEN_FILE")"
+  printf '%s' "$token" > "$OP_TOKEN_FILE"
+  chmod 0600 "$OP_TOKEN_FILE"
+  echo "Token saved to $OP_TOKEN_FILE"
+fi
