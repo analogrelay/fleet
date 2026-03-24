@@ -31,6 +31,7 @@
 
   programs.zsh.enable = true;
 
+	# A test secret that allows for checking that the secret management is working.
   fleet.secrets."test" = {
     source = "op://Fleet/TestSecret/credential";
     required = false;
