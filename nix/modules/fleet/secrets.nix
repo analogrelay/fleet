@@ -54,8 +54,6 @@ let
     };
   };
 
-  credFile = "/etc/credstore.encrypted/fleet-1p-token";
-
   provisionScript =
     let
       tokenLoader =
@@ -72,13 +70,14 @@ let
           fi
         ''
         else ''
-          # Try systemd credential (set via LoadCredentialEncrypted), fall back to token file
-          if [ -n "''${CREDENTIALS_DIRECTORY:-}" ] && [ -f "''${CREDENTIALS_DIRECTORY}/fleet-1p-token" ]; then
-            OP_SERVICE_ACCOUNT_TOKEN="$(cat "''${CREDENTIALS_DIRECTORY}/fleet-1p-token")"
+          # Try systemd-creds encrypted credential, fall back to token file
+          CRED_FILE="/etc/credstore.encrypted/fleet-1p-token"
+          if [ -f "$CRED_FILE" ]; then
+            OP_SERVICE_ACCOUNT_TOKEN="$(systemd-creds decrypt --name=fleet-1p-token "$CRED_FILE" -)"
           elif [ -f "$TOKEN_FILE" ]; then
             OP_SERVICE_ACCOUNT_TOKEN="$(cat "$TOKEN_FILE")"
           else
-            echo "fleet-secrets: no token in systemd credentials or $TOKEN_FILE" >&2
+            echo "fleet-secrets: no token in $CRED_FILE or $TOKEN_FILE" >&2
             HAS_TOKEN=false
           fi
         '';
@@ -152,8 +151,6 @@ in
           Type = "oneshot";
           RemainAfterExit = true;
           ExecStart = provisionScript;
-        } // lib.optionalAttrs (builtins.pathExists credFile) {
-          LoadCredentialEncrypted = "fleet-1p-token:${credFile}";
         };
       };
     }
