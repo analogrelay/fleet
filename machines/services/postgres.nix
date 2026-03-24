@@ -5,8 +5,14 @@ let
   postgresPassword = config.fleet.secrets."postgres-admin-password".path;
 in
 {
-  fleet.secrets."postgres-admin-username".source = "op://Fleet/PostgresAdmin/username";
-  fleet.secrets."postgres-admin-password".source = "op://Fleet/PostgresAdmin/password";
+  fleet.secrets."postgres-admin-username" = {
+    source = "op://Fleet/PostgresAdmin/username";
+    owner = "postgres";
+  };
+  fleet.secrets."postgres-admin-password" = {
+    source = "op://Fleet/PostgresAdmin/password";
+    owner = "postgres";
+  };
 
   systemd.services.postgresql.after = [ "provision-fleet-secrets.service" ];
   systemd.services.postgresql.requires = [ "provision-fleet-secrets.service" ];
@@ -40,8 +46,8 @@ in
   # Configure the admin user and password at runtime using secret files
   systemd.services.postgresql-fleet-setup = {
     description = "Configure PostgreSQL fleet admin user";
-    after = [ "postgresql.service" ];
-    requires = [ "postgresql.service" ];
+    after = [ "postgresql.service" "provision-fleet-secrets.service" ];
+    requires = [ "postgresql.service" "provision-fleet-secrets.service" ];
     wantedBy = [ "multi-user.target" ];
 
     serviceConfig = {
