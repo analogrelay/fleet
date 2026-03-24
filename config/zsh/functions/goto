@@ -94,6 +94,24 @@ function _goto_remote_slug() {
   echo "$1" | sed -E 's|.*[:/]([^/]+/[^/]+?)(\.git)?$|\1|'
 }
 
+# Returns "upstream" if that remote exists, otherwise "origin"
+function _goto_upstream_remote() {
+  local wt=$1
+  if git -C "$wt" remote get-url upstream &>/dev/null; then
+    echo "upstream"
+  else
+    echo "origin"
+  fi
+}
+
+# Returns the GitHub owner/repo slug for a given remote in a worktree
+function _goto_repo_slug() {
+  local wt=$1 remote=${2:-origin}
+  local url
+  url=$(git -C "$wt" remote get-url "$remote" 2>/dev/null) || return 1
+  _goto_remote_slug "$url"
+}
+
 function _goto_clone_flow() {
   echo -n "GitHub repo (owner/repo or URL): "
   local input
@@ -154,6 +172,25 @@ function _goto_clone_flow() {
     final_wt="$HOME/dev/$dest_name/main"
   fi
 
+  # If the cloned repo is a fork, offer to add the parent as upstream
+  local is_fork parent_slug
+  is_fork=$(gh repo view "$slug" --json isFork -q .isFork 2>/dev/null)
+  if [[ "$is_fork" == "true" ]]; then
+    parent_slug=$(gh repo view "$slug" --json parent -q '.parent.owner.login + "/" + .parent.name' 2>/dev/null)
+    if [[ -n "$parent_slug" ]]; then
+      echo "goto: $slug is a fork of $parent_slug"
+      echo -n "Add $parent_slug as 'upstream' remote? [Y/n] "
+      local ans
+      read ans
+      if [[ "$ans" != [nN]* ]]; then
+        local upstream_url="git@github.com:${parent_slug}.git"
+        git -C "$final_wt" remote add upstream "$upstream_url"
+        git -C "$final_wt" fetch upstream --quiet 2>/dev/null
+        echo "goto: added upstream → $parent_slug"
+      fi
+    fi
+  fi
+
   _goto_switch "$final_wt"
 }
 
@@ -166,18 +203,40 @@ function _goto_new_worktree_flow() {
     return 1
   fi
 
+  # Fetch upstream if available so we have current branch list
+  local has_upstream=false
+  if git -C "$primary_wt" remote get-url upstream &>/dev/null; then
+    has_upstream=true
+    git -C "$primary_wt" fetch upstream --quiet 2>/dev/null
+  fi
+
   # Show remote branches in fzf; --print-query lets the user type a new branch name too
+  # Include both origin/ and upstream/ branches, keeping prefixes for disambiguation
   local fzf_out
   fzf_out=$(git -C "$primary_wt" branch -r 2>/dev/null \
     | grep -v ' -> ' \
-    | sed 's|^ *origin/||' \
+    | sed 's/^ *//' \
     | fzf --prompt="branch> " --print-query)
   [[ -z "$fzf_out" ]] && return 1
 
   # Last non-empty line is either the selection or the typed query
-  local branch
-  branch=$(echo "$fzf_out" | grep -v '^$' | tail -1)
-  [[ -z "$branch" ]] && return 1
+  local selection
+  selection=$(echo "$fzf_out" | grep -v '^$' | tail -1)
+  [[ -z "$selection" ]] && return 1
+
+  # Determine the remote and bare branch name
+  local branch remote_name
+  if [[ "$selection" == upstream/* ]]; then
+    remote_name="upstream"
+    branch="${selection#upstream/}"
+  elif [[ "$selection" == origin/* ]]; then
+    remote_name="origin"
+    branch="${selection#origin/}"
+  else
+    # User typed a new branch name (no remote prefix)
+    remote_name=""
+    branch="$selection"
+  fi
 
   local worktree_dir dest
   worktree_dir=$(_goto_branch_to_dir "$branch")
@@ -189,8 +248,14 @@ function _goto_new_worktree_flow() {
     return
   fi
 
-  echo "goto: adding worktree $dest for branch $branch"
-  git -C "$primary_wt" worktree add "$dest" "$branch" || return 1
+  # For upstream branches, create a local tracking branch then add the worktree
+  if [[ "$remote_name" == "upstream" ]]; then
+    echo "goto: adding worktree $dest for upstream branch $branch"
+    git -C "$primary_wt" worktree add -b "$branch" "$dest" "$remote_name/$branch" || return 1
+  else
+    echo "goto: adding worktree $dest for branch $branch"
+    git -C "$primary_wt" worktree add "$dest" "$branch" || return 1
+  fi
   _goto_switch "$dest"
 }
 
@@ -203,12 +268,18 @@ function _goto_pr_flow() {
     return 1
   fi
 
-  local remote_url slug
-  remote_url=$(git -C "$primary_wt" remote get-url origin 2>/dev/null)
-  slug=$(_goto_remote_slug "$remote_url")
+  # Determine which remote hosts the PRs (upstream for forks, origin otherwise)
+  local pr_remote
+  pr_remote=$(_goto_upstream_remote "$primary_wt")
+  local slug
+  slug=$(_goto_repo_slug "$primary_wt" "$pr_remote")
   if [[ -z "$slug" ]]; then
-    echo "goto: could not determine GitHub repo from remote" >&2
+    echo "goto: could not determine GitHub repo from $pr_remote remote" >&2
     return 1
+  fi
+
+  if [[ "$pr_remote" == "upstream" ]]; then
+    echo "goto: listing PRs from upstream ($slug)"
   fi
 
   # List open PRs and let user pick via fzf
@@ -244,7 +315,7 @@ function _goto_pr_flow() {
   fi
 
   echo "goto: fetching PR #$pr_number ($branch) → $dest"
-  git -C "$primary_wt" fetch origin "pull/${pr_number}/head:${branch}" || return 1
+  git -C "$primary_wt" fetch "$pr_remote" "pull/${pr_number}/head:${branch}" || return 1
   git -C "$primary_wt" worktree add "$dest" "$branch" || return 1
   _goto_switch "$dest"
 }
