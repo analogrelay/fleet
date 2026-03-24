@@ -91,7 +91,7 @@
           "style": "powerline",
           "command": "fleet-status",
           "background_templates": [
-            "{{ if contains \"~\" .Output }}#e4cf6a{{ end }}"
+            "{{ if contains \"uncommitted\" .Output }}#e4cf6a{{ end }}"
           ]
         },
         {

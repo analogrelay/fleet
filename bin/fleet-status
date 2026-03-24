@@ -17,11 +17,11 @@ build_commit=$(jq -r '.build_commit' "$STATUS_FILE" 2>/dev/null)
 parts=()
 
 # Dirty working tree: uncommitted changes in the fleet repo
-[ "$dirty" = "true" ] && parts+=("~")
+[ "$dirty" = "true" ] && parts+=("uncommitted")
 
 # Unpushed commits
 if [ -n "$ahead" ] && [ "$ahead" -gt 0 ] 2>/dev/null; then
-  parts+=("${ahead}↑")
+  parts+=("${ahead} unpushed")
 fi
 
 # Rebuild pending: a successful build exists that hasn't been activated yet
@@ -29,13 +29,13 @@ if [ "$build_status" = "pending" ] && [ -n "$build_commit" ]; then
   activated=""
   [ -f "$ACTIVATED_COMMIT_FILE" ] && activated=$(cat "$ACTIVATED_COMMIT_FILE")
   if [ "$build_commit" != "$activated" ]; then
-    parts+=($'\uf313')  # nf-linux-nixos snowflake
+    parts+=("rebuild")
   fi
 fi
 
 # Last activation was from a dirty tree
 if [ -f "$ACTIVATED_DIRTY_FILE" ] && [ "$(cat "$ACTIVATED_DIRTY_FILE")" = "true" ]; then
-  parts+=("!")
+  parts+=("dirty activation")
 fi
 
 if [ "${#parts[@]}" -gt 0 ]; then
