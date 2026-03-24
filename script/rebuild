@@ -155,6 +155,13 @@ else
     nix flake update
   fi
 
+  # Detect dirty tree before activation (uncommitted changes affect the build).
+  _activated_dirty=false
+  if ! git -C "$repo_root" diff --quiet HEAD 2>/dev/null || \
+     ! git -C "$repo_root" diff --cached --quiet 2>/dev/null; then
+    _activated_dirty=true
+  fi
+
   if [ "$(uname)" = "Darwin" ]; then
     if [ "$nixos_rebuild_command" = "test" ]; then
       echo "Running 'nixos-rebuild test' on macOS is not supported."
