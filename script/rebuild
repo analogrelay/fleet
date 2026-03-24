@@ -9,7 +9,6 @@
 #/   --dry-run          Conduct a dry run and don't actually modify anything.
 #/   --show-trace       Show a trace whenever there's a Nix error.
 #/   --update           Update the flake lockfile before rebuilding.
-#/   --non-interactive  Skip prompts (passed to refresh-secrets).
 #/   --no-confirm       Skip the confirmation prompt before rebuilding.
 #/
 #/ ARGUMENTS
@@ -49,7 +48,6 @@ nixos_rebuild_command="switch"
 rebuild_args=()
 update=false
 home_only=false
-non_interactive=false
 no_confirm=false
 while [[ $# -gt 0 ]]; do
   key="$1"
@@ -76,9 +74,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     --update)
       update=true
-      ;;
-    --non-interactive)
-      non_interactive=true
       ;;
     --no-confirm)
       no_confirm=true
@@ -107,12 +102,6 @@ elif ! $home_only; then
 fi
 # Home mode without config_name is caught below by the existing
 # "--home requires a configuration name" check.
-
-# Refresh secrets from 1Password (writes .secrets.nix if token is available).
-# If no token is found and running non-interactively, this is a no-op.
-# "$script_dir/refresh-secrets" \
-#   ${non_interactive:+--non-interactive} \
-#   "${identity:-}"
 
 if $home_only; then
   if [ -z "$config_name" ]; then
@@ -168,13 +157,13 @@ else
       exit 1
     fi
     echo "You may be prompted for your sudo password to run the rebuild script."
-    sudo darwin-rebuild switch "${rebuild_args[@]}" --flake "path:$repo_root#$config_name"
+    sudo darwin-rebuild switch "${rebuild_args[@]}" --flake "$repo_root#$config_name"
     mkdir -p "$HOME/.local/state/fleet"
     git -C "$repo_root" rev-parse HEAD > "$HOME/.local/state/fleet/activated_commit"
     echo "$_activated_dirty"        > "$HOME/.local/state/fleet/activated_dirty"
   else
     echo "You may be prompted for your sudo password to run the rebuild script."
-    sudo nixos-rebuild switch "${rebuild_args[@]}" --flake "path:$repo_root#$config_name"
+    sudo nixos-rebuild switch "${rebuild_args[@]}" --flake "$repo_root#$config_name"
     mkdir -p "$HOME/.local/state/fleet"
     git -C "$repo_root" rev-parse HEAD > "$HOME/.local/state/fleet/activated_commit"
     echo "$_activated_dirty"        > "$HOME/.local/state/fleet/activated_dirty"
