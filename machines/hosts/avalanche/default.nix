@@ -11,6 +11,10 @@
     ];
 
   networking.hostName = "avalanche";
+
+  # Enable linger so systemd user services (e.g. fleet-sync timer) run
+  # without an active login session.
+  users.users.ashley.linger = true;
   networking.hostId = "19cc4826";
 
   system.stateVersion = "25.11";
