@@ -34,6 +34,7 @@
   fleet.secrets."test" = {
     source = "op://Fleet/TestSecret/credential";
     required = false;
+    mode = "0444";
   };
 
   environment.systemPackages = with pkgs; [
