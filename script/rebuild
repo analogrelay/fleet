@@ -169,8 +169,14 @@ else
     fi
     echo "You may be prompted for your sudo password to run the rebuild script."
     sudo darwin-rebuild switch "${rebuild_args[@]}" --flake "path:$repo_root#$config_name"
+    mkdir -p "$HOME/.local/state/fleet"
+    git -C "$repo_root" rev-parse HEAD > "$HOME/.local/state/fleet/activated_commit"
+    echo "$_activated_dirty"        > "$HOME/.local/state/fleet/activated_dirty"
   else
     echo "You may be prompted for your sudo password to run the rebuild script."
     sudo nixos-rebuild switch "${rebuild_args[@]}" --flake "path:$repo_root#$config_name"
+    mkdir -p "$HOME/.local/state/fleet"
+    git -C "$repo_root" rev-parse HEAD > "$HOME/.local/state/fleet/activated_commit"
+    echo "$_activated_dirty"        > "$HOME/.local/state/fleet/activated_dirty"
   fi
 fi
