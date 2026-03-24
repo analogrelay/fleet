@@ -63,6 +63,7 @@ in
     };
 
     home-manager.extraSpecialArgs = {
+      username = cfg.admin;
       tags = {
         inherit os wsl;
         role = cfg.role;
