@@ -45,34 +45,52 @@ let
     };
   };
 
-  provisionScript = pkgs.writeShellScript "provision-fleet-secrets" ''
-    set -euo pipefail
+  provisionScript =
+    let
+      tokenLoader =
+        if isDarwin
+        then ''
+          # Try macOS Keychain first, fall back to token file
+          if /usr/bin/security find-generic-password -s "fleet" -a "1p-service-account" -w >/dev/null 2>&1; then
+            OP_SERVICE_ACCOUNT_TOKEN="$(/usr/bin/security find-generic-password -s "fleet" -a "1p-service-account" -w)"
+          elif [ -f "$TOKEN_FILE" ]; then
+            OP_SERVICE_ACCOUNT_TOKEN="$(cat "$TOKEN_FILE")"
+          else
+            echo "fleet-secrets: no token in Keychain (fleet/1p-service-account) or $TOKEN_FILE" >&2
+            exit 1
+          fi
+        ''
+        else ''
+          if [ ! -f "$TOKEN_FILE" ]; then
+            echo "fleet-secrets: $TOKEN_FILE not found, skipping secret provisioning" >&2
+            exit 1
+          fi
+          OP_SERVICE_ACCOUNT_TOKEN="$(cat "$TOKEN_FILE")"
+        '';
+    in
+    pkgs.writeShellScript "provision-fleet-secrets" ''
+      set -euo pipefail
 
-    TOKEN_FILE="/etc/fleet/1p-token"
-    SECRETS_DIR="${secretsDir}"
+      TOKEN_FILE="/etc/fleet/1p-token"
+      SECRETS_DIR="${secretsDir}"
 
-    if [ ! -f "$TOKEN_FILE" ]; then
-      echo "fleet-secrets: $TOKEN_FILE not found, skipping secret provisioning" >&2
-      exit 1
-    fi
+      ${tokenLoader}
+      export OP_SERVICE_ACCOUNT_TOKEN
 
-    export OP_SERVICE_ACCOUNT_TOKEN
-    OP_SERVICE_ACCOUNT_TOKEN="$(cat "$TOKEN_FILE")"
+      # Purge and recreate the secrets directory
+      rm -rf "$SECRETS_DIR"
+      mkdir -p "$SECRETS_DIR"
+      chmod 0751 "$SECRETS_DIR"
 
-    # Purge and recreate the secrets directory
-    rm -rf "$SECRETS_DIR"
-    mkdir -p "$SECRETS_DIR"
-    chmod 0751 "$SECRETS_DIR"
+      ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: secret: ''
+        echo "fleet-secrets: provisioning ${name}"
+        ${lib.getExe pkgs._1password-cli} read "${secret.source}" > "$SECRETS_DIR/${name}"
+        chmod ${secret.mode} "$SECRETS_DIR/${name}"
+        chown ${secret.owner}:${secret.group} "$SECRETS_DIR/${name}"
+      '') enabledSecrets)}
 
-    ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: secret: ''
-      echo "fleet-secrets: provisioning ${name}"
-      ${lib.getExe pkgs._1password-cli} read "${secret.source}" > "$SECRETS_DIR/${name}"
-      chmod ${secret.mode} "$SECRETS_DIR/${name}"
-      chown ${secret.owner}:${secret.group} "$SECRETS_DIR/${name}"
-    '') enabledSecrets)}
-
-    echo "fleet-secrets: all secrets provisioned"
-  '';
+      echo "fleet-secrets: all secrets provisioned"
+    '';
 in
 {
   options.fleet.secrets = lib.mkOption {
