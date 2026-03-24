@@ -19,7 +19,7 @@
     }
   ];
 
-	services.cloudflared.tunnels."00000000-0000-0000-0000-000000000000".ingress = {
+	services.cloudflared.tunnels."a0306444-7c05-4c03-9152-d6c09e116854".ingress = {
 		"cabinet.analogrelay.net" = "http://localhost:28981";
 	};
 
@@ -55,4 +55,18 @@
   systemd.services.paperless-task-queue.serviceConfig.ReadWritePaths = [ "/mnt/tank/services/paperless/trash" ];
   systemd.services.paperless-consumer.serviceConfig.ReadWritePaths   = [ "/mnt/tank/services/paperless/trash" ];
   systemd.services.paperless-web.serviceConfig.ReadWritePaths        = [ "/mnt/tank/services/paperless/trash" ];
+
+	services.fail2ban.jails.paperless.settings = {
+		enabled  = true;
+		maxretry = 5;
+		filter   = "paperless";
+		logpath  = "/mnt/tank/services/paperless/data/log/paperless.log";
+		port     = "28981";
+	};
+	environment.etc."fail2ban/filter.d/paperless.local".text = 
+		''
+		[Definition]
+		failregex = Login failed for user `.*` from (?:IP|private IP) `<HOST>`\.$
+		ignoreregex =
+		'';
 }

@@ -2,7 +2,7 @@
 
 let
   cfg = config.fleet;
-  enabledSecrets = lib.filterAttrs (_: s: s.source != null) cfg.secrets;
+  enabledSecrets = lib.filterAttrs (_: s: s.source != null || s.template != null) cfg.secrets;
   hasSecrets = enabledSecrets != { };
   requiredSecrets = lib.filterAttrs (_: s: s.required) enabledSecrets;
   optionalSecrets = lib.filterAttrs (_: s: !s.required) enabledSecrets;
@@ -17,8 +17,18 @@ let
   secretOpts = { name, ... }: {
     options = {
       source = lib.mkOption {
-        type = lib.types.str;
-        description = "1Password secret URI (e.g. op://Vault/Item/Field).";
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        description = "1Password secret URI (e.g. op://Vault/Item/Field). Mutually exclusive with template.";
+      };
+
+      template = lib.mkOption {
+        type = lib.types.nullOr lib.types.lines;
+        default = null;
+        description = ''
+          Template string with 1Password references (e.g. {{ op://Vault/Item/Field }}).
+          Provisioned using `op inject`. Mutually exclusive with source.
+        '';
       };
 
       path = lib.mkOption {
@@ -83,10 +93,19 @@ let
         '';
 
       provisionSecret = name: secret:
+        let
+          isTemplate = secret.template != null;
+          # Template secrets use `op inject` with a heredoc; source secrets use `op read`
+          opCommand =
+            if isTemplate then
+              "${lib.getExe pkgs._1password-cli} inject <<'FLEET_TEMPLATE_EOF'\n${secret.template}\nFLEET_TEMPLATE_EOF"
+            else
+              "${lib.getExe pkgs._1password-cli} read \"${secret.source}\"";
+        in
         if secret.required then ''
           echo "fleet-secrets: provisioning ${name} (required)" >&2
           OP_STDERR="$(mktemp)"
-          if ! ${lib.getExe pkgs._1password-cli} read "${secret.source}" > "$SECRETS_DIR/${name}" 2>"$OP_STDERR"; then
+          if ! ${opCommand} > "$SECRETS_DIR/${name}" 2>"$OP_STDERR"; then
             echo "fleet-secrets: ERROR: failed to provision required secret ${name}" >&2
             cat "$OP_STDERR" >&2
             rm -f "$SECRETS_DIR/${name}" "$OP_STDERR"
@@ -99,7 +118,7 @@ let
         else ''
           echo "fleet-secrets: provisioning ${name} (optional)" >&2
           OP_STDERR="$(mktemp)"
-          if ! ${lib.getExe pkgs._1password-cli} read "${secret.source}" > "$SECRETS_DIR/${name}" 2>"$OP_STDERR"; then
+          if ! ${opCommand} > "$SECRETS_DIR/${name}" 2>"$OP_STDERR"; then
             echo "fleet-secrets: WARNING: failed to provision optional secret ${name}, skipping" >&2
             cat "$OP_STDERR" >&2
             rm -f "$SECRETS_DIR/${name}" "$OP_STDERR"
@@ -151,9 +170,16 @@ in
     description = "Declarative secrets provisioned from 1Password at boot.";
   };
 
-  config = lib.mkIf hasSecrets (lib.mkMerge (
+  config = lib.mkIf hasSecrets (lib.mkMerge ([
+    {
+      assertions = lib.mapAttrsToList (name: secret: {
+        assertion = (secret.source != null) != (secret.template != null);
+        message = "fleet.secrets.\"${name}\": exactly one of 'source' or 'template' must be set, not both or neither.";
+      }) enabledSecrets;
+    }
+  ]
     # NixOS: systemd service
-    lib.optional (!isDarwin) {
+    ++ lib.optional (!isDarwin) {
       systemd.services.provision-fleet-secrets = {
         description = "Provision fleet secrets from 1Password";
         wantedBy = [ "multi-user.target" ];

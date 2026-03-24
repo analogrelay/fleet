@@ -9,6 +9,8 @@
 
       ../../profiles/tailnet.nix
 
+			../../services/fail2ban.nix
+			../../services/cloudflared.nix
 			../../services/postgres.nix
 			../../services/redis.nix
 			../../services/paperless.nix
