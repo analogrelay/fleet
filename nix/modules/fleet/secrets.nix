@@ -4,6 +4,9 @@ let
   cfg = config.fleet;
   enabledSecrets = lib.filterAttrs (_: s: s.source != null) cfg.secrets;
   hasSecrets = enabledSecrets != { };
+  requiredSecrets = lib.filterAttrs (_: s: s.required) enabledSecrets;
+  optionalSecrets = lib.filterAttrs (_: s: !s.required) enabledSecrets;
+  hasRequired = requiredSecrets != { };
   isDarwin = options ? launchd;
   secretsDir =
     if isDarwin
@@ -42,6 +45,12 @@ let
         default = "0400";
         description = "File permissions for the secret file.";
       };
+
+      required = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Whether provisioning failure for this secret should fail the service.";
+      };
     };
   };
 
@@ -59,7 +68,7 @@ let
             OP_SERVICE_ACCOUNT_TOKEN="$(cat "$TOKEN_FILE")"
           else
             echo "fleet-secrets: no token in Keychain (fleet/1p-service-account) or $TOKEN_FILE" >&2
-            exit 1
+            HAS_TOKEN=false
           fi
         ''
         else ''
@@ -70,7 +79,25 @@ let
             OP_SERVICE_ACCOUNT_TOKEN="$(cat "$TOKEN_FILE")"
           else
             echo "fleet-secrets: no token in systemd credentials or $TOKEN_FILE" >&2
-            exit 1
+            HAS_TOKEN=false
+          fi
+        '';
+
+      provisionSecret = name: secret:
+        if secret.required then ''
+          echo "fleet-secrets: provisioning ${name} (required)"
+          ${lib.getExe pkgs._1password-cli} read "${secret.source}" > "$SECRETS_DIR/${name}"
+          chmod ${secret.mode} "$SECRETS_DIR/${name}"
+          chown ${secret.owner}:${secret.group} "$SECRETS_DIR/${name}"
+        ''
+        else ''
+          echo "fleet-secrets: provisioning ${name} (optional)"
+          if ${lib.getExe pkgs._1password-cli} read "${secret.source}" > "$SECRETS_DIR/${name}" 2>/dev/null; then
+            chmod ${secret.mode} "$SECRETS_DIR/${name}"
+            chown ${secret.owner}:${secret.group} "$SECRETS_DIR/${name}"
+          else
+            echo "fleet-secrets: WARNING: failed to provision optional secret ${name}, skipping" >&2
+            rm -f "$SECRETS_DIR/${name}"
           fi
         '';
     in
@@ -79,8 +106,19 @@ let
 
       TOKEN_FILE="/etc/fleet/1p-token"
       SECRETS_DIR="${secretsDir}"
+      HAS_TOKEN=true
 
       ${tokenLoader}
+
+      if ! $HAS_TOKEN; then
+        ${if hasRequired then ''
+          echo "fleet-secrets: required secrets exist but no token available, failing" >&2
+          exit 1
+        '' else ''
+          echo "fleet-secrets: no token available but all secrets are optional, skipping" >&2
+          exit 0
+        ''}
+      fi
       export OP_SERVICE_ACCOUNT_TOKEN
 
       # Purge and recreate the secrets directory
@@ -88,12 +126,7 @@ let
       mkdir -p "$SECRETS_DIR"
       chmod 0751 "$SECRETS_DIR"
 
-      ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: secret: ''
-        echo "fleet-secrets: provisioning ${name}"
-        ${lib.getExe pkgs._1password-cli} read "${secret.source}" > "$SECRETS_DIR/${name}"
-        chmod ${secret.mode} "$SECRETS_DIR/${name}"
-        chown ${secret.owner}:${secret.group} "$SECRETS_DIR/${name}"
-      '') enabledSecrets)}
+      ${lib.concatStringsSep "\n" (lib.mapAttrsToList provisionSecret enabledSecrets)}
 
       echo "fleet-secrets: all secrets provisioned"
     '';
