@@ -1,23 +1,28 @@
-{ pkgs, secrets, ... }:
+{ config, pkgs, ... }:
 
+let
+  postgresUsername = config.fleet.secrets."postgres-admin-username".path;
+  postgresPassword = config.fleet.secrets."postgres-admin-password".path;
+in
 {
+  fleet.secrets."postgres-admin-username".source = "op://Fleet/PostgresAdmin/username";
+  fleet.secrets."postgres-admin-password".source = "op://Fleet/PostgresAdmin/password";
+
+  systemd.services.postgresql.after = [ "provision-fleet-secrets.service" ];
+  systemd.services.postgresql.requires = [ "provision-fleet-secrets.service" ];
+
   services.postgresql = {
     enable = true;
-		package = pkgs.postgresql_16;
-    ensureDatabases = [ 
-			secrets.PostgresAdmin.username
-		];
+    package = pkgs.postgresql_16;
+    ensureDatabases = [ "fleet" ];
     ensureUsers = [
       {
-        name = secrets.PostgresAdmin.username;
+        name = "fleet";
         ensureDBOwnership = true;
         ensureClauses.superuser = true;
       }
     ];
-    # Sets the password on first DB initialization only
-    initialScript = pkgs.writeText "homedb-init" ''
-      ALTER USER "${secrets.PostgresAdmin.username}" WITH PASSWORD '${secrets.PostgresAdmin.password}';
-    '';
+
     # Maps root → postgres role; all other OS users → same-named PG role
     identMap = ''
       peer_map root     postgres
@@ -29,6 +34,39 @@
       local all all              peer map=peer_map
       host  all all 127.0.0.1/32 scram-sha-256
       host  all all ::1/128      scram-sha-256
+    '';
+  };
+
+  # Configure the admin user and password at runtime using secret files
+  systemd.services.postgresql-fleet-setup = {
+    description = "Configure PostgreSQL fleet admin user";
+    after = [ "postgresql.service" ];
+    requires = [ "postgresql.service" ];
+    wantedBy = [ "multi-user.target" ];
+
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      User = "postgres";
+    };
+
+    script = ''
+      PG_USER="$(cat ${postgresUsername})"
+      PG_PASS="$(cat ${postgresPassword})"
+
+      # Create user if it doesn't exist, then set password
+      ${config.services.postgresql.package}/bin/psql -tAc \
+        "SELECT 1 FROM pg_roles WHERE rolname = '$PG_USER'" | grep -q 1 || \
+        ${config.services.postgresql.package}/bin/psql -c \
+          "CREATE ROLE \"$PG_USER\" WITH LOGIN SUPERUSER;"
+
+      ${config.services.postgresql.package}/bin/psql -c \
+        "ALTER ROLE \"$PG_USER\" WITH PASSWORD '$PG_PASS';"
+
+      # Create database if it doesn't exist
+      ${config.services.postgresql.package}/bin/psql -tAc \
+        "SELECT 1 FROM pg_database WHERE datname = '$PG_USER'" | grep -q 1 || \
+        ${config.services.postgresql.package}/bin/createdb -O "$PG_USER" "$PG_USER"
     '';
   };
 
