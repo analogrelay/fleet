@@ -138,9 +138,9 @@ in
     description = "Declarative secrets provisioned from 1Password at boot.";
   };
 
-  config = lib.mkIf hasSecrets (lib.mkMerge [
+  config = lib.mkIf hasSecrets (lib.mkMerge (
     # NixOS: systemd service
-    (lib.mkIf (!isDarwin) {
+    lib.optional (!isDarwin) {
       systemd.services.provision-fleet-secrets = {
         description = "Provision fleet secrets from 1Password";
         wantedBy = [ "multi-user.target" ];
@@ -156,10 +156,10 @@ in
           LoadCredentialEncrypted = "fleet-1p-token:${credFile}";
         };
       };
-    })
+    }
 
     # Darwin: launchd daemon
-    (lib.mkIf isDarwin {
+    ++ lib.optional isDarwin {
       launchd.daemons.provision-fleet-secrets = {
         serviceConfig = {
           Label = "com.fleet.provision-secrets";
@@ -167,6 +167,6 @@ in
           RunAtLoad = true;
         };
       };
-    })
-  ]);
+    }
+  ));
 }
