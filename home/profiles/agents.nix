@@ -1,7 +1,16 @@
-{ pkgs, pkgs-unstable, ... }:
+{ pkgs, pkgs-unstable, config, ... }:
 
-{
-  home.packages = [ pkgs.plannotator ];
+let
+  fleetLink = path:
+    config.lib.file.mkOutOfStoreSymlink "${config.fleet.repoDir}/${path}";
+in {
+  home.packages = [ 
+		pkgs.plannotator 
+		pkgs-unstable.github-copilot-cli
+	];
+
+  home.file.".config/copilot".source = fleetLink "config/copilot";
+
 	programs.opencode = {
 		package = pkgs-unstable.opencode;
 		enable = true;
