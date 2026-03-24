@@ -53,16 +53,4 @@
   systemd.services.paperless-task-queue.serviceConfig.ReadWritePaths = [ "/mnt/avalanche/shares/public/cabinet/trash" ];
   systemd.services.paperless-consumer.serviceConfig.ReadWritePaths   = [ "/mnt/avalanche/shares/public/cabinet/trash" ];
   systemd.services.paperless-web.serviceConfig.ReadWritePaths        = [ "/mnt/avalanche/shares/public/cabinet/trash" ];
-
-  # Force the NFS share to be mounted before any paperless service starts.
-  # Uses requires (hard dep) + after (ordering) on the mount unit so systemd
-  # activates the mount itself rather than relying on automount blocking.
-  systemd.services.paperless-scheduler.requires  = [ "mnt-avalanche-shares-public.mount" ];
-  systemd.services.paperless-scheduler.after     = [ "mnt-avalanche-shares-public.mount" ];
-  systemd.services.paperless-task-queue.requires = [ "mnt-avalanche-shares-public.mount" ];
-  systemd.services.paperless-task-queue.after    = [ "mnt-avalanche-shares-public.mount" ];
-  systemd.services.paperless-consumer.requires   = [ "mnt-avalanche-shares-public.mount" ];
-  systemd.services.paperless-consumer.after      = [ "mnt-avalanche-shares-public.mount" ];
-  systemd.services.paperless-web.requires        = [ "mnt-avalanche-shares-public.mount" ];
-  systemd.services.paperless-web.after           = [ "mnt-avalanche-shares-public.mount" ];
 }
