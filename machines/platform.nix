@@ -31,6 +31,11 @@
 
   programs.zsh.enable = true;
 
+  fleet.secrets."test" = {
+    source = "op://Fleet/TestSecret/credential";
+    required = false;
+  };
+
   environment.systemPackages = with pkgs; [
     zsh
     nix
