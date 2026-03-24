@@ -113,6 +113,10 @@ let
       SECRETS_DIR="${secretsDir}"
       HAS_TOKEN=true
 
+      export OP_CONFIG_DIR
+      OP_CONFIG_DIR="$(mktemp -d)"
+      trap 'rm -rf "$OP_CONFIG_DIR"' EXIT
+
       ${tokenLoader}
 
       if ! $HAS_TOKEN; then
