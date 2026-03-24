@@ -2,7 +2,6 @@
 
 {
   imports = [
-    ./fleet.nix
     ./${tags.platform}.nix
   ]
   ++ lib.optional (builtins.pathExists ./roles/${tags.role}.nix)

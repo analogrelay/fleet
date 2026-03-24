@@ -57,9 +57,6 @@
     let
       inherit (self) outputs;
 
-      secretsFile = ./. + "/.secrets.nix";
-      secrets = if builtins.pathExists secretsFile then import secretsFile else { };
-
       lib = nixpkgs.lib;
       overlays = [
         outputs.overlays.additions
@@ -72,6 +69,7 @@
         sops-nix.nixosModules.sops
         home-manager.nixosModules.home-manager
         vscode-server.nixosModule
+        ./nix/modules/fleet
         (
           { config, pkgs, ... }:
           {
@@ -79,7 +77,10 @@
           }
         )
       ];
-      defaultDarwinModules = [ home-manager.darwinModules.home-manager ];
+      defaultDarwinModules = [
+        home-manager.darwinModules.home-manager
+        ./nix/modules/fleet
+      ];
       mkSpecialArgs =
         system:
         let
@@ -92,7 +93,6 @@
             outputs
             pkgs-unstable
             pkgs-analogrelay
-            secrets
             ;
         };
       mkPkgs =

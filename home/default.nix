@@ -3,7 +3,7 @@ let
   inherit (tags) os wsl role;
   fleetLink = path:
     config.lib.file.mkOutOfStoreSymlink "${config.fleet.repoDir}/${path}";
-  commonImports = [ ./fleet.nix ./${os}.nix ]
+  commonImports = [ ../nix/modules/fleet/home.nix ./${os}.nix ]
     ++ (lib.optional (builtins.pathExists ./roles/${role}.nix)
       ./roles/${role}.nix)
     ++ (lib.optional (builtins.pathExists ./roles/${role}.${os}.nix)
