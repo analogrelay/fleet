@@ -45,6 +45,8 @@ let
     };
   };
 
+  credFile = "/etc/credstore.encrypted/fleet-1p-token";
+
   provisionScript =
     let
       tokenLoader =
@@ -61,11 +63,15 @@ let
           fi
         ''
         else ''
-          if [ ! -f "$TOKEN_FILE" ]; then
-            echo "fleet-secrets: $TOKEN_FILE not found, skipping secret provisioning" >&2
+          # Try systemd credential (set via LoadCredentialEncrypted), fall back to token file
+          if [ -n "''${CREDENTIALS_DIRECTORY:-}" ] && [ -f "''${CREDENTIALS_DIRECTORY}/fleet-1p-token" ]; then
+            OP_SERVICE_ACCOUNT_TOKEN="$(cat "''${CREDENTIALS_DIRECTORY}/fleet-1p-token")"
+          elif [ -f "$TOKEN_FILE" ]; then
+            OP_SERVICE_ACCOUNT_TOKEN="$(cat "$TOKEN_FILE")"
+          else
+            echo "fleet-secrets: no token in systemd credentials or $TOKEN_FILE" >&2
             exit 1
           fi
-          OP_SERVICE_ACCOUNT_TOKEN="$(cat "$TOKEN_FILE")"
         '';
     in
     pkgs.writeShellScript "provision-fleet-secrets" ''
@@ -113,6 +119,8 @@ in
           Type = "oneshot";
           RemainAfterExit = true;
           ExecStart = provisionScript;
+        } // lib.optionalAttrs (builtins.pathExists credFile) {
+          LoadCredentialEncrypted = "fleet-1p-token:${credFile}";
         };
       };
     })

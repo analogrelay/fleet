@@ -11,7 +11,8 @@
 #/   - Fleet identity must exist: ~/.local/share/fleet/identity
 set -eo pipefail
 
-OP_TOKEN_FILE="$HOME/.local/share/fleet/op-token"
+CRED_FILE="/etc/credstore.encrypted/fleet-1p-token"
+OP_TOKEN_FILE="/etc/fleet/1p-token"
 IDENTITY_FILE="$HOME/.local/share/fleet/identity"
 
 # Parse arguments
@@ -63,13 +64,15 @@ if [ "$(uname)" = "Darwin" ]; then
   if security find-generic-password -s "fleet" -a "1p-service-account" -w >/dev/null 2>&1; then
     has_existing=true
   fi
-elif [ -f "$OP_TOKEN_FILE" ]; then
+elif [ -f "$CRED_FILE" ] || [ -f "$OP_TOKEN_FILE" ]; then
   has_existing=true
 fi
 
 if $has_existing && ! $force; then
   if [ "$(uname)" = "Darwin" ]; then
     printf "Token already exists in macOS Keychain. Overwrite? [y/N] "
+  elif [ -f "$CRED_FILE" ]; then
+    printf "Token already exists at %s (systemd-creds). Overwrite? [y/N] " "$CRED_FILE"
   else
     printf "Token already exists at %s. Overwrite? [y/N] " "$OP_TOKEN_FILE"
   fi
@@ -98,9 +101,17 @@ if [ "$(uname)" = "Darwin" ]; then
   security delete-generic-password -s "fleet" -a "1p-service-account" >/dev/null 2>&1 || true
   security add-generic-password -s "fleet" -a "1p-service-account" -w "$token"
   echo "Token saved to macOS Keychain (service: fleet, account: 1p-service-account)"
+elif command -v systemd-creds >/dev/null 2>&1; then
+  # Encrypt with systemd-creds (sealed to this machine's host key)
+  sudo mkdir -p "$(dirname "$CRED_FILE")"
+  printf '%s' "$token" | sudo systemd-creds encrypt --name=fleet-1p-token - "$CRED_FILE"
+  echo "Token saved to $CRED_FILE (systemd-creds encrypted)"
+  echo "Note: rebuild to activate LoadCredentialEncrypted in the service unit."
 else
-  install -dm 0700 "$(dirname "$OP_TOKEN_FILE")"
-  printf '%s' "$token" > "$OP_TOKEN_FILE"
-  chmod 0600 "$OP_TOKEN_FILE"
-  echo "Token saved to $OP_TOKEN_FILE"
+  # Fall back to root-only plain file
+  sudo mkdir -p "$(dirname "$OP_TOKEN_FILE")"
+  printf '%s' "$token" | sudo tee "$OP_TOKEN_FILE" >/dev/null
+  sudo chmod 0400 "$OP_TOKEN_FILE"
+  sudo chown root:root "$OP_TOKEN_FILE"
+  echo "Token saved to $OP_TOKEN_FILE (root-only file)"
 fi
