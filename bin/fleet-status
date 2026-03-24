@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# Outputs a short fleet status string for the oh-my-posh prompt segment.
+# Empty output = segment hidden.
+
+STATUS_FILE="$HOME/.local/state/fleet/status.json"
+ACTIVATED_COMMIT_FILE="$HOME/.local/state/fleet/activated_commit"
+ACTIVATED_DIRTY_FILE="$HOME/.local/state/fleet/activated_dirty"
+
+[ -f "$STATUS_FILE" ] || exit 0
+command -v jq > /dev/null 2>&1 || exit 0
+
+dirty=$(jq -r '.dirty' "$STATUS_FILE" 2>/dev/null)
+ahead=$(jq -r '.ahead' "$STATUS_FILE" 2>/dev/null)
+build_status=$(jq -r '.build_status' "$STATUS_FILE" 2>/dev/null)
+build_commit=$(jq -r '.build_commit' "$STATUS_FILE" 2>/dev/null)
+
+parts=()
+
+# Dirty working tree: uncommitted changes in the fleet repo
+[ "$dirty" = "true" ] && parts+=("~")
+
+# Unpushed commits
+if [ -n "$ahead" ] && [ "$ahead" -gt 0 ] 2>/dev/null; then
+  parts+=("${ahead}↑")
+fi
+
+# Rebuild pending: a successful build exists that hasn't been activated yet
+if [ "$build_status" = "pending" ] && [ -n "$build_commit" ]; then
+  activated=""
+  [ -f "$ACTIVATED_COMMIT_FILE" ] && activated=$(cat "$ACTIVATED_COMMIT_FILE")
+  if [ "$build_commit" != "$activated" ]; then
+    parts+=($'\uf313')  # nf-linux-nixos snowflake
+  fi
+fi
+
+# Last activation was from a dirty tree
+if [ -f "$ACTIVATED_DIRTY_FILE" ] && [ "$(cat "$ACTIVATED_DIRTY_FILE")" = "true" ]; then
+  parts+=("!")
+fi
+
+if [ "${#parts[@]}" -gt 0 ]; then
+  output=""
+  for p in "${parts[@]}"; do
+    output="${output:+$output }$p"
+  done
+  printf '%s' "$output"
+fi
