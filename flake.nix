@@ -117,13 +117,11 @@
         system: tags: extraModules:
         if tags.platform == "darwin"
         then nix-darwin.lib.darwinSystem {
-          inherit system;
           pkgs = mkPkgs system;
           modules = defaultDarwinModules ++ extraModules;
           specialArgs = (mkSpecialArgs system) // { inherit tags; };
         }
         else nixpkgs.lib.nixosSystem {
-          inherit system;
           pkgs = mkPkgs system;
           modules = defaultNixosModules
             ++ lib.optional (tags.platform == "wsl") nixos-wsl.nixosModules.wsl

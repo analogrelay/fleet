@@ -24,6 +24,6 @@ in
     enable = true;
     enableZshIntegration = true;
     enableBashIntegration = true;
-		useTheme = "probua.minimal";
+		configFile = ../../config/analoglite.omp.json;
   };
 }
