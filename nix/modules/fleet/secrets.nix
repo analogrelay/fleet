@@ -85,22 +85,26 @@ let
       provisionSecret = name: secret:
         if secret.required then ''
           echo "fleet-secrets: provisioning ${name} (required)" >&2
-          if ! ${lib.getExe pkgs._1password-cli} read "${secret.source}" > "$SECRETS_DIR/${name}" 2>&1; then
+          OP_STDERR="$(mktemp)"
+          if ! ${lib.getExe pkgs._1password-cli} read "${secret.source}" > "$SECRETS_DIR/${name}" 2>"$OP_STDERR"; then
             echo "fleet-secrets: ERROR: failed to provision required secret ${name}" >&2
-            cat "$SECRETS_DIR/${name}" >&2
-            rm -f "$SECRETS_DIR/${name}"
+            cat "$OP_STDERR" >&2
+            rm -f "$SECRETS_DIR/${name}" "$OP_STDERR"
             exit 1
           fi
+          rm -f "$OP_STDERR"
           chmod ${secret.mode} "$SECRETS_DIR/${name}"
           chown ${secret.owner}:${secret.group} "$SECRETS_DIR/${name}"
         ''
         else ''
           echo "fleet-secrets: provisioning ${name} (optional)" >&2
-          if ! ${lib.getExe pkgs._1password-cli} read "${secret.source}" > "$SECRETS_DIR/${name}" 2>&1; then
+          OP_STDERR="$(mktemp)"
+          if ! ${lib.getExe pkgs._1password-cli} read "${secret.source}" > "$SECRETS_DIR/${name}" 2>"$OP_STDERR"; then
             echo "fleet-secrets: WARNING: failed to provision optional secret ${name}, skipping" >&2
-            cat "$SECRETS_DIR/${name}" >&2
-            rm -f "$SECRETS_DIR/${name}"
+            cat "$OP_STDERR" >&2
+            rm -f "$SECRETS_DIR/${name}" "$OP_STDERR"
           else
+            rm -f "$OP_STDERR"
             chmod ${secret.mode} "$SECRETS_DIR/${name}"
             chown ${secret.owner}:${secret.group} "$SECRETS_DIR/${name}"
           fi
