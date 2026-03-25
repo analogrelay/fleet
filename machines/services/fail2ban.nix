@@ -1,5 +1,9 @@
 { pkgs, config, ... }:
 
+let
+	curl = "${pkgs.curl}/bin/curl";
+	jq = "${pkgs.jq}/bin/jq";
+in
 {
 	services.fail2ban = {
 		enable = true;
@@ -29,7 +33,7 @@
 		actioncheck =
 
 		# Add the offending IP to the Cloudflare list.
-		actionban = curl -s -o /dev/null -w "%%{http_code}" -X POST \
+		actionban = ${curl} -s -o /dev/null -w "%%{http_code}" -X POST \
 		              "<_cf_api_url>" \
 		              <_cf_api_prms> \
 		              --data '[{"ip":"<ip>","comment":"Fail2Ban <name>"}]'
@@ -38,16 +42,16 @@
 		# 1. Search for list items matching the IP.
 		# 2. Extract the item ID for the exact IP match.
 		# 3. Delete by item ID.
-		actionunban = _item_id=$(curl -s -X GET \
+		actionunban = _item_id=$(${curl} -s -X GET \
 		                "<_cf_api_url>?search=<ip>" \
 		                <_cf_api_prms> \
-		                | jq -r '.result[] | select(.ip == "<ip>") | .id' \
+		                | ${jq} -r '.result[] | select(.ip == "<ip>") | .id' \
 		                | head -n 1) && \
 		              if [ -z "$_item_id" ]; then \
 		                echo "<name>: list item for <ip> not found; skipping"; \
 		                exit 0; \
 		              fi && \
-		              curl -s -o /dev/null -w "%%{http_code}" -X DELETE \
+		              ${curl} -s -o /dev/null -w "%%{http_code}" -X DELETE \
 		                "<_cf_api_url>" \
 		                <_cf_api_prms> \
 		                --data "{\"items\":[{\"id\":\"$_item_id\"}]}"
@@ -72,11 +76,10 @@
 		cflistid = {{ op://Fleet/Cloudflare/fail2ban-list-id }}
 		'';
 
-	# Symlink the provisioned secret into the fail2ban action.d directory
-	# so fail2ban reads it as the .local override for cloudflare-list.
-	systemd.tmpfiles.rules = [
-		"L /etc/fail2ban/action.d/cloudflare-list.local - - - - ${config.fleet.secrets."cloudflare-fail2ban-list-action".path}"
-	];
+	environment.etc."fail2ban/action.d/cloudflare-list.local" = {
+		mode = "symlink";
+		source = config.fleet.secrets."cloudflare-fail2ban-list-action".path;
+	};
 
 	# Ensure fail2ban starts after secrets have been provisioned.
 	systemd.services.fail2ban = {
