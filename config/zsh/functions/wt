@@ -1,0 +1,647 @@
+# wt - worktree manager with tmux session integration
+#
+# Usage: wt [command] [args...]
+#
+# Commands:
+#   go [query]    Navigate to a project directory (formerly `goto`)
+#   status        Show health overview of all worktrees (default)
+#   prune         Remove clean, in-sync worktrees
+#
+# The `go` subcommand navigates to ~/dev/[repo]/[worktree] directories
+# (and legacy ~/code/[owner]/[repo]), creating tmux sessions along the way.
+#
+# Synthetic fzf entries (when inside a ~/dev repo):
+#   [+] clone repo into ~/dev
+#   [+] new worktree in [repo]
+#   [+] checkout PR in [repo]
+
+# ── helpers (defined once on first call, then globally available) ────────────
+
+if (( ! $+functions[_wt_session_name] )); then
+
+function _wt_log() {
+	echo "$@" 1>&2
+}
+
+function _wt_session_name() {
+  local dir=$1
+  local rel
+  if [[ "$dir" == "$HOME/dev/"* ]]; then
+    rel="${dir#$HOME/dev/}"
+    echo "${rel//\//_}"
+  elif [[ "$dir" == "$HOME/code/"* ]]; then
+    rel="${dir#$HOME/code/}"
+    echo "${rel//\//_}"
+  elif [[ "$dir" == "$HOME/.config/fleet" ]]; then
+    echo "fleet"
+  else
+    local parent base
+    parent="$(basename "$(dirname "$dir")")"
+    base="$(basename "$dir")"
+    local home_base
+    home_base="$(basename "$HOME")"
+    if [[ "$parent" == "$home_base" || "$parent" == "/" ]]; then
+      echo "$base"
+    else
+      echo "${parent}.${base}"
+    fi
+  fi
+}
+
+function _wt_switch() {
+  local target=$1
+  local session
+  session=$(_wt_session_name "$target")
+	_wt_log "using tmux session $session"
+
+  if [[ -n "$TMUX" ]]; then
+    if tmux has-session -t "=$session" 2>/dev/null; then
+			_wt_log "session $session found, switching..."
+      tmux switch-client -t "=$session"
+    else
+			_wt_log "session $session not found, creating..."
+      tmux new-session -d -s "$session" -c "$target"
+      tmux switch-client -t "=$session"
+    fi
+  else
+		_wt_log "session $session not found, starting tmux and creating..."
+    # Not in tmux — create or attach
+    tmux new-session -A -s "$session" -c "$target"
+  fi
+}
+
+function _wt_branch_to_dir() {
+  local branch=$1
+  echo "${branch//\//-}"
+}
+
+# Returns the path of the primary worktree (the one with a .git directory, not file)
+function _wt_primary_worktree() {
+  local repo_dir="$HOME/dev/$1"
+  [[ -d "$repo_dir" ]] || return 1
+  local wt
+  for wt in "$repo_dir"/*/; do
+    wt="${wt%/}"
+    [[ -d "$wt" ]] || continue
+    if [[ -d "$wt/.git" ]]; then
+      echo "$wt"
+      return 0
+    fi
+  done
+  # Fall back to any worktree (for linked-worktree-only setups)
+  local first
+  first=$(find "$repo_dir" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | head -1)
+  [[ -n "$first" ]] && echo "$first"
+}
+
+# Parse git@github.com:owner/repo.git or https://github.com/owner/repo into owner/repo
+function _wt_remote_slug() {
+  echo "$1" | sed -E 's|.*[:/]([^/]+/[^/]+?)(\.git)?$|\1|'
+}
+
+# Returns "upstream" if that remote exists, otherwise "origin"
+function _wt_upstream_remote() {
+  local wt=$1
+  if git -C "$wt" remote get-url upstream &>/dev/null; then
+    echo "upstream"
+  else
+    echo "origin"
+  fi
+}
+
+# Returns the GitHub owner/repo slug for a given remote in a worktree
+function _wt_repo_slug() {
+  local wt=$1 remote=${2:-origin}
+  local url
+  url=$(git -C "$wt" remote get-url "$remote" 2>/dev/null) || return 1
+  _wt_remote_slug "$url"
+}
+
+# Returns running processes in a tmux session's panes
+function _wt_session_processes() {
+  local session=$1
+  tmux has-session -t "=$session" 2>/dev/null || return 1
+  local pane_pids
+  pane_pids=($(tmux list-panes -t "=$session" -F '#{pane_pid}' 2>/dev/null))
+  local pid cpid
+  for pid in "${pane_pids[@]}"; do
+    for cpid in $(pgrep -P "$pid" 2>/dev/null); do
+      local info
+      info=$(ps -p "$cpid" -o pid=,comm=,args= 2>/dev/null)
+      [[ -n "$info" ]] && echo "      ${info## }"
+    done
+  done
+}
+
+# ── go subcommand flows ─────────────────────────────────────────────────────
+
+function _wt_clone_flow() {
+  echo -n "GitHub repo (owner/repo or URL): "
+  local input
+  read input
+  [[ -z "$input" ]] && return 1
+
+  local slug
+  if [[ "$input" == *"github.com"* ]]; then
+    slug=$(_wt_remote_slug "$input")
+  elif [[ "$input" == *"/"* ]]; then
+    slug="${input%.git}"
+  else
+    echo "wt: expected owner/repo or GitHub URL" >&2
+    return 1
+  fi
+
+  local owner="${slug%/*}"
+  local repo="${slug#*/}"
+  local dest_name="$repo"
+  local dest_dir="$HOME/dev/$dest_name"
+
+  # Collision check — existing dir with a different remote
+  if [[ -d "$dest_dir" ]]; then
+    local existing_primary existing_remote
+    existing_primary=$(_wt_primary_worktree "$dest_name")
+    if [[ -n "$existing_primary" ]]; then
+      existing_remote=$(git -C "$existing_primary" remote get-url origin 2>/dev/null)
+    fi
+    if [[ "$(_wt_remote_slug "$existing_remote")" != "$slug" ]]; then
+      echo "wt: ~/dev/$dest_name already exists for a different repo."
+      echo -n "Use $owner.$repo instead? [y/N] "
+      local ans
+      read ans
+      if [[ "$ans" == [yY]* ]]; then
+        dest_name="$owner.$repo"
+        dest_dir="$HOME/dev/$dest_name"
+      else
+        return 1
+      fi
+    fi
+  fi
+
+  local clone_url="git@github.com:${slug}.git"
+  echo "wt: cloning $slug → ~/dev/$dest_name/main ..."
+  git clone "$clone_url" "$HOME/dev/$dest_name/main" || return 1
+
+  # Detect default branch
+  local default_branch
+  default_branch=$(git -C "$HOME/dev/$dest_name/main" \
+    symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||')
+  [[ -z "$default_branch" ]] && default_branch="main"
+
+  # Rename clone dir to match default branch if needed
+  local final_wt="$HOME/dev/$dest_name/$default_branch"
+  if [[ "$default_branch" != "main" ]]; then
+    mv "$HOME/dev/$dest_name/main" "$final_wt"
+  else
+    final_wt="$HOME/dev/$dest_name/main"
+  fi
+
+  # If the cloned repo is a fork, offer to add the parent as upstream
+  local is_fork parent_slug
+  is_fork=$(gh repo view "$slug" --json isFork -q .isFork 2>/dev/null)
+  if [[ "$is_fork" == "true" ]]; then
+    parent_slug=$(gh repo view "$slug" --json parent -q '.parent.owner.login + "/" + .parent.name' 2>/dev/null)
+    if [[ -n "$parent_slug" ]]; then
+      echo "wt: $slug is a fork of $parent_slug"
+      echo -n "Add $parent_slug as 'upstream' remote? [Y/n] "
+      local ans
+      read ans
+      if [[ "$ans" != [nN]* ]]; then
+        local upstream_url="git@github.com:${parent_slug}.git"
+        git -C "$final_wt" remote add upstream "$upstream_url"
+        git -C "$final_wt" fetch upstream --quiet 2>/dev/null
+        echo "wt: added upstream → $parent_slug"
+      fi
+    fi
+  fi
+
+  _wt_switch "$final_wt"
+}
+
+function _wt_new_worktree_flow() {
+  local repo=$1
+  local primary_wt
+  primary_wt=$(_wt_primary_worktree "$repo")
+  if [[ -z "$primary_wt" ]]; then
+    echo "wt: cannot find primary worktree for $repo" >&2
+    return 1
+  fi
+
+  # Fetch upstream if available so we have current branch list
+  local has_upstream=false
+  if git -C "$primary_wt" remote get-url upstream &>/dev/null; then
+    has_upstream=true
+    git -C "$primary_wt" fetch upstream --quiet 2>/dev/null
+  fi
+
+  # Show remote branches in fzf; --print-query lets the user type a new branch name too
+  # Include both origin/ and upstream/ branches, keeping prefixes for disambiguation
+  local fzf_out
+  fzf_out=$(git -C "$primary_wt" branch -r 2>/dev/null \
+    | grep -v ' -> ' \
+    | sed 's/^ *//' \
+    | fzf --prompt="branch> " --print-query)
+  [[ -z "$fzf_out" ]] && return 1
+
+  # Last non-empty line is either the selection or the typed query
+  local selection
+  selection=$(echo "$fzf_out" | grep -v '^$' | tail -1)
+  [[ -z "$selection" ]] && return 1
+
+  # Determine the remote and bare branch name
+  local branch remote_name
+  if [[ "$selection" == upstream/* ]]; then
+    remote_name="upstream"
+    branch="${selection#upstream/}"
+  elif [[ "$selection" == origin/* ]]; then
+    remote_name="origin"
+    branch="${selection#origin/}"
+  else
+    # User typed a new branch name (no remote prefix)
+    remote_name=""
+    branch="$selection"
+  fi
+
+  local worktree_dir dest
+  worktree_dir=$(_wt_branch_to_dir "$branch")
+  dest="$HOME/dev/$repo/$worktree_dir"
+
+  if [[ -d "$dest" ]]; then
+    echo "wt: $dest already exists, switching to it"
+    _wt_switch "$dest"
+    return
+  fi
+
+  # For upstream branches, create a local tracking branch then add the worktree
+  if [[ "$remote_name" == "upstream" ]]; then
+    echo "wt: adding worktree $dest for upstream branch $branch"
+    git -C "$primary_wt" worktree add -b "$branch" "$dest" "$remote_name/$branch" || return 1
+  else
+    echo "wt: adding worktree $dest for branch $branch"
+    git -C "$primary_wt" worktree add "$dest" "$branch" || return 1
+  fi
+  _wt_switch "$dest"
+}
+
+function _wt_pr_flow() {
+  local repo=$1
+  local primary_wt
+  primary_wt=$(_wt_primary_worktree "$repo")
+  if [[ -z "$primary_wt" ]]; then
+    echo "wt: cannot find primary worktree for $repo" >&2
+    return 1
+  fi
+
+  # Determine which remote hosts the PRs (upstream for forks, origin otherwise)
+  local pr_remote
+  pr_remote=$(_wt_upstream_remote "$primary_wt")
+  local slug
+  slug=$(_wt_repo_slug "$primary_wt" "$pr_remote")
+  if [[ -z "$slug" ]]; then
+    echo "wt: could not determine GitHub repo from $pr_remote remote" >&2
+    return 1
+  fi
+
+  if [[ "$pr_remote" == "upstream" ]]; then
+    echo "wt: listing PRs from upstream ($slug)"
+  fi
+
+  # List open PRs and let user pick via fzf
+  local pr_list
+  pr_list=$(gh pr list --repo "$slug" --json number,title,headRefName \
+    --template '{{range .}}#{{.number}}	{{.title}}	({{.headRefName}}){{"\n"}}{{end}}' 2>/dev/null)
+  if [[ -z "$pr_list" ]]; then
+    echo "wt: no open PRs found for $slug" >&2
+    return 1
+  fi
+
+  local selected
+  selected=$(echo "$pr_list" | fzf --prompt="PR> " --delimiter=$'\t' --with-nth=1,2,3)
+  [[ -z "$selected" ]] && return 1
+
+  # Extract PR number and look up the head branch
+  local pr_number branch
+  pr_number="${${selected%%$'\t'*}#\#}"
+  branch=$(gh pr view "$pr_number" --repo "$slug" --json headRefName -q .headRefName 2>/dev/null)
+  if [[ -z "$branch" ]]; then
+    echo "wt: could not get branch for PR #$pr_number" >&2
+    return 1
+  fi
+
+  local worktree_dir dest
+  worktree_dir=$(_wt_branch_to_dir "$branch")
+  dest="$HOME/dev/$repo/$worktree_dir"
+
+  if [[ -d "$dest" ]]; then
+    echo "wt: $dest already exists, switching to it"
+    _wt_switch "$dest"
+    return
+  fi
+
+  echo "wt: fetching PR #$pr_number ($branch) → $dest"
+  git -C "$primary_wt" fetch "$pr_remote" "pull/${pr_number}/head:${branch}" || return 1
+  git -C "$primary_wt" worktree add "$dest" "$branch" || return 1
+  _wt_switch "$dest"
+}
+
+# ── go subcommand (formerly goto) ───────────────────────────────────────────
+
+function _wt_go() {
+  # Detect context: are we inside ~/dev/[repo]/[worktree]?
+  local _ctx_repo="" _ctx_worktree=""
+  if [[ "$PWD" == "$HOME/dev/"* ]]; then
+    local _ctx_rel="${PWD#$HOME/dev/}"
+    local _ctx_parts=("${(@s:/:)_ctx_rel}")
+    if (( ${#_ctx_parts[@]} >= 2 )); then
+      _ctx_repo="${_ctx_parts[1]}"
+      _ctx_worktree="${_ctx_parts[2]}"
+    fi
+  fi
+
+  # Build directory candidates
+  local candidates=()
+
+  if [[ -d "$HOME/dev" ]]; then
+    local _dev_dirs
+    _dev_dirs=$(find "$HOME/dev" -mindepth 2 -maxdepth 2 -type d 2>/dev/null)
+    [[ -n "$_dev_dirs" ]] && candidates+=("${(f)_dev_dirs}")
+  fi
+
+  if [[ -d "$HOME/code" ]]; then
+    local _code_dirs
+    _code_dirs=$(find "$HOME/code" -mindepth 2 -maxdepth 2 -type d 2>/dev/null)
+    [[ -n "$_code_dirs" ]] && candidates+=("${(f)_code_dirs}")
+  fi
+
+  candidates+=(
+    "$HOME/.config/fleet"
+    "$HOME/dev"
+    "$HOME/code"
+  )
+
+  if [[ "$(uname)" == "Darwin" ]]; then
+    candidates+=("$HOME/Downloads" "$HOME/Desktop" "$HOME/Documents")
+  fi
+
+  # Annotate candidates with active tmux sessions
+  local _active_sessions=()
+  local _sess_list
+  _sess_list=$(tmux list-sessions -F '#{session_name}' 2>/dev/null)
+  [[ -n "$_sess_list" ]] && _active_sessions=("${(f)_sess_list}")
+
+  local _display=()
+  local _c _sname
+  for _c in "${candidates[@]}"; do
+    _sname=$(_wt_session_name "$_c")
+    if (( ${_active_sessions[(Ie)$_sname]} )); then
+      _display+=("$_c [$_sname]")
+    else
+      _display+=("$_c")
+    fi
+  done
+
+  # Synthetic entries (not annotated)
+  _display+=("[+] clone repo into ~/dev")
+  if [[ -n "$_ctx_repo" ]]; then
+    _display+=("[+] new worktree in $_ctx_repo")
+    _display+=("[+] checkout PR in $_ctx_repo")
+  fi
+
+  # fzf
+  local _qry_args=()
+  if [[ -n "$1" ]]; then
+    _qry_args=(--query "$1" --select-1 --exit-0)
+  fi
+
+  local selected
+  selected=$(printf '%s\n' "${_display[@]}" | fzf "${_qry_args[@]}")
+  [[ $? -ne 0 || -z "$selected" ]] && return
+
+  # Strip session indicator suffix before dispatch
+  selected="${selected% \[*\]}"
+
+  # Dispatch
+  case "$selected" in
+    "[+] clone repo into ~/dev")
+      _wt_clone_flow
+      ;;
+    "[+] new worktree in "*)
+      _wt_new_worktree_flow "$_ctx_repo" "$_ctx_worktree"
+      ;;
+    "[+] checkout PR in "*)
+      _wt_pr_flow "$_ctx_repo"
+      ;;
+    *)
+      _wt_switch "$selected"
+      ;;
+  esac
+}
+
+# ── status subcommand ───────────────────────────────────────────────────────
+
+function _wt_status() {
+  if [[ ! -d "$HOME/dev" ]]; then
+    echo "wt: ~/dev does not exist" >&2
+    return 1
+  fi
+
+  # Collect active tmux sessions
+  local _active_sessions=()
+  local _sess_list
+  _sess_list=$(tmux list-sessions -F '#{session_name}' 2>/dev/null)
+  [[ -n "$_sess_list" ]] && _active_sessions=("${(f)_sess_list}")
+
+  printf "%-20s %-15s %-25s %-8s %-12s %s\n" \
+    "REPO" "WORKTREE" "BRANCH" "DIRTY" "SYNC" "SESSION"
+  printf "%-20s %-15s %-25s %-8s %-12s %s\n" \
+    "────" "────────" "──────" "─────" "────" "───────"
+
+  local d repo_name wt_name branch dirty_count dirty_str
+  local ahead behind sync_str session_str sname
+  for d in "$HOME"/dev/*/*/; do
+    d="${d%/}"
+    [[ -d "$d" ]] || continue
+    # Must be a git worktree (has .git file or directory)
+    [[ -e "$d/.git" ]] || continue
+
+    repo_name="$(basename "$(dirname "$d")")"
+    wt_name="$(basename "$d")"
+
+    # Branch
+    branch=$(git -C "$d" branch --show-current 2>/dev/null)
+    if [[ -z "$branch" ]]; then
+      branch="($(git -C "$d" rev-parse --short HEAD 2>/dev/null))"
+    fi
+
+    # Dirty check
+    dirty_count=$(git -C "$d" status --porcelain 2>/dev/null | wc -l)
+    dirty_count="${dirty_count## }"
+    if (( dirty_count == 0 )); then
+      dirty_str="✓"
+    else
+      dirty_str="✗ $dirty_count"
+    fi
+
+    # Sync check — fetch and compare with upstream tracking branch
+    local remote
+    remote=$(_wt_upstream_remote "$d")
+    git -C "$d" fetch "$remote" --quiet 2>/dev/null
+
+    local counts
+    counts=$(git -C "$d" rev-list --left-right --count HEAD...@{upstream} 2>/dev/null)
+    if [[ -n "$counts" ]]; then
+      ahead="${counts%%$'\t'*}"
+      behind="${counts##*$'\t'}"
+      if (( ahead == 0 && behind == 0 )); then
+        sync_str="✓"
+      else
+        sync_str=""
+        (( ahead > 0 )) && sync_str+="↑$ahead"
+        (( behind > 0 )) && { [[ -n "$sync_str" ]] && sync_str+=" "; sync_str+="↓$behind"; }
+      fi
+    else
+      sync_str="—"
+    fi
+
+    # Tmux session
+    sname=$(_wt_session_name "$d")
+    if (( ${_active_sessions[(Ie)$sname]} )); then
+      session_str="$sname ●"
+    else
+      session_str="—"
+    fi
+
+    printf "%-20s %-15s %-25s %-8s %-12s %s\n" \
+      "$repo_name" "$wt_name" "$branch" "$dirty_str" "$sync_str" "$session_str"
+  done
+}
+
+# ── prune subcommand ────────────────────────────────────────────────────────
+
+function _wt_prune() {
+  if [[ ! -d "$HOME/dev" ]]; then
+    echo "wt: ~/dev does not exist" >&2
+    return 1
+  fi
+
+  # Collect active tmux sessions
+  local _active_sessions=()
+  local _sess_list
+  _sess_list=$(tmux list-sessions -F '#{session_name}' 2>/dev/null)
+  [[ -n "$_sess_list" ]] && _active_sessions=("${(f)_sess_list}")
+
+  echo "wt: scanning worktrees..."
+
+  local prunable=()
+  local d repo_name wt_name
+
+  for d in "$HOME"/dev/*/*/; do
+    d="${d%/}"
+    [[ -d "$d" ]] || continue
+    [[ -e "$d/.git" ]] || continue
+
+    # Skip primary worktrees — has .git directory (not file)
+    [[ -d "$d/.git" ]] && continue
+
+    # Dirty check
+    local dirty_count
+    dirty_count=$(git -C "$d" status --porcelain 2>/dev/null | wc -l)
+    dirty_count="${dirty_count## }"
+    (( dirty_count > 0 )) && continue
+
+    # Sync check
+    local remote
+    remote=$(_wt_upstream_remote "$d")
+    git -C "$d" fetch "$remote" --quiet 2>/dev/null
+
+    local counts ahead behind
+    counts=$(git -C "$d" rev-list --left-right --count HEAD...@{upstream} 2>/dev/null)
+    if [[ -n "$counts" ]]; then
+      ahead="${counts%%$'\t'*}"
+      behind="${counts##*$'\t'}"
+      (( ahead > 0 || behind > 0 )) && continue
+    else
+      # No tracking branch — can't verify sync, skip
+      continue
+    fi
+
+    prunable+=("$d")
+  done
+
+  if (( ${#prunable[@]} == 0 )); then
+    echo "wt: no worktrees eligible for pruning"
+    return 0
+  fi
+
+  echo ""
+  echo "The following worktrees are clean and in-sync:"
+  echo ""
+
+  local p sname branch
+  for p in "${prunable[@]}"; do
+    repo_name="$(basename "$(dirname "$p")")"
+    wt_name="$(basename "$p")"
+    branch=$(git -C "$p" branch --show-current 2>/dev/null)
+    [[ -z "$branch" ]] && branch="(detached)"
+
+    echo "  $repo_name/$wt_name  ($branch)"
+
+    # Show tmux session processes if active
+    sname=$(_wt_session_name "$p")
+    if (( ${_active_sessions[(Ie)$sname]} )); then
+      echo "    tmux session: $sname"
+      local procs
+      procs=$(_wt_session_processes "$sname")
+      if [[ -n "$procs" ]]; then
+        echo "    running processes:"
+        echo "$procs"
+      fi
+    fi
+  done
+
+  echo ""
+  echo -n "Remove these worktrees? [y/N] "
+  local ans
+  read ans
+  [[ "$ans" != [yY]* ]] && return 0
+
+  echo ""
+  local removed=0
+  for p in "${prunable[@]}"; do
+    repo_name="$(basename "$(dirname "$p")")"
+    wt_name="$(basename "$p")"
+    sname=$(_wt_session_name "$p")
+
+    # Kill tmux session if active
+    if (( ${_active_sessions[(Ie)$sname]} )); then
+      tmux kill-session -t "=$sname" 2>/dev/null
+      echo "wt: killed tmux session $sname"
+    fi
+
+    # Remove worktree from the primary worktree's context
+    local primary
+    primary=$(_wt_primary_worktree "$repo_name")
+    if [[ -n "$primary" ]] && git -C "$primary" worktree remove "$p" 2>/dev/null; then
+      echo "wt: removed $repo_name/$wt_name"
+      (( removed++ ))
+    else
+      echo "wt: failed to remove $repo_name/$wt_name" >&2
+    fi
+  done
+
+  echo ""
+  echo "wt: removed $removed worktree(s)"
+}
+
+fi  # end of one-time function definitions
+
+# ── main ─────────────────────────────────────────────────────────────────────
+
+local cmd=${1:-status}
+shift 2>/dev/null
+
+case "$cmd" in
+  go)     _wt_go "$@" ;;
+  status) _wt_status "$@" ;;
+  prune)  _wt_prune "$@" ;;
+  *)      echo "wt: unknown command: $cmd" >&2; return 1 ;;
+esac
