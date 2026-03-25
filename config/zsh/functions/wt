@@ -26,6 +26,7 @@ function _wt_log() {
 function _wt_spin_start() {
   local msg=${1:-"Working..."}
   local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+  setopt local_options no_monitor
   ( while true; do
       for f in "${frames[@]}"; do
         printf '\r%s %s' "$f" "$msg" >&2
@@ -37,6 +38,7 @@ function _wt_spin_start() {
 
 function _wt_spin_stop() {
   if [[ -n "$_wt_spin_pid" ]]; then
+    setopt local_options no_monitor
     kill "$_wt_spin_pid" 2>/dev/null
     wait "$_wt_spin_pid" 2>/dev/null
     printf '\r\033[K' >&2
@@ -548,17 +550,29 @@ function _wt_status() {
   # First pass: collect rows and measure column widths
   _wt_spin_start "Scanning worktrees..."
   local -a _rows=()
+  local -a _claimed_sessions=()
   local _w1=4 _w2=8 _w3=6 _w4=5 _w5=4  # minimum widths (header labels)
 
   local d repo_name wt_name branch dirty_count dirty_str
   local ahead behind sync_str session_str sname remote counts
+
+  # Collect all worktree directories (~/dev/*/* plus ~/.config/fleet)
+  local -a _wt_dirs=()
   for d in "$HOME"/dev/*/*/; do
     d="${d%/}"
-    [[ -d "$d" ]] || continue
-    [[ -e "$d/.git" ]] || continue
+    [[ -d "$d" ]] && [[ -e "$d/.git" ]] && _wt_dirs+=("$d")
+  done
+  [[ -d "$HOME/.config/fleet/.git" ]] && _wt_dirs+=("$HOME/.config/fleet")
 
-    repo_name="$(basename "$(dirname "$d")")"
-    wt_name="$(basename "$d")"
+  for d in "${_wt_dirs[@]}"; do
+    # Determine display names
+    if [[ "$d" == "$HOME/.config/fleet" ]]; then
+      repo_name="fleet"
+      wt_name="—"
+    else
+      repo_name="$(basename "$(dirname "$d")")"
+      wt_name="$(basename "$d")"
+    fi
 
     # Branch
     branch=$(git -C "$d" branch --show-current 2>/dev/null)
@@ -598,6 +612,7 @@ function _wt_status() {
     sname=$(_wt_session_name "$d")
     if (( ${_active_sessions[(Ie)$sname]} )); then
       session_str="$sname ●"
+      _claimed_sessions+=("$sname")
     else
       session_str="—"
     fi
@@ -609,6 +624,21 @@ function _wt_status() {
     (( ${#dirty_str} > _w4 )) && _w4=${#dirty_str}
     (( ${#sync_str} > _w5 )) && _w5=${#sync_str}
 
+    _rows+=("${repo_name}	${wt_name}	${branch}	${dirty_str}	${sync_str}	${session_str}")
+  done
+
+  # Add orphan tmux sessions (not associated with any worktree)
+  local _orphan_sess
+  for _orphan_sess in "${_active_sessions[@]}"; do
+    (( ${_claimed_sessions[(Ie)$_orphan_sess]} )) && continue
+    repo_name="—"
+    wt_name="—"
+    branch="—"
+    dirty_str="—"
+    sync_str="—"
+    session_str="$_orphan_sess ●"
+
+    (( ${#session_str} > 7 )) && { local _sw=${#session_str}; (( _sw > _w5 )) || true; }
     _rows+=("${repo_name}	${wt_name}	${branch}	${dirty_str}	${sync_str}	${session_str}")
   done
   _wt_spin_stop
