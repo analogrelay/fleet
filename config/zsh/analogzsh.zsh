@@ -42,6 +42,8 @@ if [ -f /Applications/Zed.app/Contents/MacOS/cli ]; then
   alias zed="/Applications/Zed.app/Contents/MacOS/cli"
 fi
 
+alias goto="wt go"
+
 if type -p jj > /dev/null; then
   source <(jj util completion zsh)
 fi
