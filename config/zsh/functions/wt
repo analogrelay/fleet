@@ -608,10 +608,10 @@ function _wt_status() {
       sync_str="—"
     fi
 
-    # Tmux session
+    # Tmux session — known sessions get a checkmark, no need to show the name
     sname=$(_wt_session_name "$d")
     if (( ${_active_sessions[(Ie)$sname]} )); then
-      session_str="$sname ●"
+      session_str="●"
       _claimed_sessions+=("$sname")
     else
       session_str="—"
@@ -628,17 +628,18 @@ function _wt_status() {
   done
 
   # Add orphan tmux sessions (not associated with any worktree)
-  local _orphan_sess
+  local _orphan_sess _orphan_label
   for _orphan_sess in "${_active_sessions[@]}"; do
     (( ${_claimed_sessions[(Ie)$_orphan_sess]} )) && continue
-    repo_name="—"
-    wt_name="—"
+    _orphan_label="< Unknown tmux session: $_orphan_sess >"
+    repo_name="$_orphan_label"
+    wt_name=""
     branch="—"
     dirty_str="—"
     sync_str="—"
-    session_str="$_orphan_sess ●"
+    session_str="●"
 
-    (( ${#session_str} > 7 )) && { local _sw=${#session_str}; (( _sw > _w5 )) || true; }
+    (( ${#repo_name} > _w1 )) && _w1=${#repo_name}
     _rows+=("${repo_name}	${wt_name}	${branch}	${dirty_str}	${sync_str}	${session_str}")
   done
   _wt_spin_stop
