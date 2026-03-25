@@ -14,6 +14,7 @@
 			../../services/postgres.nix
 			../../services/redis.nix
 			../../services/paperless.nix
+			../../services/keycloak.nix
     ];
 
   networking.hostName = "avalanche";
