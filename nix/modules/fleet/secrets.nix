@@ -95,10 +95,13 @@ let
       provisionSecret = name: secret:
         let
           isTemplate = secret.template != null;
-          # Template secrets use `op inject` with a heredoc; source secrets use `op read`
+          # Template secrets use `op inject -i <file>`; source secrets use `op read`.
+          # The template file is safe in the Nix store — it only contains {{ op://… }}
+          # placeholders, not actual secrets. Resolution happens at runtime.
           opCommand =
             if isTemplate then
-              "${lib.getExe pkgs._1password-cli} inject <<'FLEET_TEMPLATE_EOF'\n${secret.template}\nFLEET_TEMPLATE_EOF"
+              let templateFile = pkgs.writeText "${name}-template" secret.template;
+              in "${lib.getExe pkgs._1password-cli} inject -i ${templateFile}"
             else
               "${lib.getExe pkgs._1password-cli} read \"${secret.source}\"";
         in
