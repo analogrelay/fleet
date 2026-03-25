@@ -481,7 +481,7 @@ function _wt_status() {
 
     # Sync check — fetch and compare with upstream tracking branch
     remote=$(_wt_upstream_remote "$d")
-    git -C "$d" fetch "$remote" --quiet 2>&1 >/dev/null
+    git -C "$d" fetch "$remote" --quiet >/dev/null 2>&1
 
     counts=$(git -C "$d" rev-list --left-right --count HEAD...@{upstream} 2>/dev/null)
     if [[ -n "$counts" ]]; then
@@ -532,7 +532,7 @@ function _wt_status() {
   local _fmt="%-${_w1}s  %-${_w2}s  %-${_w3}s  %-${_w4}s  %-${_w5}s  %s\n"
 
   # Print header
-  printf "$_fmt" "REPO" "WORKTREE" "BRANCH" "DIRTY" "SYNC" "SESSION"
+  printf "$_fmt" "REPO" "WORKTREE" "BRANCH" "CLEAN" "SYNC" "SESSION"
 
   local _sep1 _sep2 _sep3 _sep4 _sep5 _sep6
   printf -v _sep1 '─%.0s' {1..$_w1}
@@ -574,7 +574,7 @@ function _wt_prune() {
   echo "wt: scanning worktrees..."
 
   local prunable=()
-  local d repo_name wt_name
+  local d repo_name wt_name dirty_count remote counts ahead behind
 
   for d in "$HOME"/dev/*/*/; do
     d="${d%/}"
@@ -585,15 +585,13 @@ function _wt_prune() {
     [[ -d "$d/.git" ]] && continue
 
     # Dirty check
-    local dirty_count
     dirty_count=$(git -C "$d" status --porcelain 2>/dev/null | wc -l)
     dirty_count="${dirty_count## }"
     (( dirty_count > 0 )) && continue
 
     # Sync check
-    local remote counts ahead behind
     remote=$(_wt_upstream_remote "$d")
-    git -C "$d" fetch "$remote" --quiet 2>&1 >/dev/null
+    git -C "$d" fetch "$remote" --quiet >/dev/null 2>&1
     counts=$(git -C "$d" rev-list --left-right --count HEAD...@{upstream} 2>/dev/null)
     if [[ -n "$counts" ]]; then
       ahead="${counts%%$'\t'*}"
