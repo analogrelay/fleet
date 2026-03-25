@@ -156,11 +156,10 @@ function _wt_session_processes() {
 
 # ── go subcommand flows ─────────────────────────────────────────────────────
 
-function _wt_clone_flow() {
-  echo -n "GitHub repo (owner/repo or URL): "
-  local input
-  read input
-  [[ -z "$input" ]] && return 1
+# Clones a repo into ~/dev if not already present. Sets reply to the repo name.
+# Returns 0 if repo is ready, 1 if cancelled/failed.
+function _wt_ensure_repo() {
+  local input=$1
 
   local slug
   if [[ "$input" == *"github.com"* ]]; then
@@ -195,6 +194,10 @@ function _wt_clone_flow() {
       else
         return 1
       fi
+    else
+      # Same repo, already cloned
+      reply="$dest_name"
+      return 0
     fi
   fi
 
@@ -209,14 +212,13 @@ function _wt_clone_flow() {
   [[ -z "$default_branch" ]] && default_branch="main"
 
   # Rename clone dir to match default branch if needed
-  local final_wt="$HOME/dev/$dest_name/$default_branch"
   if [[ "$default_branch" != "main" ]]; then
-    mv "$HOME/dev/$dest_name/main" "$final_wt"
-  else
-    final_wt="$HOME/dev/$dest_name/main"
+    mv "$HOME/dev/$dest_name/main" "$HOME/dev/$dest_name/$default_branch"
   fi
 
   # If the cloned repo is a fork, offer to add the parent as upstream
+  local primary_wt
+  primary_wt=$(_wt_primary_worktree "$dest_name")
   local is_fork parent_slug
   is_fork=$(gh repo view "$slug" --json isFork -q .isFork 2>/dev/null)
   if [[ "$is_fork" == "true" ]]; then
@@ -228,18 +230,48 @@ function _wt_clone_flow() {
       read ans
       if [[ "$ans" != [nN]* ]]; then
         local upstream_url="git@github.com:${parent_slug}.git"
-        git -C "$final_wt" remote add upstream "$upstream_url"
-        git -C "$final_wt" fetch upstream --quiet 2>/dev/null
+        git -C "$primary_wt" remote add upstream "$upstream_url"
+        git -C "$primary_wt" fetch upstream --quiet >/dev/null 2>&1
         echo "wt: added upstream → $parent_slug"
       fi
     fi
   fi
 
-  _wt_switch "$final_wt"
+  reply="$dest_name"
+  return 0
 }
 
-function _wt_new_worktree_flow() {
-  local repo=$1
+function _wt_new_flow() {
+  # ── Step 1: Repo picker ──────────────────────────────────────────────────
+
+  local repo_candidates=()
+  if [[ -d "$HOME/dev" ]]; then
+    local d
+    for d in "$HOME"/dev/*/; do
+      d="${d%/}"
+      [[ -d "$d" ]] && repo_candidates+=("$(basename "$d")")
+    done
+  fi
+
+  local fzf_out repo_selection
+  fzf_out=$(printf '%s\n' "${repo_candidates[@]}" \
+    | fzf --prompt="repo> " --print-query)
+  [[ -z "$fzf_out" ]] && return 1
+
+  repo_selection=$(echo "$fzf_out" | grep -v '^$' | tail -1)
+  [[ -z "$repo_selection" ]] && return 1
+
+  local repo
+  # Check if selection matches an existing repo directory
+  if [[ -d "$HOME/dev/$repo_selection" ]]; then
+    repo="$repo_selection"
+  else
+    # Not an existing repo — treat as owner/repo or URL, clone it
+    local reply
+    _wt_ensure_repo "$repo_selection" || return 1
+    repo="$reply"
+  fi
+
   local primary_wt
   primary_wt=$(_wt_primary_worktree "$repo")
   if [[ -z "$primary_wt" ]]; then
@@ -247,43 +279,154 @@ function _wt_new_worktree_flow() {
     return 1
   fi
 
-  # Fetch upstream if available so we have current branch list
-  local has_upstream=false
-  if git -C "$primary_wt" remote get-url upstream &>/dev/null; then
-    has_upstream=true
-    git -C "$primary_wt" fetch upstream --quiet 2>/dev/null
+  # ── Step 2: Branch picker ────────────────────────────────────────────────
+
+  _wt_spin_start "Collecting branches..."
+
+  # Fetch all remotes
+  git -C "$primary_wt" fetch --all --quiet >/dev/null 2>&1
+
+  # Collect branches from all sources, deduped with provenance
+  local -A branch_sources  # branch_name -> "local,origin,upstream"
+
+  # Local branches
+  local b
+  for b in $(git -C "$primary_wt" branch --format='%(refname:short)' 2>/dev/null); do
+    branch_sources[$b]="${branch_sources[$b]:+${branch_sources[$b]},}local"
+  done
+
+  # Remote branches
+  local ref remote_name branch_name
+  for ref in $(git -C "$primary_wt" branch -r --format='%(refname:short)' 2>/dev/null); do
+    # Skip HEAD pointers
+    [[ "$ref" == */HEAD ]] && continue
+    # Parse remote/branch
+    remote_name="${ref%%/*}"
+    branch_name="${ref#*/}"
+    branch_sources[$branch_name]="${branch_sources[$branch_name]:+${branch_sources[$branch_name]},}$remote_name"
+  done
+
+  # Open PRs
+  local -A branch_prs  # branch_name -> "PR #NNN: title"
+  local pr_remote pr_slug pr_list
+  pr_remote=$(_wt_upstream_remote "$primary_wt")
+  pr_slug=$(_wt_repo_slug "$primary_wt" "$pr_remote")
+  if [[ -n "$pr_slug" ]]; then
+    pr_list=$(gh pr list --repo "$pr_slug" --json number,title,headRefName \
+      --template '{{range .}}{{.number}}	{{.title}}	{{.headRefName}}{{"\n"}}{{end}}' 2>/dev/null)
+    local pr_line pr_num pr_title pr_branch
+    while IFS=$'\t' read -r pr_num pr_title pr_branch; do
+      [[ -z "$pr_num" ]] && continue
+      branch_prs[$pr_branch]="PR #${pr_num}: ${pr_title}"
+    done <<< "$pr_list"
   fi
 
-  # Show remote branches in fzf; --print-query lets the user type a new branch name too
-  # Include both origin/ and upstream/ branches, keeping prefixes for disambiguation
-  local fzf_out
-  fzf_out=$(git -C "$primary_wt" branch -r 2>/dev/null \
-    | grep -v ' -> ' \
-    | sed 's/^ *//' \
+  _wt_spin_stop
+
+  # Build display list: "branch_name    (provenance)"
+  local -a branch_display=()
+  local bname sources display_meta
+  for bname in "${(@ko)branch_sources}"; do
+    sources="${branch_sources[$bname]}"
+    display_meta="$sources"
+    if [[ -n "${branch_prs[$bname]}" ]]; then
+      display_meta+=", ${branch_prs[$bname]}"
+    fi
+    branch_display+=("$(printf '%-40s (%s)' "$bname" "$display_meta")")
+  done
+
+  # Add synthetic entry
+  branch_display+=("[+] new branch")
+
+  fzf_out=$(printf '%s\n' "${branch_display[@]}" \
     | fzf --prompt="branch> " --print-query)
   [[ -z "$fzf_out" ]] && return 1
 
-  # Last non-empty line is either the selection or the typed query
-  local selection
-  selection=$(echo "$fzf_out" | grep -v '^$' | tail -1)
-  [[ -z "$selection" ]] && return 1
+  local branch_selection
+  branch_selection=$(echo "$fzf_out" | grep -v '^$' | tail -1)
+  [[ -z "$branch_selection" ]] && return 1
 
-  # Determine the remote and bare branch name
-  local branch remote_name
-  if [[ "$selection" == upstream/* ]]; then
-    remote_name="upstream"
-    branch="${selection#upstream/}"
-  elif [[ "$selection" == origin/* ]]; then
-    remote_name="origin"
-    branch="${selection#origin/}"
+  # Parse the selection — extract branch name (strip trailing annotation)
+  local selected_branch selected_sources
+  if [[ "$branch_selection" == "[+] new branch" ]]; then
+    selected_branch=""
+  elif [[ "$branch_selection" == *'('*')' ]]; then
+    # Strip annotation: "branch_name     (sources)" → "branch_name"
+    selected_branch="${branch_selection%%  *}"
+    selected_branch="${selected_branch%% }"
+    selected_sources="${branch_sources[$selected_branch]}"
   else
-    # User typed a new branch name (no remote prefix)
-    remote_name=""
-    branch="$selection"
+    # Typed input (no match) — treat as new branch name
+    selected_branch="$branch_selection"
+    selected_branch="${selected_branch%% *}"
+    selected_sources=""
   fi
 
+  # ── Step 3: New branch flow ──────────────────────────────────────────────
+
+  if [[ -z "$selected_branch" || -z "$selected_sources" ]]; then
+    local new_branch_name="$selected_branch"
+
+    # If came from [+] new branch, prompt for branch name
+    if [[ -z "$new_branch_name" ]]; then
+      echo -n "New branch name: "
+      read new_branch_name
+      [[ -z "$new_branch_name" ]] && return 1
+    fi
+
+    # Base branch picker — prioritize main/master/release/*
+    local -a base_candidates=()
+    local -a base_priority=()
+    local -a base_other=()
+    for bname in "${(@ko)branch_sources}"; do
+      case "$bname" in
+        main|master|release/*|release-*)
+          base_priority+=("$bname")
+          ;;
+        *)
+          base_other+=("$bname")
+          ;;
+      esac
+    done
+    base_candidates=("${base_priority[@]}" "${base_other[@]}")
+
+    local base_selection
+    base_selection=$(printf '%s\n' "${base_candidates[@]}" \
+      | fzf --prompt="base branch> " --print-query \
+      | grep -v '^$' | tail -1)
+    [[ -z "$base_selection" ]] && return 1
+
+    # Resolve the base to a ref (prefer remote tracking)
+    local base_ref="$base_selection"
+    if [[ -n "${branch_sources[$base_selection]}" ]]; then
+      local base_src="${branch_sources[$base_selection]}"
+      if [[ "$base_src" == *upstream* ]]; then
+        base_ref="upstream/$base_selection"
+      elif [[ "$base_src" == *origin* ]]; then
+        base_ref="origin/$base_selection"
+      fi
+    fi
+
+    local worktree_dir dest
+    worktree_dir=$(_wt_branch_to_dir "$new_branch_name")
+    dest="$HOME/dev/$repo/$worktree_dir"
+
+    if [[ -d "$dest" ]]; then
+      echo "wt: $dest already exists, switching to it"
+      _wt_switch "$dest"
+      return
+    fi
+
+    echo "wt: creating branch $new_branch_name from $base_selection"
+    git -C "$primary_wt" worktree add -b "$new_branch_name" "$dest" "$base_ref" || return 1
+    _wt_switch "$dest"
+    return
+  fi
+
+  # ── Create worktree for existing branch ────────────────────────────────
+
   local worktree_dir dest
-  worktree_dir=$(_wt_branch_to_dir "$branch")
+  worktree_dir=$(_wt_branch_to_dir "$selected_branch")
   dest="$HOME/dev/$repo/$worktree_dir"
 
   if [[ -d "$dest" ]]; then
@@ -292,92 +435,33 @@ function _wt_new_worktree_flow() {
     return
   fi
 
-  # For upstream branches, create a local tracking branch then add the worktree
-  if [[ "$remote_name" == "upstream" ]]; then
-    echo "wt: adding worktree $dest for upstream branch $branch"
-    git -C "$primary_wt" worktree add -b "$branch" "$dest" "$remote_name/$branch" || return 1
+  # Determine how to create the worktree based on provenance
+  local has_pr="${branch_prs[$selected_branch]}"
+
+  if [[ -n "$has_pr" && "$selected_sources" != *local* && "$selected_sources" != *origin* ]]; then
+    # PR from upstream only — fetch the PR ref
+    local pr_num_only="${has_pr#PR #}"
+    pr_num_only="${pr_num_only%%:*}"
+    echo "wt: fetching $has_pr → $dest"
+    git -C "$primary_wt" fetch "$pr_remote" "pull/${pr_num_only}/head:${selected_branch}" || return 1
+    git -C "$primary_wt" worktree add "$dest" "$selected_branch" || return 1
+  elif [[ "$selected_sources" == *upstream* && "$selected_sources" != *local* ]]; then
+    echo "wt: adding worktree for upstream branch $selected_branch"
+    git -C "$primary_wt" worktree add -b "$selected_branch" "$dest" "upstream/$selected_branch" || return 1
+  elif [[ "$selected_sources" == *origin* && "$selected_sources" != *local* ]]; then
+    echo "wt: adding worktree for origin/$selected_branch"
+    git -C "$primary_wt" worktree add "$dest" "origin/$selected_branch" || return 1
   else
-    echo "wt: adding worktree $dest for branch $branch"
-    git -C "$primary_wt" worktree add "$dest" "$branch" || return 1
-  fi
-  _wt_switch "$dest"
-}
-
-function _wt_pr_flow() {
-  local repo=$1
-  local primary_wt
-  primary_wt=$(_wt_primary_worktree "$repo")
-  if [[ -z "$primary_wt" ]]; then
-    echo "wt: cannot find primary worktree for $repo" >&2
-    return 1
+    echo "wt: adding worktree for $selected_branch"
+    git -C "$primary_wt" worktree add "$dest" "$selected_branch" || return 1
   fi
 
-  # Determine which remote hosts the PRs (upstream for forks, origin otherwise)
-  local pr_remote
-  pr_remote=$(_wt_upstream_remote "$primary_wt")
-  local slug
-  slug=$(_wt_repo_slug "$primary_wt" "$pr_remote")
-  if [[ -z "$slug" ]]; then
-    echo "wt: could not determine GitHub repo from $pr_remote remote" >&2
-    return 1
-  fi
-
-  if [[ "$pr_remote" == "upstream" ]]; then
-    echo "wt: listing PRs from upstream ($slug)"
-  fi
-
-  # List open PRs and let user pick via fzf
-  local pr_list
-  pr_list=$(gh pr list --repo "$slug" --json number,title,headRefName \
-    --template '{{range .}}#{{.number}}	{{.title}}	({{.headRefName}}){{"\n"}}{{end}}' 2>/dev/null)
-  if [[ -z "$pr_list" ]]; then
-    echo "wt: no open PRs found for $slug" >&2
-    return 1
-  fi
-
-  local selected
-  selected=$(echo "$pr_list" | fzf --prompt="PR> " --delimiter=$'\t' --with-nth=1,2,3)
-  [[ -z "$selected" ]] && return 1
-
-  # Extract PR number and look up the head branch
-  local pr_number branch
-  pr_number="${${selected%%$'\t'*}#\#}"
-  branch=$(gh pr view "$pr_number" --repo "$slug" --json headRefName -q .headRefName 2>/dev/null)
-  if [[ -z "$branch" ]]; then
-    echo "wt: could not get branch for PR #$pr_number" >&2
-    return 1
-  fi
-
-  local worktree_dir dest
-  worktree_dir=$(_wt_branch_to_dir "$branch")
-  dest="$HOME/dev/$repo/$worktree_dir"
-
-  if [[ -d "$dest" ]]; then
-    echo "wt: $dest already exists, switching to it"
-    _wt_switch "$dest"
-    return
-  fi
-
-  echo "wt: fetching PR #$pr_number ($branch) → $dest"
-  git -C "$primary_wt" fetch "$pr_remote" "pull/${pr_number}/head:${branch}" || return 1
-  git -C "$primary_wt" worktree add "$dest" "$branch" || return 1
   _wt_switch "$dest"
 }
 
 # ── go subcommand (formerly goto) ───────────────────────────────────────────
 
 function _wt_go() {
-  # Detect context: are we inside ~/dev/[repo]/[worktree]?
-  local _ctx_repo="" _ctx_worktree=""
-  if [[ "$PWD" == "$HOME/dev/"* ]]; then
-    local _ctx_rel="${PWD#$HOME/dev/}"
-    local _ctx_parts=("${(@s:/:)_ctx_rel}")
-    if (( ${#_ctx_parts[@]} >= 2 )); then
-      _ctx_repo="${_ctx_parts[1]}"
-      _ctx_worktree="${_ctx_parts[2]}"
-    fi
-  fi
-
   # Build directory candidates
   local candidates=()
 
@@ -421,11 +505,7 @@ function _wt_go() {
   done
 
   # Synthetic entries (not annotated)
-  _display+=("[+] clone repo into ~/dev")
-  if [[ -n "$_ctx_repo" ]]; then
-    _display+=("[+] new worktree in $_ctx_repo")
-    _display+=("[+] checkout PR in $_ctx_repo")
-  fi
+  _display+=("[+] new worktree")
 
   # fzf
   local _qry_args=()
@@ -442,14 +522,8 @@ function _wt_go() {
 
   # Dispatch
   case "$selected" in
-    "[+] clone repo into ~/dev")
-      _wt_clone_flow
-      ;;
-    "[+] new worktree in "*)
-      _wt_new_worktree_flow "$_ctx_repo" "$_ctx_worktree"
-      ;;
-    "[+] checkout PR in "*)
-      _wt_pr_flow "$_ctx_repo"
+    "[+] new worktree")
+      _wt_new_flow
       ;;
     *)
       _wt_switch "$selected"
