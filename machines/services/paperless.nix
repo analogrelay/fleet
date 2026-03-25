@@ -60,6 +60,7 @@
 		enabled  = true;
 		maxretry = 5;
 		filter   = "paperless";
+		action   = "cloudflare-list";
 		logpath  = "/mnt/tank/services/paperless/data/log/paperless.log";
 		port     = "28981";
 	};
