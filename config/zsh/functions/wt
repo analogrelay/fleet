@@ -23,6 +23,27 @@ function _wt_log() {
 	echo "$@" 1>&2
 }
 
+function _wt_spin_start() {
+  local msg=${1:-"Working..."}
+  local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+  ( while true; do
+      for f in "${frames[@]}"; do
+        printf '\r%s %s' "$f" "$msg" >&2
+        sleep 0.08
+      done
+    done ) &
+  _wt_spin_pid=$!
+}
+
+function _wt_spin_stop() {
+  if [[ -n "$_wt_spin_pid" ]]; then
+    kill "$_wt_spin_pid" 2>/dev/null
+    wait "$_wt_spin_pid" 2>/dev/null
+    printf '\r\033[K' >&2
+    unset _wt_spin_pid
+  fi
+}
+
 function _wt_session_name() {
   local dir=$1
   local rel
@@ -451,6 +472,7 @@ function _wt_status() {
   [[ -n "$_sess_list" ]] && _active_sessions=("${(f)_sess_list}")
 
   # First pass: collect rows and measure column widths
+  _wt_spin_start "Scanning worktrees..."
   local -a _rows=()
   local _w1=4 _w2=8 _w3=6 _w4=5 _w5=4  # minimum widths (header labels)
 
@@ -515,6 +537,7 @@ function _wt_status() {
 
     _rows+=("${repo_name}	${wt_name}	${branch}	${dirty_str}	${sync_str}	${session_str}")
   done
+  _wt_spin_stop
 
   # Clamp column widths to terminal width
   local _term_w=${COLUMNS:-80}
@@ -571,7 +594,7 @@ function _wt_prune() {
   _sess_list=$(tmux list-sessions -F '#{session_name}' 2>/dev/null)
   [[ -n "$_sess_list" ]] && _active_sessions=("${(f)_sess_list}")
 
-  echo "wt: scanning worktrees..."
+  _wt_spin_start "Scanning worktrees..."
 
   local prunable=()
   local d repo_name wt_name dirty_count remote counts ahead behind
@@ -604,6 +627,7 @@ function _wt_prune() {
 
     prunable+=("$d")
   done
+  _wt_spin_stop
 
   if (( ${#prunable[@]} == 0 )); then
     echo "wt: no worktrees eligible for pruning"
