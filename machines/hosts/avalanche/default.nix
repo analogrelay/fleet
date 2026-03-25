@@ -52,6 +52,24 @@
 				"create mask" = "0700";
 				"directory mask" = "0700";
 			};
+			media = {
+				path = "/mnt/tank/media";
+				browsable = true;
+				"read only" = false;
+				"create mask" = "0775";
+				"directory mask" = "0775";
+				"force user" = "share";
+				"force group" = "share";
+			};
+			backups = {
+				path = "/mnt/tank/backups";
+				browsable = true;
+				"read only" = false;
+				"create mask" = "0775";
+				"directory mask" = "0775";
+				"force user" = "share";
+				"force group" = "share";
+			};
 			public = {
 				path = "/mnt/tank/shares/public";
 				browsable = true;

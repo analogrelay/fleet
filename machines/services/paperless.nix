@@ -1,7 +1,6 @@
 { ... }:
 
 {
-  # Linux system user — matches the Postgres role name for peer auth
   users.users.paperless = {
     isSystemUser = true;
     uid = 315;
@@ -10,12 +9,11 @@
   };
   users.groups.paperless = { gid = 315; };
 
-  # Postgres role + database (merged into the list from homedb.nix — no conflict)
   services.postgresql.ensureDatabases = [ "paperless" ];
   services.postgresql.ensureUsers = [
     {
       name = "paperless";
-      ensureDBOwnership = true;   # ALTER DATABASE paperless OWNER TO paperless
+      ensureDBOwnership = true;
     }
   ];
 
