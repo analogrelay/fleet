@@ -450,17 +450,15 @@ function _wt_status() {
   _sess_list=$(tmux list-sessions -F '#{session_name}' 2>/dev/null)
   [[ -n "$_sess_list" ]] && _active_sessions=("${(f)_sess_list}")
 
-  printf "%-20s %-15s %-25s %-8s %-12s %s\n" \
-    "REPO" "WORKTREE" "BRANCH" "DIRTY" "SYNC" "SESSION"
-  printf "%-20s %-15s %-25s %-8s %-12s %s\n" \
-    "────" "────────" "──────" "─────" "────" "───────"
+  # First pass: collect rows and measure column widths
+  local -a _rows=()
+  local _w1=4 _w2=8 _w3=6 _w4=5 _w5=4  # minimum widths (header labels)
 
   local d repo_name wt_name branch dirty_count dirty_str
-  local ahead behind sync_str session_str sname
+  local ahead behind sync_str session_str sname remote counts
   for d in "$HOME"/dev/*/*/; do
     d="${d%/}"
     [[ -d "$d" ]] || continue
-    # Must be a git worktree (has .git file or directory)
     [[ -e "$d/.git" ]] || continue
 
     repo_name="$(basename "$(dirname "$d")")"
@@ -482,11 +480,9 @@ function _wt_status() {
     fi
 
     # Sync check — fetch and compare with upstream tracking branch
-    local remote
     remote=$(_wt_upstream_remote "$d")
-    git -C "$d" fetch "$remote" --quiet 2>/dev/null
+    git -C "$d" fetch "$remote" --quiet 2>&1 >/dev/null
 
-    local counts
     counts=$(git -C "$d" rev-list --left-right --count HEAD...@{upstream} 2>/dev/null)
     if [[ -n "$counts" ]]; then
       ahead="${counts%%$'\t'*}"
@@ -510,8 +506,54 @@ function _wt_status() {
       session_str="—"
     fi
 
-    printf "%-20s %-15s %-25s %-8s %-12s %s\n" \
-      "$repo_name" "$wt_name" "$branch" "$dirty_str" "$sync_str" "$session_str"
+    # Track max column widths
+    (( ${#repo_name} > _w1 )) && _w1=${#repo_name}
+    (( ${#wt_name} > _w2 )) && _w2=${#wt_name}
+    (( ${#branch} > _w3 )) && _w3=${#branch}
+    (( ${#dirty_str} > _w4 )) && _w4=${#dirty_str}
+    (( ${#sync_str} > _w5 )) && _w5=${#sync_str}
+
+    _rows+=("${repo_name}	${wt_name}	${branch}	${dirty_str}	${sync_str}	${session_str}")
+  done
+
+  # Clamp column widths to terminal width
+  local _term_w=${COLUMNS:-80}
+  local _gap=6  # 2-space gaps between 4 pairs of columns, rounded
+  local _avail=$(( _term_w - _gap * 5 ))
+
+  # Truncate branch column if total exceeds terminal
+  local _total=$(( _w1 + _w2 + _w3 + _w4 + _w5 ))
+  if (( _total > _avail && _w3 > 12 )); then
+    _w3=$(( _avail - _w1 - _w2 - _w4 - _w5 ))
+    (( _w3 < 12 )) && _w3=12
+  fi
+
+  # Build format string
+  local _fmt="%-${_w1}s  %-${_w2}s  %-${_w3}s  %-${_w4}s  %-${_w5}s  %s\n"
+
+  # Print header
+  printf "$_fmt" "REPO" "WORKTREE" "BRANCH" "DIRTY" "SYNC" "SESSION"
+
+  local _sep1 _sep2 _sep3 _sep4 _sep5 _sep6
+  printf -v _sep1 '─%.0s' {1..$_w1}
+  printf -v _sep2 '─%.0s' {1..$_w2}
+  printf -v _sep3 '─%.0s' {1..$_w3}
+  printf -v _sep4 '─%.0s' {1..$_w4}
+  printf -v _sep5 '─%.0s' {1..$_w5}
+  _sep6="───────"
+  printf "$_fmt" "$_sep1" "$_sep2" "$_sep3" "$_sep4" "$_sep5" "$_sep6"
+
+  # Print rows
+  local _row _cols
+  for _row in "${_rows[@]}"; do
+    _cols=("${(@s:	:)_row}")
+    # Truncate branch if needed
+    local _br="${_cols[3]}"
+    if (( ${#_br} > _w3 )); then
+      _br="${_br[1,$((_w3-1))]}"
+      _br+="…"
+    fi
+    printf "$_fmt" "${_cols[1]}" "${_cols[2]}" "$_br" "${_cols[4]}" "${_cols[5]}" "${_cols[6]}"
   done
 }
 
@@ -549,11 +591,9 @@ function _wt_prune() {
     (( dirty_count > 0 )) && continue
 
     # Sync check
-    local remote
+    local remote counts ahead behind
     remote=$(_wt_upstream_remote "$d")
-    git -C "$d" fetch "$remote" --quiet 2>/dev/null
-
-    local counts ahead behind
+    git -C "$d" fetch "$remote" --quiet 2>&1 >/dev/null
     counts=$(git -C "$d" rev-list --left-right --count HEAD...@{upstream} 2>/dev/null)
     if [[ -n "$counts" ]]; then
       ahead="${counts%%$'\t'*}"
