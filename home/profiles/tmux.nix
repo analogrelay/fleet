@@ -10,6 +10,7 @@ in
     enable = true;
 		keyMode = "vi";
 		shortcut = "a";
+		mouse = true;
 		plugins = with pkgs; [
 			tmuxPlugins.sensible
 			tmuxPlugins.gruvbox
