@@ -5,15 +5,14 @@
 # Commands:
 #   go [query]    Navigate to a project directory (formerly `goto`)
 #   status        Show health overview of all worktrees (default)
+#   sync          Safely pull/push all worktrees
 #   prune         Remove clean, in-sync worktrees
 #
 # The `go` subcommand navigates to ~/dev/[repo]/[worktree] directories
 # (and legacy ~/code/[owner]/[repo]), creating tmux sessions along the way.
 #
-# Synthetic fzf entries (when inside a ~/dev repo):
-#   [+] clone repo into ~/dev
-#   [+] new worktree in [repo]
-#   [+] checkout PR in [repo]
+# Synthetic fzf entries:
+#   [+] new worktree   — pick repo, branch, and optionally create new branch
 
 # ── helpers (defined once on first call, then globally available) ────────────
 
@@ -799,6 +798,195 @@ function _wt_prune() {
   echo "wt: removed $removed worktree(s)"
 }
 
+# ── sync subcommand ─────────────────────────────────────────────────────────
+
+function _wt_sync() {
+  if [[ ! -d "$HOME/dev" ]]; then
+    echo "wt: ~/dev does not exist" >&2
+    return 1
+  fi
+
+  # ── Phase 1: Collect worktree directories ────────────────────────────────
+
+  local -a _wt_dirs=()
+  local d
+  for d in "$HOME"/dev/*/*/; do
+    d="${d%/}"
+    [[ -d "$d" ]] && [[ -e "$d/.git" ]] && _wt_dirs+=("$d")
+  done
+  [[ -d "$HOME/.config/fleet/.git" ]] && _wt_dirs+=("$HOME/.config/fleet")
+
+  if (( ${#_wt_dirs[@]} == 0 )); then
+    echo "wt: no worktrees found"
+    return 0
+  fi
+
+  # ── Phase 2: Fetch (once per repo) ──────────────────────────────────────
+
+  _wt_spin_start "Fetching remotes..."
+
+  local -A _fetched_repos=()
+  local repo_key primary_wt
+  for d in "${_wt_dirs[@]}"; do
+    if [[ "$d" == "$HOME/.config/fleet" ]]; then
+      repo_key="fleet"
+    else
+      repo_key="$(basename "$(dirname "$d")")"
+    fi
+
+    # Skip if already fetched this repo
+    [[ -n "${_fetched_repos[$repo_key]}" ]] && continue
+    _fetched_repos[$repo_key]=1
+
+    # Find the primary worktree for this repo to fetch from
+    if [[ "$d" == "$HOME/.config/fleet" ]]; then
+      git -C "$d" fetch --all --quiet >/dev/null 2>&1
+    else
+      primary_wt=$(_wt_primary_worktree "$repo_key")
+      if [[ -n "$primary_wt" ]]; then
+        git -C "$primary_wt" fetch --all --quiet >/dev/null 2>&1
+      fi
+    fi
+  done
+
+  _wt_spin_stop
+
+  # ── Phase 3: Analyze each worktree ──────────────────────────────────────
+
+  # Plan entries: action \t path \t label \t detail
+  # Actions: ok, pull, push, protect, diverge, dirty
+  local -a _plan=()
+  local repo_name wt_name label branch dirty_count
+  local remote counts ahead behind
+
+  for d in "${_wt_dirs[@]}"; do
+    if [[ "$d" == "$HOME/.config/fleet" ]]; then
+      repo_name="fleet"
+      wt_name="—"
+      label="fleet"
+    else
+      repo_name="$(basename "$(dirname "$d")")"
+      wt_name="$(basename "$d")"
+      label="$repo_name/$wt_name"
+    fi
+
+    # Branch
+    branch=$(git -C "$d" branch --show-current 2>/dev/null)
+    if [[ -z "$branch" ]]; then
+      continue
+    fi
+
+    # Dirty check
+    dirty_count=$(git -C "$d" status --porcelain 2>/dev/null | wc -l)
+    dirty_count="${dirty_count## }"
+    if (( dirty_count > 0 )); then
+      _plan+=("dirty	$d	$label	$dirty_count uncommitted changes")
+      continue
+    fi
+
+    # Sync check
+    remote=$(_wt_upstream_remote "$d")
+    counts=$(git -C "$d" rev-list --left-right --count HEAD...@{upstream} 2>/dev/null)
+    if [[ -z "$counts" ]]; then
+      continue
+    fi
+
+    ahead="${counts%%$'\t'*}"
+    behind="${counts##*$'\t'}"
+
+    if (( ahead == 0 && behind == 0 )); then
+      _plan+=("ok	$d	$label	in sync")
+    elif (( ahead == 0 && behind > 0 )); then
+      _plan+=("pull	$d	$label	$behind behind $remote")
+    elif (( ahead > 0 && behind == 0 )); then
+      case "$branch" in
+        main|master|release/*|release-*)
+          _plan+=("protect	$d	$label	$ahead ahead of $remote — push manually")
+          ;;
+        *)
+          _plan+=("push	$d	$label	$ahead ahead of $remote")
+          ;;
+      esac
+    else
+      _plan+=("diverge	$d	$label	$ahead ahead, $behind behind — needs manual rebase/merge")
+    fi
+  done
+
+  # ── Phase 4: Present sync plan ──────────────────────────────────────────
+
+  if (( ${#_plan[@]} == 0 )); then
+    echo "wt: no worktrees to sync"
+    return 0
+  fi
+
+  local has_actions=false
+  local entry action epath elabel detail
+
+  echo ""
+  echo "wt sync plan:"
+  echo ""
+  for entry in "${_plan[@]}"; do
+    action="${entry%%	*}"
+    local rest="${entry#*	}"
+    epath="${rest%%	*}"
+    rest="${rest#*	}"
+    elabel="${rest%%	*}"
+    detail="${rest#*	}"
+
+    case "$action" in
+      ok)      printf "  ✓ ok      %-35s (%s)\n" "$elabel" "$detail" ;;
+      pull)    printf "  ↓ pull    %-35s (%s)\n" "$elabel" "$detail"; has_actions=true ;;
+      push)    printf "  ↑ push    %-35s (%s)\n" "$elabel" "$detail"; has_actions=true ;;
+      protect) printf "  ⚠ protect %-35s (%s)\n" "$elabel" "$detail" ;;
+      diverge) printf "  ⚠ diverge %-35s (%s)\n" "$elabel" "$detail" ;;
+      dirty)   printf "  ⚠ dirty   %-35s (%s)\n" "$elabel" "$detail" ;;
+    esac
+  done
+
+  if [[ "$has_actions" != true ]]; then
+    echo ""
+    echo "wt: nothing to sync"
+    return 0
+  fi
+
+  echo ""
+  echo -n "Proceed with pull/push actions? [y/N] "
+  local ans
+  read ans
+  [[ "$ans" != [yY]* ]] && return 0
+
+  # ── Phase 5: Execute ────────────────────────────────────────────────────
+
+  echo ""
+  for entry in "${_plan[@]}"; do
+    action="${entry%%	*}"
+    local rest="${entry#*	}"
+    epath="${rest%%	*}"
+    rest="${rest#*	}"
+    elabel="${rest%%	*}"
+
+    case "$action" in
+      pull)
+        if git -C "$epath" pull --ff-only --quiet 2>/dev/null; then
+          echo "  ✓ pulled  $elabel"
+        else
+          echo "  ✗ failed  $elabel (pull --ff-only failed)" >&2
+        fi
+        ;;
+      push)
+        if git -C "$epath" push --quiet 2>/dev/null; then
+          echo "  ✓ pushed  $elabel"
+        else
+          echo "  ✗ failed  $elabel (push failed)" >&2
+        fi
+        ;;
+    esac
+  done
+
+  echo ""
+  echo "wt: sync complete"
+}
+
 fi  # end of one-time function definitions
 
 # ── main ─────────────────────────────────────────────────────────────────────
@@ -809,6 +997,7 @@ shift 2>/dev/null
 case "$cmd" in
   go)     _wt_go "$@" ;;
   status) _wt_status "$@" ;;
+  sync)   _wt_sync "$@" ;;
   prune)  _wt_prune "$@" ;;
   *)      echo "wt: unknown command: $cmd" >&2; return 1 ;;
 esac
