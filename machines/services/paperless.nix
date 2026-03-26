@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, pkgs-unstable, ... }:
 
 {
   # OIDC/Keycloak SSO secret — resolved at boot by `op inject`, never in the Nix store.
@@ -34,6 +34,7 @@ PAPERLESS_SOCIALACCOUNT_PROVIDERS={"openid_connect":{"OAUTH_PKCE_ENABLED":true,"
 
   services.paperless = {
     enable = true;
+		package = pkgs-unstable.paperless-ngx;
 
     # Directories on the NFS share
     dataDir        = "/mnt/tank/services/paperless/data";
