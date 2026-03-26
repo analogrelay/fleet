@@ -10,6 +10,7 @@
       ../../profiles/tailnet.nix
 
 			../../services/fail2ban.nix
+			../../services/sillytavern.nix
 			../../services/cloudflared.nix
 			../../services/postgres.nix
 			../../services/redis.nix

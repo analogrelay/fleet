@@ -5,7 +5,6 @@ let
   enabledSecrets = lib.filterAttrs (_: s: s.source != null || s.template != null) cfg.secrets;
   hasSecrets = enabledSecrets != { };
   requiredSecrets = lib.filterAttrs (_: s: s.required) enabledSecrets;
-  optionalSecrets = lib.filterAttrs (_: s: !s.required) enabledSecrets;
   hasRequired = requiredSecrets != { };
   isDarwin = options ? launchd;
   secretsDir =
@@ -59,7 +58,7 @@ let
       required = lib.mkOption {
         type = lib.types.bool;
         default = true;
-        description = "Whether provisioning failure for this secret should fail the service.";
+        description = "Whether this secret is required. Failures for required secrets are logged as errors; optional secrets log warnings.";
       };
     };
   };
@@ -112,11 +111,12 @@ let
             echo "fleet-secrets: ERROR: failed to provision required secret ${name}" >&2
             cat "$OP_STDERR" >&2
             rm -f "$SECRETS_DIR/${name}" "$OP_STDERR"
-            exit 1
+            FAILED_REQUIRED="$FAILED_REQUIRED ${name}"
+          else
+            rm -f "$OP_STDERR"
+            chmod ${secret.mode} "$SECRETS_DIR/${name}"
+            chown ${secret.owner}:${secret.group} "$SECRETS_DIR/${name}"
           fi
-          rm -f "$OP_STDERR"
-          chmod ${secret.mode} "$SECRETS_DIR/${name}"
-          chown ${secret.owner}:${secret.group} "$SECRETS_DIR/${name}"
         ''
         else ''
           echo "fleet-secrets: provisioning ${name} (optional)" >&2
@@ -138,6 +138,7 @@ let
       TOKEN_FILE="/etc/fleet/1p-token"
       SECRETS_DIR="${secretsDir}"
       HAS_TOKEN=true
+      FAILED_REQUIRED=""
 
       export OP_CONFIG_DIR
       OP_CONFIG_DIR="$(mktemp -d)"
@@ -145,25 +146,30 @@ let
 
       ${tokenLoader}
 
-      if ! $HAS_TOKEN; then
-        ${if hasRequired then ''
-          echo "fleet-secrets: required secrets exist but no token available, failing" >&2
-          exit 1
-        '' else ''
-          echo "fleet-secrets: no token available but all secrets are optional, skipping" >&2
-          exit 0
-        ''}
-      fi
-      export OP_SERVICE_ACCOUNT_TOKEN
-
       # Purge and recreate the secrets directory
       rm -rf "$SECRETS_DIR"
       mkdir -p "$SECRETS_DIR"
       chmod 0751 "$SECRETS_DIR"
 
-      ${lib.concatStringsSep "\n" (lib.mapAttrsToList provisionSecret enabledSecrets)}
+      if ! $HAS_TOKEN; then
+        ${if hasRequired then ''
+          echo "fleet-secrets: ERROR: required secrets exist but no token available" >&2
+          FAILED_REQUIRED="${lib.concatStringsSep " " (lib.attrNames requiredSecrets)}"
+        '' else ''
+          echo "fleet-secrets: no token available but all secrets are optional, skipping" >&2
+        ''}
+      else
+        export OP_SERVICE_ACCOUNT_TOKEN
 
-      echo "fleet-secrets: all secrets provisioned"
+        ${lib.concatStringsSep "\n" (lib.mapAttrsToList provisionSecret enabledSecrets)}
+      fi
+
+      if [ -n "$FAILED_REQUIRED" ]; then
+        echo "fleet-secrets: ERROR: failed to provision required secrets:$FAILED_REQUIRED" >&2
+        echo "fleet-secrets: services depending on these secrets may not work correctly" >&2
+      else
+        echo "fleet-secrets: all secrets provisioned" >&2
+      fi
     '';
 in
 {
