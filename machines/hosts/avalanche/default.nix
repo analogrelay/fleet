@@ -11,6 +11,8 @@
 
 			../../services/fail2ban.nix
 			../../services/sillytavern.nix
+			../../services/caddy.nix
+			../../services/oauth2-proxy.nix
 			../../services/cloudflared.nix
 			../../services/postgres.nix
 			../../services/redis.nix
