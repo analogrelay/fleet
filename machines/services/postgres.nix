@@ -81,7 +81,10 @@ in
   };
 
   # Only allow PostgreSQL from the LAN; tailnet is already trusted via tailscale0
-  networking.firewall.extraInputRules = ''
-    ip saddr 192.168.0.0/16 tcp dport 5432 accept
+  networking.firewall.extraCommands = ''
+    iptables -A nixos-fw -s 192.168.0.0/16 -p tcp --dport 5432 -j nixos-fw-accept
+  '';
+  networking.firewall.extraStopCommands = ''
+    iptables -D nixos-fw -s 192.168.0.0/16 -p tcp --dport 5432 -j nixos-fw-accept 2>/dev/null || true
   '';
 }
