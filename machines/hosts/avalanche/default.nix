@@ -18,6 +18,7 @@
 			../../services/redis.nix
 			../../services/paperless.nix
 			../../services/keycloak.nix
+			../../services/ledger.nix
     ];
 
   networking.hostName = "avalanche";
