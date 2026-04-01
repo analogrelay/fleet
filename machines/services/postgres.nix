@@ -34,12 +34,16 @@ in
       peer_map root     postgres
       peer_map /^(.*)$  \1
     '';
+    settings.listen_addresses = pkgs.lib.mkForce "*";
+
     # Unix socket: peer auth with ident map (Linux username = postgres role name)
-    # TCP loopback: password auth (scram-sha-256)
+    # TCP loopback + LAN + Tailnet: password auth (scram-sha-256)
     authentication = pkgs.lib.mkOverride 10 ''
       local all all              peer map=peer_map
       host  all all 127.0.0.1/32 scram-sha-256
       host  all all ::1/128      scram-sha-256
+      host  all all 192.168.0.0/16 scram-sha-256
+      host  all all 100.64.0.0/10  scram-sha-256
     '';
   };
 
@@ -76,5 +80,8 @@ in
     '';
   };
 
-  networking.firewall.allowedTCPPorts = [ 5432 ];
+  # Only allow PostgreSQL from the LAN; tailnet is already trusted via tailscale0
+  networking.firewall.extraInputRules = ''
+    ip saddr 192.168.0.0/16 tcp dport 5432 accept
+  '';
 }
