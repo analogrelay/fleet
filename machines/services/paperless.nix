@@ -47,6 +47,8 @@ PAPERLESS_SOCIALACCOUNT_PROVIDERS={"openid_connect":{"OAUTH_PKCE_ENABLED":true,"
     settings = {
       # Enable the OpenID Connect social account provider for Keycloak SSO
       PAPERLESS_APPS = "allauth.socialaccount.providers.openid_connect";
+			PAPERLESS_DISABLE_REGULAR_LOGIN = "true";
+
       PAPERLESS_TRASH_DIR = "/mnt/tank/services/paperless/trash/";
 
       # Connect to postgres via unix socket using peer auth
