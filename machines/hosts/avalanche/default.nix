@@ -19,6 +19,8 @@
 			../../services/paperless.nix
 			../../services/keycloak.nix
 			../../services/ledger.nix
+			../../services/radarr.nix
+			../../services/wal-g.nix
     ];
 
   networking.hostName = "avalanche";
