@@ -5,7 +5,6 @@
     ./hardware-configuration.nix
     ../../platform.nix
     ../../users
-    ../../services/homedb.nix
   ];
 
   networking.hostName = "shinra";
