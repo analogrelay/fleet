@@ -23,7 +23,7 @@
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
-		backupFileExtension = "hm-bak";
+    backupFileExtension = "hm-bak";
     extraSpecialArgs = {
       inherit pkgs-unstable pkgs-analogrelay;
     };
@@ -31,7 +31,7 @@
 
   programs.zsh.enable = true;
 
-	# A test secret that allows for checking that the secret management is working.
+  # A test secret that allows for checking that the secret management is working.
   fleet.secrets."test" = {
     source = "op://Fleet/TestSecret/credential";
     required = false;

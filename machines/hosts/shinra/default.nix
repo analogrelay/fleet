@@ -6,10 +6,10 @@
     ../../platform.nix
     ../../users
 
-		../../services/fail2ban.nix
-		../../services/grafana.nix
-		../../services/loki.nix
-		../../services/prometheus.nix
+    ../../services/fail2ban.nix
+    ../../services/grafana.nix
+    ../../services/loki.nix
+    ../../services/prometheus.nix
   ];
 
   networking.hostName = "shinra";
@@ -28,23 +28,23 @@
   fleet.secrets."cloudflared-tunnel-creds" = {
     source = "op://Fleet/CloudflareTunnel-Shinra/tunnel-creds";
   };
-	fleet.secrets."cloudflared-tunnel-cert.pem" = {
-		source = "op://Fleet/CloudflareTunnel-Shinra/tunnel-cert.pem";
-	};
-	services.cloudflared = {
-		enable = true;
-		certificateFile = config.fleet.secrets."cloudflared-tunnel-cert.pem".path;
-		tunnels."a0c39510-6e96-42ed-a58d-7a18c465b173" = {
-			credentialsFile = config.fleet.secrets."cloudflared-tunnel-creds".path;
-			default = "http_status:404";
-		};
-	};
-	systemd.services."cloudflared-tunnel-a0c39510-6e96-42ed-a58d-7a18c465b173".after = [
-		"provision-fleet-secrets.service"
-	];
+  fleet.secrets."cloudflared-tunnel-cert.pem" = {
+    source = "op://Fleet/CloudflareTunnel-Shinra/tunnel-cert.pem";
+  };
+  services.cloudflared = {
+    enable = true;
+    certificateFile = config.fleet.secrets."cloudflared-tunnel-cert.pem".path;
+    tunnels."a0c39510-6e96-42ed-a58d-7a18c465b173" = {
+      credentialsFile = config.fleet.secrets."cloudflared-tunnel-creds".path;
+      default = "http_status:404";
+    };
+  };
+  systemd.services."cloudflared-tunnel-a0c39510-6e96-42ed-a58d-7a18c465b173".after = [
+    "provision-fleet-secrets.service"
+  ];
 
-	services.alloy.enable = true;
-	systemd.services.alloy.serviceConfig.SupplementaryGroups = [ "systemd-journal" ];
-	systemd.services.alloy.serviceConfig.AmbientCapabilities = [ "CAP_DAC_READ_SEARCH" ];
-	environment.etc."alloy/config.alloy".source = ./config.alloy;
+  services.alloy.enable = true;
+  systemd.services.alloy.serviceConfig.SupplementaryGroups = [ "systemd-journal" ];
+  systemd.services.alloy.serviceConfig.AmbientCapabilities = [ "CAP_DAC_READ_SEARCH" ];
+  environment.etc."alloy/config.alloy".source = ./config.alloy;
 }

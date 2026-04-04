@@ -8,7 +8,7 @@ let
       ./roles/${role}.nix)
     ++ (lib.optional (builtins.pathExists ./roles/${role}.${os}.nix)
       ./roles/${role}.${os}.nix) ++ [
-				./profiles/agents.nix
+        ./profiles/agents.nix
         ./profiles/shell.nix
         ./profiles/git.nix
         ./profiles/nvim.nix
@@ -50,7 +50,7 @@ in {
     nixfmt-rfc-style
     zip
     unzip
-		fd
+    fd
     wget
     curl
     nix-index

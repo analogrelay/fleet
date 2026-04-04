@@ -24,6 +24,6 @@ in
     enable = true;
     enableZshIntegration = true;
     enableBashIntegration = true;
-		configFile = ../../config/analoglite.omp.json;
+    configFile = ../../config/analoglite.omp.json;
   };
 }

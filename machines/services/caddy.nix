@@ -1,14 +1,14 @@
 { ... }:
 
 {
-	services.caddy = {
-		enable = true;
-		globalConfig = 
-			''
-			auto_https off
-			servers {
-				metrics
-			}
-			'';
-	};
+  services.caddy = {
+    enable = true;
+    globalConfig = 
+      ''
+      auto_https off
+      servers {
+        metrics
+      }
+      '';
+  };
 }

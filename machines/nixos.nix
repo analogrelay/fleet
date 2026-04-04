@@ -39,7 +39,7 @@
     usbutils
     pciutils
     hw-probe
-		ghostty.terminfo
+    ghostty.terminfo
   ];
 
   programs.nix-ld.enable = true;

@@ -28,13 +28,13 @@ PAPERLESS_SOCIALACCOUNT_PROVIDERS={"openid_connect":{"OAUTH_PKCE_ENABLED":true,"
     }
   ];
 
-	services.cloudflared.tunnels."a0306444-7c05-4c03-9152-d6c09e116854".ingress = {
-		"cabinet.analogrelay.net" = "http://localhost:28981";
-	};
+  services.cloudflared.tunnels."a0306444-7c05-4c03-9152-d6c09e116854".ingress = {
+    "cabinet.analogrelay.net" = "http://localhost:28981";
+  };
 
   services.paperless = {
     enable = true;
-		package = pkgs-unstable.paperless-ngx;
+    package = pkgs-unstable.paperless-ngx;
 
     # Directories on the NFS share
     dataDir        = "/mnt/tank/services/paperless/data";
@@ -47,7 +47,7 @@ PAPERLESS_SOCIALACCOUNT_PROVIDERS={"openid_connect":{"OAUTH_PKCE_ENABLED":true,"
     settings = {
       # Enable the OpenID Connect social account provider for Keycloak SSO
       PAPERLESS_APPS = "allauth.socialaccount.providers.openid_connect";
-			PAPERLESS_DISABLE_REGULAR_LOGIN = "true";
+      PAPERLESS_DISABLE_REGULAR_LOGIN = "true";
 
       PAPERLESS_TRASH_DIR = "/mnt/tank/services/paperless/trash/";
 
@@ -61,7 +61,7 @@ PAPERLESS_SOCIALACCOUNT_PROVIDERS={"openid_connect":{"OAUTH_PKCE_ENABLED":true,"
       # Point to our existing redis instance
       PAPERLESS_REDIS = "unix:///run/redis-paperless/redis.sock";
 
-			PAPERLESS_URL = "https://cabinet.analogrelay.net";
+      PAPERLESS_URL = "https://cabinet.analogrelay.net";
     };
   };
 
@@ -83,18 +83,18 @@ PAPERLESS_SOCIALACCOUNT_PROVIDERS={"openid_connect":{"OAUTH_PKCE_ENABLED":true,"
   systemd.services.paperless-consumer.after        = [ "provision-fleet-secrets.service" ];
   systemd.services.paperless-consumer.requires     = [ "provision-fleet-secrets.service" ];
 
-	services.fail2ban.jails.paperless.settings = {
-		enabled  = true;
-		maxretry = 5;
-		filter   = "paperless";
-		action   = "cloudflare-list";
-		logpath  = "/mnt/tank/services/paperless/data/log/paperless.log";
-		port     = "28981";
-	};
-	environment.etc."fail2ban/filter.d/paperless.local".text = 
-		''
-		[Definition]
-		failregex = Login failed for user `.*` from (?:IP|private IP) `<HOST>`\.$
-		ignoreregex =
-		'';
+  services.fail2ban.jails.paperless.settings = {
+    enabled  = true;
+    maxretry = 5;
+    filter   = "paperless";
+    action   = "cloudflare-list";
+    logpath  = "/mnt/tank/services/paperless/data/log/paperless.log";
+    port     = "28981";
+  };
+  environment.etc."fail2ban/filter.d/paperless.local".text = 
+    ''
+    [Definition]
+    failregex = Login failed for user `.*` from (?:IP|private IP) `<HOST>`\.$
+    ignoreregex =
+    '';
 }

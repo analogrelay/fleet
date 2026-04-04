@@ -24,7 +24,7 @@
     ripgrep
   ]) ++ (with pkgs-unstable; [
     azure-cli
-		devenv
+    devenv
   ]);
 
   home.sessionVariables = {

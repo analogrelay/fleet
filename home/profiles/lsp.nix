@@ -8,6 +8,6 @@
     typescript
     pyright
     nil
-		lua-language-server
+    lua-language-server
   ];
 }

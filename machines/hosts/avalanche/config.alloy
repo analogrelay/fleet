@@ -53,7 +53,7 @@ prometheus.scrape "redis" {
 // ----------------------------------------------------------------------------
 prometheus.exporter.postgres "local" {
   data_source_names = [
-		"postgresql://alloy:" + sys.env("PG_ALLOY_PASS") + "@localhost/postgres?sslmode=disable",
+		"postgresql://alloy:" + encoding.url_encode(sys.env("PG_ALLOY_PASS")) + "@localhost/postgres?sslmode=disable",
   ]
 
   autodiscovery {
