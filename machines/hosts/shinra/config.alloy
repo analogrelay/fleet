@@ -1,0 +1,99 @@
+// ----------------------------------------------------------------------------
+// System metrics (node_exporter equivalent)
+// Covers: CPU, memory, disk, network, filesystem, systemd units, etc.
+// ----------------------------------------------------------------------------
+prometheus.exporter.unix "system" {
+	enable_collectors = [
+		"cpu",
+		"diskstats",
+		"filesystem",
+		"loadavg",
+		"meminfo",
+		"netdev",
+		"netstat",
+		"os",
+		"pressure",
+		"systemd",
+		"time",
+		"uname",
+		"vmstat",
+		"zfs",
+	]
+
+	systemd {
+		// Collect unit states for these patterns - covers your main services
+		unit_include = ".+"
+	}
+}
+
+prometheus.scrape "system" {
+	targets         = prometheus.exporter.unix.system.targets
+	scrape_interval = "30s"
+	forward_to      = [prometheus.relabel.add_host.receiver]
+}
+
+// ----------------------------------------------------------------------------
+// Relabeling: attach hostname to all metrics
+// ----------------------------------------------------------------------------
+prometheus.relabel "add_host" {
+	forward_to = [prometheus.remote_write.shinra.receiver]
+
+	rule {
+		target_label = "instance"
+		replacement  = constants.hostname
+	}
+}
+
+// ----------------------------------------------------------------------------
+// Remote write to Prometheus on shinra
+// ----------------------------------------------------------------------------
+prometheus.remote_write "shinra" {
+	endpoint {
+		url = "http://shinra.analogno.de:9090/api/v1/write"
+	}
+}
+
+// ----------------------------------------------------------------------------
+// Journal log collection (full systemd journal)
+// ----------------------------------------------------------------------------
+loki.relabel "journal" {
+	forward_to = []
+
+	rule {
+		source_labels = ["__journal__systemd_unit"]
+		target_label  = "unit"
+	}
+
+	rule {
+		source_labels = ["__journal__hostname"]
+		target_label  = "host"
+	}
+
+	rule {
+		source_labels = ["__journal_priority"]
+		target_label  = "priority"
+	}
+
+	rule {
+		source_labels = ["__journal_syslog_identifier"]
+		target_label  = "syslog_id"
+	}
+}
+
+loki.source.journal "systemd" {
+	forward_to    = [loki.write.shinra.receiver]
+	relabel_rules = loki.relabel.journal.rules
+	labels        = {
+		job  = "journal",
+		host = constants.hostname,
+	}
+}
+
+// ----------------------------------------------------------------------------
+// Ship logs to Loki on shinra
+// ----------------------------------------------------------------------------
+loki.write "shinra" {
+	endpoint {
+		url = "http://shinra.analogno.de:3100/loki/api/v1/push"
+	}
+}

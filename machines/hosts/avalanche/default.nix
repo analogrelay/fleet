@@ -101,22 +101,8 @@
 			default = "http_status:404";
 		};
 	};
-	systemd.services."cloudflared-tunnel-a0306444-7c05-4c03-9152-d6c09e116854.service".after = [
+	systemd.services."cloudflared-tunnel-a0306444-7c05-4c03-9152-d6c09e116854".after = [
 		"provision-fleet-secrets.service"
 	];
-
-	# Secret overrides — credentials injected from 1Password at boot.
-	fleet.secrets."cloudflare-fail2ban-list-action".template =
-		''
-		[Init]
-		cftoken = {{ op://Fleet/Cloudflare-Fail2Ban/token }}
-		cfaccountid = {{ op://Fleet/Cloudflare-Fail2Ban/account-id }}
-		cflistid = {{ op://Fleet/Cloudflare-Fail2Ban/list-id }}
-		'';
-
-	environment.etc."fail2ban/action.d/cloudflare-list.local" = {
-		mode = "symlink";
-		source = config.fleet.secrets."cloudflare-fail2ban-list-action".path;
-	};
 }
 

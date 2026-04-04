@@ -70,10 +70,10 @@ in
 	# Secret overrides — credentials injected from 1Password at boot.
 	fleet.secrets."cloudflare-fail2ban-list-action".template =
 		''
-		[Init]
-		cftoken = {{ op://Fleet/Cloudflare/fail2ban-token }}
-		cfaccountid = {{ op://Fleet/Cloudflare/account-id }}
-		cflistid = {{ op://Fleet/Cloudflare/fail2ban-list-id }}
+			[Init]
+			cftoken = {{ op://Fleet/Cloudflare-Fail2Ban/token }}
+			cfaccountid = {{ op://Fleet/Cloudflare-Fail2Ban/account-id }}
+			cflistid = {{ op://Fleet/Cloudflare-Fail2Ban/list-id }}
 		'';
 
 	environment.etc."fail2ban/action.d/cloudflare-list.local" = {
