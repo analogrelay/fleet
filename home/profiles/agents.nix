@@ -24,7 +24,7 @@ in {
 	};
 
 	programs.claude-code = {
-		package = pkgs-unstable.claude-code-bin;
+		package = pkgs.claude-code;
 		enable = true;
 		settings = {
 			enabledPlugins = {
