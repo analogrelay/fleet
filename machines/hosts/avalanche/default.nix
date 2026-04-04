@@ -20,6 +20,7 @@
 			../../services/ledger.nix
 			../../services/radarr.nix
 			../../services/wal-g.nix
+			../../services/syncthing.nix
     ];
 
   networking.hostName = "avalanche";
@@ -104,5 +105,10 @@
 	systemd.services."cloudflared-tunnel-a0306444-7c05-4c03-9152-d6c09e116854".after = [
 		"provision-fleet-secrets.service"
 	];
+
+	services.alloy.enable = true;
+	systemd.services.alloy.serviceConfig.SupplementaryGroups = [ "systemd-journal" ];
+	systemd.services.alloy.serviceConfig.AmbientCapabilities = [ "CAP_DAC_READ_SEARCH" ];
+	environment.etc."alloy/config.alloy".source = ./config.alloy;
 }
 

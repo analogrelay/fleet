@@ -1,0 +1,168 @@
+// ----------------------------------------------------------------------------
+// System metrics (node_exporter equivalent)
+// Covers: CPU, memory, disk, network, filesystem, systemd units, etc.
+// ----------------------------------------------------------------------------
+prometheus.exporter.unix "system" {
+  enable_collectors = [
+    "cpu",
+    "diskstats",
+    "filesystem",
+    "loadavg",
+    "meminfo",
+    "netdev",
+    "netstat",
+    "os",
+    "pressure",
+    "systemd",
+    "time",
+    "uname",
+    "vmstat",
+    "zfs",
+  ]
+
+  systemd {
+    // Collect unit states for these patterns - covers your main services
+    unit_include = ".+"
+  }
+}
+
+prometheus.scrape "system" {
+  targets         = prometheus.exporter.unix.system.targets
+  scrape_interval = "30s"
+  forward_to      = [prometheus.relabel.add_host.receiver]
+}
+
+// ----------------------------------------------------------------------------
+// Redis metrics (built-in redis_exporter)
+// ----------------------------------------------------------------------------
+prometheus.exporter.redis "local" {
+  redis_addr = "localhost:6379"
+}
+
+prometheus.scrape "redis" {
+  targets         = prometheus.exporter.redis.local.targets
+  scrape_interval = "30s"
+  forward_to      = [prometheus.relabel.add_host.receiver]
+  job_name        = "redis"
+}
+
+// ----------------------------------------------------------------------------
+// PostgreSQL metrics (built-in postgres_exporter)
+// Adjust the DSN to match your local Postgres auth setup.
+// If you use peer auth, you'll need a dedicated monitoring user + password.
+// ----------------------------------------------------------------------------
+prometheus.exporter.postgres "local" {
+  data_source_names = [
+		"postgresql://alloy:" + sys.env("PG_ALLOY_PASS") + "@localhost/postgres?sslmode=disable",
+  ]
+
+  autodiscovery {
+    enabled = true
+  }
+}
+
+prometheus.scrape "postgres" {
+  targets         = prometheus.exporter.postgres.local.targets
+  scrape_interval = "30s"
+  forward_to      = [prometheus.relabel.add_host.receiver]
+  job_name        = "postgres"
+}
+
+// ----------------------------------------------------------------------------
+// Caddy metrics (native Prometheus endpoint on admin API)
+// Requires `servers { metrics }` in your Caddyfile global options.
+// Default admin API: localhost:2019
+// ----------------------------------------------------------------------------
+prometheus.scrape "caddy" {
+  targets = [{
+    __address__ = "localhost:2019",
+  }]
+  metrics_path    = "/metrics"
+  scrape_interval = "30s"
+  forward_to      = [prometheus.relabel.add_host.receiver]
+  job_name        = "caddy"
+}
+
+// ----------------------------------------------------------------------------
+// Keycloak metrics
+// Keycloak exposes Prometheus metrics at /metrics on its management port.
+// Default management port is 9000 when using --metrics-enabled=true.
+// If you haven't enabled this yet, add to your Keycloak config:
+//   KC_METRICS_ENABLED=true
+// ----------------------------------------------------------------------------
+prometheus.scrape "keycloak" {
+  targets = [{
+    __address__ = "localhost:9000",
+  }]
+  metrics_path    = "/metrics"
+  scrape_interval = "30s"
+  forward_to      = [prometheus.relabel.add_host.receiver]
+  job_name        = "keycloak"
+}
+
+// ----------------------------------------------------------------------------
+// Relabeling: attach hostname to all metrics
+// ----------------------------------------------------------------------------
+prometheus.relabel "add_host" {
+  forward_to = [prometheus.remote_write.shinra.receiver]
+
+  rule {
+    target_label = "instance"
+    replacement  = constants.hostname
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Remote write to Prometheus on shinra
+// ----------------------------------------------------------------------------
+prometheus.remote_write "shinra" {
+  endpoint {
+    url = "http://shinra.analogno.de:9090/api/v1/write"
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Journal log collection (full systemd journal)
+// ----------------------------------------------------------------------------
+loki.relabel "journal" {
+  forward_to = []
+
+  rule {
+    source_labels = ["__journal__systemd_unit"]
+    target_label  = "unit"
+  }
+
+  rule {
+    source_labels = ["__journal__hostname"]
+    target_label  = "host"
+  }
+
+  rule {
+    source_labels = ["__journal_priority"]
+    target_label  = "priority"
+  }
+
+  rule {
+    source_labels = ["__journal_syslog_identifier"]
+    target_label  = "syslog_id"
+  }
+}
+
+loki.source.journal "systemd" {
+  forward_to    = [loki.write.shinra.receiver]
+  relabel_rules = loki.relabel.journal.rules
+  labels        = {
+    job  = "journal",
+    host = constants.hostname,
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Ship logs to Loki on shinra
+// ----------------------------------------------------------------------------
+loki.write "shinra" {
+  endpoint {
+    url = "http://shinra.analogno.de:3100/loki/api/v1/push"
+  }
+}
+

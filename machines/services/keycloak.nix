@@ -48,6 +48,7 @@
 			http-enabled = true;
 			proxy-headers = "xforwarded";
 			proxy-trusted-addresses="::1/128,127.0.0.0/8";
+			metrics-enabled = true;
 		};
 	};
 }

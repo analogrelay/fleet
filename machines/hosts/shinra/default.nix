@@ -44,5 +44,7 @@
 	];
 
 	services.alloy.enable = true;
-	environment.etc."alloy/config.alloy".path = ./config.alloy;
+	systemd.services.alloy.serviceConfig.SupplementaryGroups = [ "systemd-journal" ];
+	systemd.services.alloy.serviceConfig.AmbientCapabilities = [ "CAP_DAC_READ_SEARCH" ];
+	environment.etc."alloy/config.alloy".source = ./config.alloy;
 }

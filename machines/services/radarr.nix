@@ -21,6 +21,11 @@
 	};
   networking.firewall.allowedTCPPorts = [ 6789 ];
 
+	services.jackett = {
+		enable = true;
+		openFirewall = true;
+	};
+
 	services.qbittorrent = {
 		enable = true;
 		webuiPort = 7880;

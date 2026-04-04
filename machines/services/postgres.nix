@@ -3,6 +3,7 @@
 let
   postgresUsername = config.fleet.secrets."postgres-admin-username".path;
   postgresPassword = config.fleet.secrets."postgres-admin-password".path;
+	alloyPassword = config.fleet.secrets."postgres-alloy-password".path;
 in
 {
   fleet.secrets."postgres-admin-username" = {
@@ -11,6 +12,10 @@ in
   };
   fleet.secrets."postgres-admin-password" = {
     source = "op://Fleet/PostgresAdmin/password";
+    owner = "postgres";
+  };
+  fleet.secrets."postgres-alloy-password" = {
+    template = "PG_ALLOY_PASS={{op://Fleet/PostgresAlloy/password}}";
     owner = "postgres";
   };
 
@@ -27,6 +32,10 @@ in
         ensureDBOwnership = true;
         ensureClauses.superuser = true;
       }
+			{
+				name = "alloy";
+				ensureClauses.login = true;
+			}
     ];
 
     # Maps root → postgres role; all other OS users → same-named PG role
@@ -63,6 +72,7 @@ in
     script = ''
       PG_USER="$(cat ${postgresUsername})"
       PG_PASS="$(cat ${postgresPassword})"
+			. ${alloyPassword}
 
       # Create user if it doesn't exist, then set password
       ${config.services.postgresql.package}/bin/psql -tAc \
@@ -70,15 +80,27 @@ in
         ${config.services.postgresql.package}/bin/psql -c \
           "CREATE ROLE \"$PG_USER\" WITH LOGIN SUPERUSER;"
 
+      # Create user if it doesn't exist, then set password
+      ${config.services.postgresql.package}/bin/psql -tAc \
+        "SELECT 1 FROM pg_roles WHERE rolname = 'alloy'" | grep -q 1 || \
+        ${config.services.postgresql.package}/bin/psql -c \
+          "CREATE ROLE \"alloy\" WITH LOGIN SUPERUSER;"
+
       ${config.services.postgresql.package}/bin/psql -c \
-        "ALTER ROLE \"$PG_USER\" WITH PASSWORD '$PG_PASS';"
+        "ALTER ROLE \"alloy\" WITH PASSWORD '$PG_ALLOY_PASS';"
 
       # Create database if it doesn't exist
       ${config.services.postgresql.package}/bin/psql -tAc \
         "SELECT 1 FROM pg_database WHERE datname = '$PG_USER'" | grep -q 1 || \
         ${config.services.postgresql.package}/bin/createdb -O "$PG_USER" "$PG_USER"
+
+			# Grant pg_monitor to alloy user
+      ${config.services.postgresql.package}/bin/psql -c \
+        "GRANT pg_monitor TO alloy;"
     '';
   };
+
+	systemd.services.alloy.serviceConfig.EnvironmentFile = [ alloyPassword ];
 
   # Only allow PostgreSQL from the LAN; tailnet is already trusted via tailscale0
   networking.firewall.extraCommands = ''

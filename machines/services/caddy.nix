@@ -6,6 +6,9 @@
 		globalConfig = 
 			''
 			auto_https off
+			servers {
+				metrics
+			}
 			'';
 	};
 }
