@@ -14,6 +14,7 @@ prometheus.exporter.unix "system" {
     "os",
     "pressure",
     "systemd",
+    "textfile",
     "time",
     "uname",
     "vmstat",
@@ -23,6 +24,10 @@ prometheus.exporter.unix "system" {
   systemd {
     // Collect unit states for these patterns - covers your main services
     unit_include = ".+"
+  }
+
+  textfile {
+    directory = "/var/lib/prometheus-textfile"
   }
 }
 

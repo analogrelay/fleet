@@ -21,6 +21,7 @@
       ../../services/radarr.nix
       ../../services/wal-g.nix
       ../../services/syncthing.nix
+      ../../services/speedtesting.nix
     ];
 
   networking.hostName = "avalanche";
