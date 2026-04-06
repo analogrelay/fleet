@@ -235,12 +235,10 @@
 
         devShells.default = pkgs.mkShell {
           packages = [
-            ssh-to-age.packages.${system}.ssh-to-age
             home-manager.packages.${system}.home-manager
             pkgs.zsh
             pkgs.bashInteractive
             pkgs.nix
-            pkgs.sops
             pkgs.git
             pkgs.jq
             pkgs.uv

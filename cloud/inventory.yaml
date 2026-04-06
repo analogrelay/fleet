@@ -1,0 +1,59 @@
+# This file contains a full inventory of nodes in my cloud and "fleet" (local machines)
+# The idea is for this file to be used to drive Router configuration (DHCP leases) and Azure DNS (*.node.analogrelay.net and more)
+#
+# Each node has:
+# * A name, which is the local hostname
+# * A realm, which indicates a sort of primary purpose for the node. Is it for `home` use, `work` use?
+# * A domain, which is the domain name that, when combined with the name, makes up the primary FQDN for the node
+
+# All nodes in the inventory, organized by their primary "zone".
+router: 192.168.1.1
+zones:
+  analogrelay.net:
+    tunnel: aerith.analogno.de
+  home.analogrelay.net:
+    partial: true
+    services:
+    - name: paperless
+      canonicalName: shinra.analogno.de
+  analogno.de:
+    nodes:
+    - name: aerith
+      realm: cloud
+      azureVm:
+        resourceGroup: analogcloud
+        name: aerith
+    - name: home
+      realm: home
+      ipAddress: 192.168.2.12
+      macAddress: 20:F8:3B:00:A8:ED
+    - name: avalanche
+      realm: home
+      ipAddress: 192.168.2.1
+      macAddress: 74:56:3C:75:F4:26
+    - name: shinra
+      realm: home
+      ipAddress: 192.168.2.2
+      macAddress: 7C:C2:C6:45:A8:30
+    - name: sephiroth
+      realm: home
+      ipAddress: 192.168.3.1
+      macAddress: F8:4D:89:5E:3C:4D
+    - name: cloud
+      realm: home
+      ipAddress: 192.168.3.2
+      macAddress: BC:FC:E7:1D:07:57
+    - name: ashleyst-delta
+      realm: work
+      ipAddress: 192.168.3.3
+      macAddress: C8:96:65:E6:D8:46
+    - name: deck
+      realm: home
+      ipAddress: 192.168.3.5
+      macAddress: C2:A2:A8:B3:D7:2E
+    - name: scarlet
+      realm: home
+      ipAddress: 192.168.3.6
+      macAddress: 58:47:CA:78:B5:26
+
+
