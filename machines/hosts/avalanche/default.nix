@@ -22,6 +22,9 @@
       ../../services/wal-g.nix
       ../../services/syncthing.nix
       ../../services/speedtesting.nix
+      ../../services/rclone.nix
+      ../../services/jellyfin.nix
+      ../../services/coder.nix
     ];
 
   networking.hostName = "avalanche";
@@ -37,7 +40,7 @@
   boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
 
   environment.systemPackages = with pkgs; [
-    sshfs
+    rclone
     linuxKernel.packages.linux_6_1.gasket
     zfs
   ];

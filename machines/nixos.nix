@@ -26,9 +26,8 @@
   };
 
   virtualisation.containers.enable = true;
-  virtualisation.podman = {
+  virtualisation.docker = {
     enable = true;
-    dockerCompat = true;
   };
 
   environment.localBinInPath = true;
