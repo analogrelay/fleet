@@ -243,6 +243,8 @@
             pkgs.sops
             pkgs.git
             pkgs.jq
+            pkgs.uv
+            pkgs.python313
           ]
           ++ (pkgs.lib.lists.optional (pkgs.lib.strings.hasSuffix "-darwin" "${system}") [
             nix-darwin.packages.${system}.darwin-rebuild
@@ -250,6 +252,12 @@
 
           shellHook = ''
             export FLEET_IN_SHELL=1
+
+            # Prepare Python venv for cloud/sync_inventory
+            if [ -d "$PWD/cloud" ]; then
+              uv sync --quiet --directory "$PWD/cloud"
+              export PATH="$PWD/cloud/.venv/bin:$PATH"
+            fi
           '';
         };
       }
