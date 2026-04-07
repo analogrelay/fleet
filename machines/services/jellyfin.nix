@@ -13,7 +13,7 @@
     enabled      = true;
     maxretry     = 5;
     filter       = "jellyfin";
-    action       = "cloudflare-list";
+    action       = "remote-ban";
     backend      = "systemd";
     journalmatch = "_SYSTEMD_UNIT=jellyfin.service";
   };
@@ -24,8 +24,4 @@
     failregex = ^.*Authentication request for .* has been denied \(IP: <HOST>\)\.
     ignoreregex =
     '';
-
-  services.cloudflared.tunnels."a0306444-7c05-4c03-9152-d6c09e116854".ingress = {
-    "jellyfin.analogrelay.net" = "http://localhost:8096";
-  };
 }

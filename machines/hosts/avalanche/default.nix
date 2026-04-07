@@ -11,7 +11,6 @@
 
       ../../services/fail2ban.nix
       ../../services/sillytavern.nix
-      ../../services/caddy.nix
       ../../services/oauth2-proxy.nix
       ../../services/postgres.nix
       ../../services/redis.nix
@@ -93,27 +92,13 @@
     };
   };
 
-  fleet.secrets."cloudflared-tunnel-creds" = {
-    source = "op://Fleet/CloudflareTunnel-Avalanche/tunnel-creds";
-  };
-  fleet.secrets."cloudflared-tunnel-cert.pem" = {
-    source = "op://Fleet/CloudflareTunnel-Avalanche/tunnel-cert.pem";
-  };
-  services.cloudflared = {
-    enable = true;
-    certificateFile = config.fleet.secrets."cloudflared-tunnel-cert.pem".path;
-    tunnels."a0306444-7c05-4c03-9152-d6c09e116854" = {
-      credentialsFile = config.fleet.secrets."cloudflared-tunnel-creds".path;
-      default = "http_status:404";
-    };
-  };
-  systemd.services."cloudflared-tunnel-a0306444-7c05-4c03-9152-d6c09e116854".after = [
-    "provision-fleet-secrets.service"
-  ];
-
   services.alloy.enable = true;
   systemd.services.alloy.serviceConfig.SupplementaryGroups = [ "systemd-journal" ];
   systemd.services.alloy.serviceConfig.AmbientCapabilities = [ "CAP_DAC_READ_SEARCH" ];
   environment.etc."alloy/config.alloy".source = ./config.alloy;
+
+  # Give avalanche a stable port for more durable tailscale connections
+  services.tailscale.port = 41641;
+  networking.firewall.allowedUDPPorts = [ 41641 ];
 }
 

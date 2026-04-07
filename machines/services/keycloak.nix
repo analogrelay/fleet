@@ -6,7 +6,7 @@
     enabled      = true;
     maxretry     = 5;
     filter       = "keycloak";
-    action       = "cloudflare-list";
+    action       = "remote-ban";
     backend      = "systemd";
     journalmatch = "_SYSTEMD_UNIT=keycloak.service";
   };
@@ -26,10 +26,6 @@
     }
   ];
 
-  services.cloudflared.tunnels."a0306444-7c05-4c03-9152-d6c09e116854".ingress = {
-    "id.analogrelay.net" = "http://localhost:23912";
-  };
-
   services.keycloak = {
     enable = true;
     plugins = [
@@ -46,8 +42,7 @@
       http-host = "0.0.0.0";
       http-port = 23912;
       http-enabled = true;
-      proxy-headers = "xforwarded";
-      proxy-trusted-addresses="::1/128,127.0.0.0/8";
+      proxy-protocol-enabled = true;
       metrics-enabled = true;
     };
   };

@@ -51,7 +51,7 @@ in
   services.iperf3 = {
     enable = true;
   };
-  networking.firewall.allowedTCPPorts = [ 5201 ];
+  networking.firewall.allowedTCPPorts = [ 7575 ];
 
   # Ensure the textfile collector directory exists
   systemd.tmpfiles.rules = [

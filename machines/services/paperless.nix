@@ -35,6 +35,7 @@ PAPERLESS_SOCIALACCOUNT_PROVIDERS={"openid_connect":{"OAUTH_PKCE_ENABLED":true,"
   services.paperless = {
     enable = true;
     package = pkgs-unstable.paperless-ngx;
+    address = "0.0.0.0";
 
     # Directories on the NFS share
     dataDir        = "/mnt/tank/services/paperless/data";
@@ -64,6 +65,7 @@ PAPERLESS_SOCIALACCOUNT_PROVIDERS={"openid_connect":{"OAUTH_PKCE_ENABLED":true,"
       PAPERLESS_URL = "https://cabinet.analogrelay.net";
     };
   };
+  networking.firewall.allowedTCPPorts = [ 28981 ];
 
   # The module's ProtectSystem=strict makes all paths read-only except those in
   # ReadWritePaths (dataDir, mediaDir, consumptionDir). PAPERLESS_TRASH_DIR is
@@ -82,19 +84,4 @@ PAPERLESS_SOCIALACCOUNT_PROVIDERS={"openid_connect":{"OAUTH_PKCE_ENABLED":true,"
   systemd.services.paperless-task-queue.requires   = [ "provision-fleet-secrets.service" ];
   systemd.services.paperless-consumer.after        = [ "provision-fleet-secrets.service" ];
   systemd.services.paperless-consumer.requires     = [ "provision-fleet-secrets.service" ];
-
-  services.fail2ban.jails.paperless.settings = {
-    enabled  = true;
-    maxretry = 5;
-    filter   = "paperless";
-    action   = "cloudflare-list";
-    logpath  = "/mnt/tank/services/paperless/data/log/paperless.log";
-    port     = "28981";
-  };
-  environment.etc."fail2ban/filter.d/paperless.local".text = 
-    ''
-    [Definition]
-    failregex = Login failed for user `.*` from (?:IP|private IP) `<HOST>`\.$
-    ignoreregex =
-    '';
 }
