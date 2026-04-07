@@ -20,12 +20,15 @@
         role_attribute_path = "contains(roles[*], 'admin') && 'Admin' || contains(roles[*], 'editor') && 'Editor' || 'Viewer'";
       };
       server = {
-        protocol = "socket";
+        protocol = "http";
+        port = "3000";
+        http_addr = "0.0.0.0";
         domain = "grafana.analogrelay.net";
         root_url = "https://grafana.analogrelay.net";
       };
     };
   };
+  networking.firewall.allowedTCPPorts = [ 3000 ];
 
   fleet.secrets."grafana-oidc" = {
     template = ''
@@ -40,11 +43,5 @@
     after = [ "provision-fleet-secrets.service" ];
     requires = [ "provision-fleet-secrets.service" ];
     serviceConfig.EnvironmentFile = config.fleet.secrets."grafana-oidc".path;
-  };
-
-  systemd.services."cloudflared-tunnel-a0c39510-6e96-42ed-a58d-7a18c465b173".serviceConfig.SupplementaryGroups = [ "grafana" ];
-
-  services.cloudflared.tunnels."a0c39510-6e96-42ed-a58d-7a18c465b173".ingress = {
-    "grafana.analogrelay.net" = "unix:/run/grafana/grafana.sock";
   };
 }
