@@ -194,6 +194,9 @@
         sephiroth = mkSystem "aarch64-darwin"
           { platform = "darwin"; role = "workstation"; runtime = "bare"; realm = "analoghome"; admin = "ashley"; identity = "sephiroth"; }
           [ ./machines/hosts/sephiroth ];
+        tifa = mkSystem "aarch64-darwin"
+          { platform = "darwin"; role = "workstation"; runtime = "bare"; realm = "analoghome"; admin = "ashley"; identity = "tifa"; }
+          [ ./machines/hosts/tifa ];
       };
 
       homeConfigurations = {
