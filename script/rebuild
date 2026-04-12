@@ -157,7 +157,14 @@ else
       exit 1
     fi
     echo "You may be prompted for your sudo password to run the rebuild script."
-    sudo darwin-rebuild switch "${rebuild_args[@]}" --flake "$repo_root#$config_name"
+    if command -v darwin-rebuild >/dev/null 2>&1; then
+      sudo darwin-rebuild switch "${rebuild_args[@]}" --flake "$repo_root#$config_name"
+    else
+      # darwin-rebuild is not yet on PATH (first activation); use nix run to
+      # bootstrap nix-darwin. nix-darwin handles privilege escalation internally.
+      echo "darwin-rebuild not found; performing initial nix-darwin activation via nix run..."
+      nix run "github:LnL7/nix-darwin/nix-darwin-25.11" -- switch "${rebuild_args[@]}" --flake "$repo_root#$config_name"
+    fi
     mkdir -p "$HOME/.local/state/fleet"
     git -C "$repo_root" rev-parse HEAD > "$HOME/.local/state/fleet/activated_commit"
     echo "$_activated_dirty"        > "$HOME/.local/state/fleet/activated_dirty"

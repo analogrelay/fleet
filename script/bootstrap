@@ -101,29 +101,41 @@ fi
 if command -v nix >/dev/null 2>&1; then
   log "Nix is already installed, skipping."
 else
-  # Use single-user install if we don't have root access or are in a container
-  install_args=""
-  if $no_systemd; then
+  is_darwin=false
+  [ "$(uname)" = "Darwin" ] && is_darwin=true
+
+  # Determine the installer platform argument
+  if $is_darwin; then
+    installer_platform="macos"
+  else
+    installer_platform="linux"
+  fi
+
+  # Build extra install args; --init=none is Linux/systemd-specific
+  install_args=()
+  if $is_darwin; then
+    log "Installing Nix via Determinate Systems installer (macOS, multi-user)..."
+  elif $no_systemd; then
     log "Installing Nix via Determinate Systems installer (single-user, no systemd)..."
-		install_args=("--init=none")
+    install_args=("--init=none")
   elif [ -n "$home_config" ] && ! sudo -n true 2>/dev/null; then
     log "Installing Nix via Determinate Systems installer (single-user, no root)..."
-		install_args=("--init=none")
+    install_args=("--init=none")
   else
-		log "Installing Nix via Determinate Systems installer (multi-user, using systemd)..."
+    log "Installing Nix via Determinate Systems installer (multi-user, using systemd)..."
   fi
 
   # The Determinate installer requires root. If we're not root, use sudo.
   if [ "$(id -u)" -ne 0 ]; then
     log "sudo is required to install Nix; you may see a password prompt."
-    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sudo sh -s -- install linux --no-confirm ${install_args[@]+"${install_args[@]}"}
+    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sudo sh -s -- install "$installer_platform" --no-confirm ${install_args[@]+"${install_args[@]}"}
   else
-    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux --no-confirm ${install_args[@]+"${install_args[@]}"}
+    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install "$installer_platform" --no-confirm ${install_args[@]+"${install_args[@]}"}
   fi
 
-  # For non-root single-user installs, chown /nix to the current user so
+  # For non-root single-user Linux installs, chown /nix to the current user so
   # nix commands work without root.
-  if [ "$(id -u)" -ne 0 ] && [[ " ${install_args[*]+"${install_args[*]}"} " == *"--init=none"* ]]; then
+  if ! $is_darwin && [ "$(id -u)" -ne 0 ] && [[ " ${install_args[*]+"${install_args[*]}"} " == *"--init=none"* ]]; then
     log "Changing ownership of /nix to $(whoami)..."
     sudo chown -R "$(id -u):$(id -g)" /nix
   fi
