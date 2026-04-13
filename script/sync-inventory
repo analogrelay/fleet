@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#/ Usage: script/sync-inventory [options]
+#/ Sync inventory.yaml to Azure DNS and MikroTik DHCP.
+#/ Options are passed through to sync_inventory (e.g. --dry-run, --azure-only).
+
+set -eo pipefail
+
+script_dir=$(dirname "$(readlink -f "$0")")
+repo_root=$(dirname "$script_dir")
+
+exec uv run --project "$repo_root/cloud" -m sync_inventory \
+  --inventory "$repo_root/cloud/inventory.yaml" \
+  "$@"
