@@ -3,6 +3,8 @@ from pathlib import Path
 
 import yaml
 
+from . import azure_vm
+
 
 @dataclass
 class Node:
@@ -44,11 +46,16 @@ def load(path: Path) -> Inventory:
         nodes = []
         for n in zone_data.get("nodes", []):
             mac = n.get("macAddress")
+            if "azureVm" in n:
+                vm = n["azureVm"]
+                ip_address = azure_vm.get_public_ip(vm["resourceGroup"], vm["name"])
+            else:
+                ip_address = n["ipAddress"]
             nodes.append(
                 Node(
                     name=n["name"],
                     realm=n["realm"],
-                    ip_address=n["ipAddress"],
+                    ip_address=ip_address,
                     mac_address=mac.upper() if mac else None,
                 )
             )
