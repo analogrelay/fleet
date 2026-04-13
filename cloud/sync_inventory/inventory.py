@@ -55,7 +55,7 @@ def load(path: Path) -> Inventory:
             mac = n.get("macAddress")
             if "azureVm" in n:
                 vm = n["azureVm"]
-                ip_address = azure_vm.get_public_ip(vm["resourceGroup"], vm["name"])
+                ip_address = azure_vm.get_public_ip(vm["subscription"], vm["resourceGroup"], vm["name"])
             else:
                 ip_address = n["ipAddress"]
             nodes.append(
