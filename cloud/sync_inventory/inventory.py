@@ -22,11 +22,18 @@ class Service:
 
 
 @dataclass
+class AzureDnsConfig:
+    subscription: str
+    resource_group: str
+
+
+@dataclass
 class Zone:
     name: str
     nodes: list[Node]
     services: list[Service]
     partial: bool = False
+    azure_dns: AzureDnsConfig | None = None
 
 
 @dataclass
@@ -83,8 +90,21 @@ def load(path: Path) -> Inventory:
             )
 
         partial = zone_data.get("partial", False)
+        azure_dns_config = None
+        if "azureDns" in zone_data:
+            az = zone_data["azureDns"]
+            azure_dns_config = AzureDnsConfig(
+                subscription=az["subscription"],
+                resource_group=az["resourceGroup"],
+            )
         zones.append(
-            Zone(name=zone_name, nodes=nodes, services=services, partial=partial)
+            Zone(
+                name=zone_name,
+                nodes=nodes,
+                services=services,
+                partial=partial,
+                azure_dns=azure_dns_config,
+            )
         )
 
     return Inventory(zones=zones)

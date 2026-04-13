@@ -1,5 +1,4 @@
 import json
-import os
 import subprocess
 from dataclasses import dataclass
 
@@ -7,10 +6,6 @@ from rich.console import Console
 
 from .inventory import Zone
 
-SUBSCRIPTION_ID = os.environ.get(
-    "AZURE_SUBSCRIPTION_ID", "466cf680-808d-4446-94b3-f367eaa60ba1"
-)
-RESOURCE_GROUP = os.environ.get("AZURE_RESOURCE_GROUP", "analogcloud-dns")
 TTL = 300
 
 
@@ -24,29 +19,29 @@ class DnsAction:
     new_value: str | None
 
 
-def _az(*args: str) -> dict | list:
-    cmd = ["az", *args, "-o", "json", "--subscription", SUBSCRIPTION_ID]
+def _az(subscription: str, *args: str) -> dict | list:
+    cmd = ["az", *args, "-o", "json", "--subscription", subscription]
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
         raise RuntimeError(f"az command failed: {result.stderr.strip()}")
     return json.loads(result.stdout) if result.stdout.strip() else {}
 
 
-def _az_no_output(*args: str) -> None:
-    cmd = ["az", *args, "--subscription", SUBSCRIPTION_ID]
+def _az_no_output(subscription: str, *args: str) -> None:
+    cmd = ["az", *args, "--subscription", subscription]
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
         raise RuntimeError(f"az command failed: {result.stderr.strip()}")
 
 
-def verify_subscription() -> None:
+def verify_subscription(subscription: str) -> None:
     result = subprocess.run(
         [
             "az",
             "account",
             "show",
             "--subscription",
-            SUBSCRIPTION_ID,
+            subscription,
             "--query",
             "id",
             "-o",
@@ -57,13 +52,17 @@ def verify_subscription() -> None:
     )
     if result.returncode != 0:
         raise RuntimeError(
-            f"Cannot access subscription {SUBSCRIPTION_ID!r}. "
+            f"Cannot access subscription {subscription!r}. "
             "Is az CLI logged in and does this subscription exist?"
         )
 
 
 def compute_plan(zone: Zone) -> tuple[list[DnsAction], bool]:
     """Returns (actions, zone_is_new)."""
+    assert zone.azure_dns is not None
+    subscription = zone.azure_dns.subscription
+    resource_group = zone.azure_dns.resource_group
+
     # Check if zone exists
     result = subprocess.run(
         [
@@ -75,9 +74,9 @@ def compute_plan(zone: Zone) -> tuple[list[DnsAction], bool]:
             "--name",
             zone.name,
             "--resource-group",
-            RESOURCE_GROUP,
+            resource_group,
             "--subscription",
-            SUBSCRIPTION_ID,
+            subscription,
             "-o",
             "json",
         ],
@@ -92,6 +91,7 @@ def compute_plan(zone: Zone) -> tuple[list[DnsAction], bool]:
     else:
         # Fetch A records
         a_records = _az(
+            subscription,
             "network",
             "dns",
             "record-set",
@@ -100,7 +100,7 @@ def compute_plan(zone: Zone) -> tuple[list[DnsAction], bool]:
             "--zone-name",
             zone.name,
             "--resource-group",
-            RESOURCE_GROUP,
+            resource_group,
         )
         current_a_records = {}
         for r in a_records:
@@ -111,6 +111,7 @@ def compute_plan(zone: Zone) -> tuple[list[DnsAction], bool]:
 
         # Fetch CNAME records
         cname_records = _az(
+            subscription,
             "network",
             "dns",
             "record-set",
@@ -119,7 +120,7 @@ def compute_plan(zone: Zone) -> tuple[list[DnsAction], bool]:
             "--zone-name",
             zone.name,
             "--resource-group",
-            RESOURCE_GROUP,
+            resource_group,
         )
         current_cname_records = {}
         for r in cname_records:
@@ -186,7 +187,8 @@ def print_plan(
         suffix = " [yellow][NEW - will create][/yellow]"
     elif zone.partial:
         suffix = " [dim][partial][/dim]"
-    console.print(f"[bold]Zone:[/bold] {zone.name} ({RESOURCE_GROUP}){suffix}")
+    resource_group = zone.azure_dns.resource_group if zone.azure_dns else "?"
+    console.print(f"[bold]Zone:[/bold] {zone.name} ({resource_group}){suffix}")
 
     if not actions:
         console.print("  (no changes)")
@@ -210,12 +212,16 @@ def print_plan(
 def apply_plan(
     zone: Zone, actions: list[DnsAction], zone_is_new: bool, console: Console
 ) -> int:
+    assert zone.azure_dns is not None
+    subscription = zone.azure_dns.subscription
+    resource_group = zone.azure_dns.resource_group
     errors = 0
 
     if zone_is_new:
         console.print(f"  Creating zone {zone.name}...")
         try:
             zone_info = _az(
+                subscription,
                 "network",
                 "dns",
                 "zone",
@@ -223,7 +229,7 @@ def apply_plan(
                 "--name",
                 zone.name,
                 "--resource-group",
-                RESOURCE_GROUP,
+                resource_group,
             )
             ns_records = zone_info.get("nameServers", [])
             if ns_records:
@@ -242,6 +248,7 @@ def apply_plan(
             if a.kind == "CREATE":
                 if a.record_type == "A":
                     _az_no_output(
+                        subscription,
                         "network",
                         "dns",
                         "record-set",
@@ -252,7 +259,7 @@ def apply_plan(
                         "--zone-name",
                         a.zone,
                         "--resource-group",
-                        RESOURCE_GROUP,
+                        resource_group,
                         "--ipv4-address",
                         a.new_value,
                         "--ttl",
@@ -260,6 +267,7 @@ def apply_plan(
                     )
                 elif a.record_type == "CNAME":
                     _az_no_output(
+                        subscription,
                         "network",
                         "dns",
                         "record-set",
@@ -270,7 +278,7 @@ def apply_plan(
                         "--zone-name",
                         a.zone,
                         "--resource-group",
-                        RESOURCE_GROUP,
+                        resource_group,
                         "--cname",
                         a.new_value,
                         "--ttl",
@@ -282,6 +290,7 @@ def apply_plan(
             elif a.kind == "UPDATE":
                 if a.record_type == "A":
                     _az_no_output(
+                        subscription,
                         "network",
                         "dns",
                         "record-set",
@@ -292,10 +301,11 @@ def apply_plan(
                         "--zone-name",
                         a.zone,
                         "--resource-group",
-                        RESOURCE_GROUP,
+                        resource_group,
                         "--yes",
                     )
                     _az_no_output(
+                        subscription,
                         "network",
                         "dns",
                         "record-set",
@@ -306,7 +316,7 @@ def apply_plan(
                         "--zone-name",
                         a.zone,
                         "--resource-group",
-                        RESOURCE_GROUP,
+                        resource_group,
                         "--ipv4-address",
                         a.new_value,
                         "--ttl",
@@ -314,6 +324,7 @@ def apply_plan(
                     )
                 elif a.record_type == "CNAME":
                     _az_no_output(
+                        subscription,
                         "network",
                         "dns",
                         "record-set",
@@ -324,7 +335,7 @@ def apply_plan(
                         "--zone-name",
                         a.zone,
                         "--resource-group",
-                        RESOURCE_GROUP,
+                        resource_group,
                         "--cname",
                         a.new_value,
                         "--ttl",
@@ -335,6 +346,7 @@ def apply_plan(
                 )
             elif a.kind == "DELETE":
                 _az_no_output(
+                    subscription,
                     "network",
                     "dns",
                     "record-set",
@@ -345,7 +357,7 @@ def apply_plan(
                     "--zone-name",
                     a.zone,
                     "--resource-group",
-                    RESOURCE_GROUP,
+                    resource_group,
                     "--yes",
                 )
                 console.print(f"  [red]Deleted[/red] {a.record_type} {a.name}")

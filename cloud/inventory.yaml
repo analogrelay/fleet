@@ -10,13 +10,21 @@
 router: 192.168.1.1
 zones:
   analogrelay.net:
-    tunnel: aerith.analogno.de
+    azureDns:
+      subscription: 466cf680-808d-4446-94b3-f367eaa60ba1
+      resourceGroup: analogcloud-dns
   home.analogrelay.net:
     partial: true
+    azureDns:
+      subscription: 466cf680-808d-4446-94b3-f367eaa60ba1
+      resourceGroup: analogcloud-dns
     services:
     - name: paperless
       canonicalName: shinra.analogno.de
   analogno.de:
+    azureDns:
+      subscription: 466cf680-808d-4446-94b3-f367eaa60ba1
+      resourceGroup: analogcloud-dns
     nodes:
     - name: aerith
       realm: cloud
@@ -55,5 +63,9 @@ zones:
       realm: home
       ipAddress: 192.168.3.6
       macAddress: 58:47:CA:78:B5:26
+    - name: tifa
+      realm: home
+      ipAddress: 192.168.3.7
+      macAddress: 1C:F6:4C:5B:92:F9
 
 

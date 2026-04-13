@@ -30,13 +30,16 @@ def main() -> int:
     dns_plans: list[tuple] = []
     if do_azure:
         console.print("\n[bold]=== Azure DNS ===[/bold]")
-        try:
-            azure_dns.verify_subscription()
-        except RuntimeError as e:
-            console.print(f"[red]ERROR: {e}[/red]")
-            return 1
+        dns_zones = [z for z in inv.zones if z.azure_dns is not None]
+        subscriptions = {z.azure_dns.subscription for z in dns_zones}
+        for subscription in subscriptions:
+            try:
+                azure_dns.verify_subscription(subscription)
+            except RuntimeError as e:
+                console.print(f"[red]ERROR: {e}[/red]")
+                return 1
 
-        for zone in inv.zones:
+        for zone in dns_zones:
             try:
                 actions, zone_is_new = azure_dns.compute_plan(zone)
                 dns_plans.append((zone, actions, zone_is_new))
