@@ -53,7 +53,7 @@ def main() -> int:
     # --- MikroTik DHCP ---
     dhcp_actions: list = []
     if do_mikrotik:
-        console.print(f"\n[bold]=== MikroTik DHCP ({mikrotik.MIKROTIK_DHCP_SERVER}) ===[/bold]")
+        console.print(f"\n[bold]=== MikroTik DHCP ({inv.router}) ===[/bold]")
         try:
             dhcp_actions = mikrotik.compute_plan(inv)
             mikrotik.print_plan(dhcp_actions, console)
@@ -94,7 +94,7 @@ def main() -> int:
     # Apply MikroTik
     if do_mikrotik:
         console.print("\n[bold]Applying MikroTik DHCP changes...[/bold]")
-        errors += mikrotik.apply_plan(dhcp_actions, console)
+        errors += mikrotik.apply_plan(dhcp_actions, inv.router, console)
 
     if errors:
         console.print(f"\n[red]{errors} error(s) occurred.[/red]")

@@ -6,7 +6,6 @@ from rich.console import Console
 
 from .inventory import Inventory
 
-MIKROTIK_HOST = os.environ.get("MIKROTIK_HOST", "")
 MIKROTIK_USER = os.environ.get("MIKROTIK_USER", "")
 MIKROTIK_PORT = int(os.environ.get("MIKROTIK_PORT", "22"))
 MIKROTIK_DHCP_SERVER = os.environ.get("MIKROTIK_DHCP_SERVER", "primary/dhcp")
@@ -58,9 +57,9 @@ def _find_agent_sock() -> str:
     return sock
 
 
-def _connect() -> paramiko.SSHClient:
-    if not MIKROTIK_HOST:
-        raise RuntimeError("MIKROTIK_HOST environment variable is required")
+def _connect(host: str) -> paramiko.SSHClient:
+    if not host:
+        raise RuntimeError("Router address is required (set 'router' in inventory.yaml)")
     if not MIKROTIK_USER:
         raise RuntimeError("MIKROTIK_USER environment variable is required")
 
@@ -91,7 +90,7 @@ def _connect() -> paramiko.SSHClient:
     for key in agent_keys:
         try:
             client.connect(
-                MIKROTIK_HOST,
+                host,
                 port=MIKROTIK_PORT,
                 username=MIKROTIK_USER,
                 pkey=key,
@@ -104,7 +103,7 @@ def _connect() -> paramiko.SSHClient:
             continue
 
     raise RuntimeError(
-        f"SSH authentication to {MIKROTIK_HOST} failed with all "
+        f"SSH authentication to {host} failed with all "
         f"{len(agent_keys)} agent key(s): {last_exc}"
     )
 
@@ -160,7 +159,7 @@ def _get_current_leases(client: paramiko.SSHClient) -> tuple[dict[str, Lease], d
 
 
 def compute_plan(inventory: Inventory) -> list[DhcpAction]:
-    client = _connect()
+    client = _connect(inventory.router)
     try:
         managed, unmanaged = _get_current_leases(client)
     finally:
@@ -228,12 +227,12 @@ def print_plan(actions: list[DhcpAction], console: Console) -> None:
             console.print(f"  [cyan]\\[INFO][/cyan]   DHCP  {a.message}")
 
 
-def apply_plan(actions: list[DhcpAction], console: Console) -> int:
+def apply_plan(actions: list[DhcpAction], host: str, console: Console) -> int:
     actionable = [a for a in actions if a.kind not in ("WARN", "INFO")]
     if not actionable:
         return 0
 
-    client = _connect()
+    client = _connect(host)
     errors = 0
     try:
         for a in actionable:

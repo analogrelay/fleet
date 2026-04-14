@@ -38,6 +38,7 @@ class Zone:
 
 @dataclass
 class Inventory:
+    router: str
     zones: list[Zone]
 
     def all_nodes(self) -> list[tuple["Zone", Node]]:
@@ -48,6 +49,7 @@ def load(path: Path) -> Inventory:
     with open(path) as f:
         data = yaml.safe_load(f)
 
+    router = data["router"]
     zones = []
     for zone_name, zone_data in data.get("zones", {}).items():
         nodes = []
@@ -107,4 +109,4 @@ def load(path: Path) -> Inventory:
             )
         )
 
-    return Inventory(zones=zones)
+    return Inventory(router=router, zones=zones)
