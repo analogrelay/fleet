@@ -34,10 +34,6 @@
       url = "github:analogrelay/werx";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    jj = {
-      url = "github:jj-vcs/jj";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =
@@ -55,7 +51,6 @@
       nixos-wsl,
       vscode-server,
       werx,
-      jj,
       ...
     }@inputs:
     let
@@ -66,7 +61,6 @@
         outputs.overlays.additions
         outputs.overlays.modifications
         werx.overlays.default
-        jj.overlays.default
         nix-vscode-extensions.overlays.default
       ];
       defaultNixosModules = [
