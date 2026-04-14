@@ -10,10 +10,6 @@
 router: 192.168.1.1
 zones:
   analogrelay.net:
-    azureDns:
-      subscription: 466cf680-808d-4446-94b3-f367eaa60ba1
-      resourceGroup: analogcloud-dns
-  home.analogrelay.net:
     partial: true
     azureDns:
       subscription: 466cf680-808d-4446-94b3-f367eaa60ba1
