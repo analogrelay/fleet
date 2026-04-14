@@ -1,5 +1,9 @@
 {inputs, ...}: {
   additions = final: _prev: import ../pkgs {pkgs = final;};
 
-  modifications = final: prev: { };
+  modifications = final: prev: {
+    direnv = prev.direnv.overrideAttrs (_old: {
+      doCheck = false;
+    });
+  };
 }
