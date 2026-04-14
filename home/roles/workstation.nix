@@ -1,7 +1,7 @@
 { pkgs, pkgs-unstable, config, ... }:
 
 {
-  imports = [ ../profiles/nvim.nix ../profiles/lsp.nix ../profiles/jujutsu.nix ../profiles/fleet-sync.nix ];
+  imports = [ ../profiles/nvim.nix ../profiles/lsp.nix ../profiles/fleet-sync.nix ];
 
   home.packages = (with pkgs; [
     pkg-config
@@ -23,7 +23,7 @@
     bun
     ripgrep
   ]) ++ (with pkgs-unstable; [
-    azure-cli
+    (azure-cli.withExtensions [azure-cli.extensions.azure-devops])
     devenv
   ]);
 
