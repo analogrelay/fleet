@@ -11,6 +11,7 @@ let
         ./profiles/agents.nix
         ./profiles/shell.nix
         ./profiles/git.nix
+        ./profiles/jujutsu.nix
         ./profiles/nvim.nix
         ./profiles/ssh.nix
         ./profiles/tmux.nix
