@@ -6,7 +6,7 @@
   # PAPERLESS_SOCIALACCOUNT_PROVIDERS with the Keycloak OIDC JSON config.
   fleet.secrets."paperless-oidc" = {
     template = ''
-PAPERLESS_SOCIALACCOUNT_PROVIDERS={"openid_connect":{"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"keycloak","name":"Keycloak","client_id":"{{ op://Fleet/Keycloak-Paperless/client-id }}","secret":"{{ op://Fleet/Keycloak-Paperless/client-secret }}","settings":{"server_url":"{{ op://Fleet/Keycloak-Paperless/server-url }}"}}]}}
+PAPERLESS_SOCIALACCOUNT_PROVIDERS={"openid_connect":{"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"authentik","name":"AnalogHome","client_id":"{{ op://Fleet/OAuth-Paperless/client-id }}","secret":"{{ op://Fleet/OAuth-Paperless/client-secret }}","settings":{"server_url":"{{ op://Fleet/OAuth-Paperless/server-url }}"}}]}}
     '';
     owner = "paperless";
     mode = "0400";
@@ -28,10 +28,6 @@ PAPERLESS_SOCIALACCOUNT_PROVIDERS={"openid_connect":{"OAUTH_PKCE_ENABLED":true,"
     }
   ];
 
-  services.cloudflared.tunnels."a0306444-7c05-4c03-9152-d6c09e116854".ingress = {
-    "cabinet.analogrelay.net" = "http://localhost:28981";
-  };
-
   services.paperless = {
     enable = true;
     package = pkgs-unstable.paperless-ngx;
@@ -48,7 +44,6 @@ PAPERLESS_SOCIALACCOUNT_PROVIDERS={"openid_connect":{"OAUTH_PKCE_ENABLED":true,"
     settings = {
       # Enable the OpenID Connect social account provider for Keycloak SSO
       PAPERLESS_APPS = "allauth.socialaccount.providers.openid_connect";
-      PAPERLESS_DISABLE_REGULAR_LOGIN = "true";
 
       PAPERLESS_TRASH_DIR = "/mnt/tank/services/paperless/trash/";
 
@@ -84,4 +79,19 @@ PAPERLESS_SOCIALACCOUNT_PROVIDERS={"openid_connect":{"OAUTH_PKCE_ENABLED":true,"
   systemd.services.paperless-task-queue.requires   = [ "provision-fleet-secrets.service" ];
   systemd.services.paperless-consumer.after        = [ "provision-fleet-secrets.service" ];
   systemd.services.paperless-consumer.requires     = [ "provision-fleet-secrets.service" ];
+
+  services.caddy.virtualHosts."cabinet.analogrelay.net" = {
+    extraConfig = ''
+      tls { 
+        dns azure {
+          subscription_id {$AZURE_SUBSCRIPTION_ID}
+          resource_group_name {$AZURE_RESOURCE_GROUP_NAME}
+          tenant_id {$AZURE_TENANT_ID}
+          client_id {$AZURE_CLIENT_ID}
+          client_secret {$AZURE_CLIENT_SECRET}
+        }
+      }
+      reverse_proxy 127.0.0.1:28981
+    '';
+  };
 }

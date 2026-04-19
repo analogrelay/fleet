@@ -9,19 +9,18 @@
 
       ../../profiles/tailnet.nix
 
-      ../../services/fail2ban.nix
-      ../../services/sillytavern.nix
-      ../../services/oauth2-proxy.nix
+      ../../services/authentik.nix
       ../../services/postgres.nix
       ../../services/redis.nix
-      ../../services/paperless.nix
-      ../../services/keycloak.nix
-      ../../services/ledger.nix
-      ../../services/radarr.nix
       ../../services/wal-g.nix
       ../../services/syncthing.nix
       ../../services/speedtesting.nix
-      ../../services/rclone.nix
+      ../../services/paperless.nix
+      ../../services/sillytavern.nix
+      ../../services/radarr.nix
+
+      ../../services/fail2ban.nix
+      ../../services/ledger.nix
       ../../services/jellyfin.nix
       ../../services/coder.nix
     ];
@@ -100,5 +99,58 @@
   # Give avalanche a stable port for more durable tailscale connections
   services.tailscale.port = 41641;
   networking.firewall.allowedUDPPorts = [ 41641 ];
+
+  # Set up caddy as the central front door
+  fleet.secrets."caddy.env" = {
+    template = ''
+      AZURE_TENANT_ID={{ op://Fleet/Azure-CaddyAvalanche/tenant-id }}
+      AZURE_SUBSCRIPTION_ID={{ op://Fleet/Azure-CaddyAvalanche/subscription-id }}
+      AZURE_RESOURCE_GROUP_NAME={{ op://Fleet/Azure-CaddyAvalanche/resource-group-name }}
+      AZURE_CLIENT_ID={{ op://Fleet/Azure-CaddyAvalanche/client-id }}
+      AZURE_CLIENT_SECRET={{ op://Fleet/Azure-CaddyAvalanche/client-secret }}
+    '';
+    owner = "caddy";
+    mode = "0400";
+  };
+  networking.firewall.allowedTCPPorts = [ 80 443 ];
+  services.caddy = {
+    enable = true;
+    package = pkgs.caddy.withPlugins {
+      plugins = [ "github.com/caddy-dns/azure@v0.6.0" ];
+      hash = "sha256-B+X41GYIMoALfeVy2rjwK0zFC7nKbx3DKv4868v6hoQ=";
+    };
+    environmentFile = config.fleet.secrets."caddy.env".path;
+    email = "contact@analogrelay.net";
+    globalConfig = ''
+      metrics
+      acme_dns azure {
+        subscription_id {$AZURE_SUBSCRIPTION_ID}
+        resource_group_name {$AZURE_RESOURCE_GROUP_NAME}
+        tenant_id {$AZURE_TENANT_ID}
+        client_id {$AZURE_CLIENT_ID}
+        client_secret {$AZURE_CLIENT_SECRET}
+      }
+    '';
+    virtualHosts = {
+      "avalanche.analogno.de" = {
+        extraConfig = ''
+          tls { 
+            dns azure
+          }
+          root /var/www
+          file_server
+        '';
+      };
+      "ping.analogrelay.net" = {
+        extraConfig = ''
+          tls { 
+            dns azure
+          }
+          root /var/www
+          file_server
+        '';
+      };
+    };
+  };
 }
 

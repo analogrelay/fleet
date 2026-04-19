@@ -21,6 +21,7 @@ in
 
   systemd.services.postgresql.after = [ "provision-fleet-secrets.service" ];
   systemd.services.postgresql.requires = [ "provision-fleet-secrets.service" ];
+  systemd.services.postgresql.serviceConfig.ReadWritePaths = [ "/mnt/tank/backups/postgres" ];
 
   services.postgresql = {
     enable = true;

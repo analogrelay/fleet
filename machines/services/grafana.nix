@@ -9,15 +9,15 @@
         enabled = true;
         auto_login = true;
         use_pkce = true;
-        name = "Keycloak-OAuth";
+        name = "Authentik-OAuth";
         allow_sign_up = true;
         scopes = "openid email profile offline_access roles";
         email_attribute_path = "email";
         login_attribute_path = "username";
         name_attribute_path = "full_name";
-        auth_url = "https://id.analogrelay.net/realms/analoghome/protocol/openid-connect/auth";
-        token_url = "https://id.analogrelay.net/realms/analoghome/protocol/openid-connect/token";
-        role_attribute_path = "contains(roles[*], 'admin') && 'Admin' || contains(roles[*], 'editor') && 'Editor' || 'Viewer'";
+        auth_url = "https://auth.analogrelay.net/application/o/authorize/";
+        token_url = "https://auth.analogrelay.net/application/o/token/";
+        role_attribute_path = "contains(groups[*], 'Admin') && 'Admin' || contains(roles[*], 'Editor') && 'Editor' || 'Viewer'";
       };
       server = {
         protocol = "http";
@@ -32,8 +32,8 @@
 
   fleet.secrets."grafana-oidc" = {
     template = ''
-      GF_AUTH_GENERIC_OAUTH_CLIENT_ID={{ op://Fleet/Keycloak-Grafana/client-id }}
-      GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET={{ op://Fleet/Keycloak-Grafana/client-secret }}
+      GF_AUTH_GENERIC_OAUTH_CLIENT_ID={{ op://Fleet/OAuth-Grafana/client-id }}
+      GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET={{ op://Fleet/OAuth-Grafana/client-secret }}
     '';
     owner = "grafana";
     mode = "0400";

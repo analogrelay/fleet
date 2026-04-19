@@ -2,6 +2,10 @@
   description = "NixOS Configurations";
 
   inputs = {
+    authentik-nix = {
+      url = "github:nix-community/authentik-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     # Temporarily move to release-25.11 until the fix we need moves over to stable
     nixpkgs.url = "github:NixOS/nixpkgs/release-25.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -66,6 +70,7 @@
         nix-vscode-extensions.overlays.default
       ];
       defaultNixosModules = [
+        inputs.authentik-nix.nixosModules.default
         sops-nix.nixosModules.sops
         home-manager.nixosModules.home-manager
         vscode-server.nixosModule
