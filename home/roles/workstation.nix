@@ -4,7 +4,6 @@
   imports = [ ../profiles/nvim.nix ../profiles/lsp.nix ../profiles/fleet-sync.nix ];
 
   home.packages = (with pkgs; [
-    pkg-config
     openssl
     powershell
     rustup
@@ -29,7 +28,6 @@
 
   home.sessionVariables = {
     GOPRIVATE = "github.com/Azure/azure-cosmos-client-engine";
-    PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
   };
   home.file.".npmrc".text = ''
     prefix=${config.home.homeDirectory}/.npm-global

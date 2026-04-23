@@ -41,5 +41,14 @@
   environment.systemPackages = with pkgs; [
     zsh
     nix
+    pkg-config
   ];
+
+  programs.nix-ld = {
+    enable = true;
+    libraries = with pkgs; [
+      icu
+      openssl
+    ];
+  };
 }

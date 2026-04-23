@@ -41,8 +41,6 @@
     ghostty.terminfo
   ];
 
-  programs.nix-ld.enable = true;
-
   users = {
     groups = {
       unattend = {
