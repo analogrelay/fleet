@@ -12,5 +12,10 @@
   networking.computerName = "Tifa";
   networking.hostName = "tifa";
 
-  system.stateVersion = 4;
+  system.stateVersion = 5;
+  system.primaryUser = "ashley";
+
+  security.pam.services.sudo_local.enable = true;
+  security.pam.services.sudo_local.reattach = true;
+  security.pam.services.sudo_local.watchIdAuth = true;
 }
