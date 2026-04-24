@@ -164,7 +164,7 @@ else
       # bootstrap nix-darwin. nix-darwin's switch command invokes sudo itself
       # for the parts that require root, so no sudo wrapper is needed here.
       echo "darwin-rebuild not found; performing initial nix-darwin activation via nix run..."
-      nix run "github:LnL7/nix-darwin/nix-darwin-25.11" -- switch "${rebuild_args[@]}" --flake "$repo_root#$config_name"
+      sudo nix --extra-experimental-features "nix-command flakes" run "github:LnL7/nix-darwin/nix-darwin-25.11" -- switch "${rebuild_args[@]}" --flake "$repo_root#$config_name"
     fi
     mkdir -p "$HOME/.local/state/fleet"
     git -C "$repo_root" rev-parse HEAD > "$HOME/.local/state/fleet/activated_commit"
