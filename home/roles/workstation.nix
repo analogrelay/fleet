@@ -1,7 +1,7 @@
 { pkgs, pkgs-unstable, config, ... }:
 
 {
-  imports = [ ../profiles/nvim.nix ../profiles/lsp.nix ../profiles/fleet-sync.nix ];
+  imports = [ ../profiles/nvim.nix ../profiles/lsp.nix ];
 
   home.packages = (with pkgs; [
     openssl
