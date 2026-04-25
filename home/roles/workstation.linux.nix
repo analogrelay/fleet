@@ -15,7 +15,6 @@
       }
     else
       {
-        "gpg \"ssh\"".program = "op-ssh-sign";
       };
 
   # lazy.nvim hard-codes GIT_SSH_COMMAND="ssh -oBatchMode=yes", overriding
