@@ -62,6 +62,7 @@ in {
     jq
     ripgrep
     powershell
+    wt
   ];
 
   home.file = (lib.mapAttrs' (name: _: lib.nameValuePair ".local/bin/${name}" {

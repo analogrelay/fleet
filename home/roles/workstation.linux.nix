@@ -26,7 +26,7 @@
 
   home.packages = with pkgs; [
     clang
-    linuxPackages.perf
+    perf
     valgrind
   ];
 }
