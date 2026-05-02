@@ -42,5 +42,6 @@
     zsh
     nix
     pkg-config
+    devenv
   ];
 }

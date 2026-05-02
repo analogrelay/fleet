@@ -10,9 +10,11 @@
     ../../services/grafana.nix
     ../../services/loki.nix
     ../../services/prometheus.nix
+    ../../services/home-monitoring
   ];
 
   networking.hostName = "shinra";
+  networking.firewall.allowedTCPPorts = [ 3001 ];
 
   # Enable linger so systemd user services (e.g. fleet-sync timer) run
   # without an active login session.

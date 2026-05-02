@@ -97,3 +97,29 @@ loki.write "shinra" {
 		url = "http://shinra.analogno.de:3100/loki/api/v1/push"
 	}
 }
+
+// ----------------------------------------------------------------------------
+// Scrape Shelly Plug logs
+// ----------------------------------------------------------------------------
+prometheus.scrape "shelly_plugs" {
+  targets = [
+    { __address__ = "shinra.analogno.de:10101" },
+  ]
+  metrics_path     = "/metrics"
+  scheme           = "http"
+  scrape_interval  = "30s"
+
+	forward_to = [prometheus.remote_write.shinra.receiver]
+}
+
+// ----------------------------------------------------------------------------
+// Scrape TOU Power Rate
+// ----------------------------------------------------------------------------
+prometheus.scrape "tou_rate" {
+  targets = [
+    { __address__ = "127.0.0.1:10102" },
+  ]
+  metrics_path    = "/metrics"
+  scrape_interval = "60s"
+  forward_to      = [prometheus.remote_write.shinra.receiver]
+}

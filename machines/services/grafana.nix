@@ -17,7 +17,9 @@
         name_attribute_path = "full_name";
         auth_url = "https://auth.analogrelay.net/application/o/authorize/";
         token_url = "https://auth.analogrelay.net/application/o/token/";
-        role_attribute_path = "contains(groups[*], 'Admin') && 'Admin' || contains(roles[*], 'Editor') && 'Editor' || 'Viewer'";
+        allow_assign_grafana_admin = true;
+        role_attribute_path = "contains(groups[*], 'Admin') && 'GrafanaAdmin' || contains(roles[*], 'Editor') && 'Editor' || 'Viewer'";
+        org_mapping = "*:AnalogHome:Admin";
       };
       server = {
         protocol = "http";
