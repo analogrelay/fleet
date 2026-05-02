@@ -18,11 +18,10 @@
       ../../services/paperless.nix
       ../../services/sillytavern.nix
       ../../services/radarr.nix
-
-      ../../services/fail2ban.nix
-      ../../services/ledger.nix
       ../../services/jellyfin.nix
       ../../services/coder.nix
+      ../../services/fail2ban.nix
+      ../../services/ledger.nix
     ];
 
   networking.hostName = "avalanche";
@@ -135,19 +134,30 @@
       "avalanche.analogno.de" = {
         extraConfig = ''
           tls { 
-            dns azure
+            dns azure {
+              subscription_id {$AZURE_SUBSCRIPTION_ID}
+              resource_group_name {$AZURE_RESOURCE_GROUP_NAME}
+              tenant_id {$AZURE_TENANT_ID}
+              client_id {$AZURE_CLIENT_ID}
+              client_secret {$AZURE_CLIENT_SECRET}
+            }
           }
           root /var/www
           file_server
         '';
       };
-      "ping.analogrelay.net" = {
+      "grafana.analogrelay.net" = {
         extraConfig = ''
           tls { 
-            dns azure
+            dns azure {
+              subscription_id {$AZURE_SUBSCRIPTION_ID}
+              resource_group_name {$AZURE_RESOURCE_GROUP_NAME}
+              tenant_id {$AZURE_TENANT_ID}
+              client_id {$AZURE_CLIENT_ID}
+              client_secret {$AZURE_CLIENT_SECRET}
+            }
           }
-          root /var/www
-          file_server
+          reverse_proxy http://shinra.analogno.de:3000
         '';
       };
     };

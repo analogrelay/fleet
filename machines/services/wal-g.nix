@@ -79,4 +79,67 @@ in
       Persistent = true;
     };
   };
+
+  # --- Restore test scripts ---
+  systemd.services.postgres-test-restore = {
+    description = "Manual Postgres WAL-G test restore";
+    serviceConfig = {
+      Type = "oneshot";
+      User = "postgres";
+      Group = "postgres";
+      RemainAfterExit = false;
+    };
+    
+    script = ''
+      set -e
+      
+      export PGDATA=/var/lib/postgresql/test-restore
+      export WALGC_FILE_PREFIX=/mnt/tank/backups/postgres
+      
+      mkdir -p $PGDATA
+      chmod 700 $PGDATA
+      
+      echo "Fetching latest WAL-G backup..."
+      ${pkgs.wal-g}/bin/wal-g backup-fetch $PGDATA LATEST
+      
+      touch $PGDATA/recovery.signal
+      
+      echo "Starting Postgres on port 5433..."
+      ${config.services.postgresql.package}/bin/pg_ctl \
+        -D $PGDATA \
+        -l /var/log/postgresql/test-restore.log \
+        -o "-p 5433" \
+        start
+      
+      echo "Test restore started. Connect with: psql -h localhost -p 5433"
+      echo "Stop with: systemctl stop postgres-test-restore"
+    '';
+    
+    preStop = ''
+      echo "Stopping test restore cluster..."
+      ${config.services.postgresql.package}/bin/pg_ctl \
+        -D /var/lib/postgresql/test-restore \
+        -m fast stop || true
+    '';
+    
+    postStop = ''
+      echo "Removing test data directory..."
+      rm -rf /var/lib/postgresql/test-restore
+    '';
+  };
+
+  systemd.services.postgres-test-restore-cleanup = {
+    description = "Clean up Postgres test restore";
+    serviceConfig = {
+      Type = "oneshot";
+      User = "postgres";
+      Group = "postgres";
+    };
+    script = ''
+      ${config.services.postgresql.package}/bin/pg_ctl \
+        -D /var/lib/postgresql/test-restore \
+        -m fast stop || true
+      rm -rf /var/lib/postgresql/test-restore
+    '';
+  };
 }

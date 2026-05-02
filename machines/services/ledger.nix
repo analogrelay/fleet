@@ -41,4 +41,19 @@
         "ALTER ROLE \"$PG_USER\" WITH PASSWORD '$PG_PASS';"
     '';
   };
+
+  services.caddy.virtualHosts."ledger.analogrelay.net" = {
+    extraConfig = ''
+      tls { 
+        dns azure {
+          subscription_id {$AZURE_SUBSCRIPTION_ID}
+          resource_group_name {$AZURE_RESOURCE_GROUP_NAME}
+          tenant_id {$AZURE_TENANT_ID}
+          client_id {$AZURE_CLIENT_ID}
+          client_secret {$AZURE_CLIENT_SECRET}
+        }
+      }
+      reverse_proxy shinra.analogno.de:3001
+    '';
+  };
 }

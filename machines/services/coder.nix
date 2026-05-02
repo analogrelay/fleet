@@ -3,8 +3,8 @@
 {
   fleet.secrets."coder-oidc" = {
     template = ''
-      CODER_OIDC_CLIENT_ID="{{ op://Fleet/Keycloak-Coder/client-id }}"
-      CODER_OIDC_CLIENT_SECRET="{{ op://Fleet/Keycloak-Coder/client-secret }}"
+      CODER_OIDC_CLIENT_ID="{{ op://Fleet/OAuth-Coder/client-id }}"
+      CODER_OIDC_CLIENT_SECRET="{{ op://Fleet/OAuth-Coder/client-secret }}"
     '';
     owner = "coder";
     mode = "0400";
@@ -20,7 +20,7 @@
         CODER_WILDCARD_ACCESS_URL = "*.coder.analogrelay.net";
         CODER_HTTP_ADDRESS = "0.0.0.0:9393";
         CODER_DISABLE_PASSWORD_AUTH = "true";
-        CODER_OIDC_ISSUER_URL = "https://id.analogrelay.net/realms/analoghome";
+        CODER_OIDC_ISSUER_URL = "https://auth.analogrelay.net/application/o/coder/";
       };
       file = config.fleet.secrets."coder-oidc".path;
     };

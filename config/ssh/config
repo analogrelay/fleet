@@ -1,5 +1,8 @@
 Include config.d/*
 
+Host *
+    IdentityAgent ~/.ssh/auth_socket
+
 Host github-msft
     HostName github.com
     IdentityFile ~/.ssh/github-msft.pub
