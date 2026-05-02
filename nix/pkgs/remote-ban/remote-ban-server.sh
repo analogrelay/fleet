@@ -9,12 +9,49 @@ TRUSTED_IFACES_FILE="/etc/remote-ban/trusted-interfaces"
 die() { echo "error: $*" >&2; exit 1; }
 info() { echo "remote-ban-server: $*"; }
 
-# Detect if an IP is IPv4 or IPv6. Returns "4" or "6".
+# Strict IPv4 validation: x.x.x.x or x.x.x.x/N
+is_ipv4() {
+  local ip="$1"
+  local cidr_re='^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})(/([0-9]{1,2}))?$'
+  if [[ ! "$ip" =~ $cidr_re ]]; then
+    return 1
+  fi
+  local i
+  for i in "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}" "${BASH_REMATCH[4]}"; do
+    if (( i > 255 )); then return 1; fi
+  done
+  if [[ -n "${BASH_REMATCH[6]}" ]] && (( BASH_REMATCH[6] > 32 )); then
+    return 1
+  fi
+  return 0
+}
+
+# Strict IPv6 validation: hex groups with colons, optional /prefix
+is_ipv6() {
+  local ip="$1"
+  local addr="${ip%%/*}"
+  local prefix="${ip#*/}"
+  # Must contain at least one colon, only hex digits, colons, and dots (for mapped v4)
+  if [[ ! "$addr" =~ ^[0-9a-fA-F:]+([.][0-9]+)*$ ]]; then
+    return 1
+  fi
+  if [[ ! "$addr" == *:* ]]; then
+    return 1
+  fi
+  if [[ "$ip" == */* ]]; then
+    if [[ ! "$prefix" =~ ^[0-9]+$ ]] || (( prefix > 128 )); then
+      return 1
+    fi
+  fi
+  return 0
+}
+
+# Validate and detect IP version. Returns "4" or "6".
 ip_version() {
   local ip="$1"
-  if [[ "$ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+(/[0-9]+)?$ ]]; then
+  if is_ipv4 "$ip"; then
     echo "4"
-  elif [[ "$ip" =~ : ]]; then
+  elif is_ipv6 "$ip"; then
     echo "6"
   else
     die "invalid IP address: $ip"
@@ -34,7 +71,7 @@ ipt_cmd() {
 # Sanitize an IP for use in systemd unit names (replace special chars).
 sanitize_ip() {
   local ip="$1"
-  echo "$ip" | tr ':/' '--'
+  echo "$ip" | tr ':./' '---'
 }
 
 # Load trusted interfaces from config file.
@@ -44,9 +81,11 @@ load_trusted_interfaces() {
   fi
 }
 
-# Check if an IP is assigned to any trusted interface.
+# Check if an IP is assigned to any trusted interface using structured output.
 ip_on_trusted_interface() {
   local target_ip="$1"
+  # Strip CIDR prefix for comparison
+  local bare_ip="${target_ip%%/*}"
   local ifaces
   ifaces=$(load_trusted_interfaces)
 
@@ -55,10 +94,16 @@ ip_on_trusted_interface() {
   fi
 
   while IFS= read -r iface; do
-    # Check if the target IP is assigned to this interface
-    if ip addr show dev "$iface" 2>/dev/null | grep -qw "$target_ip"; then
-      return 0
-    fi
+    # Use structured `ip -o addr` output for reliable matching.
+    # Format: "idx: iface    inet[6] addr/prefix ..."
+    while IFS= read -r line; do
+      local addr
+      addr=$(echo "$line" | awk '{print $4}')
+      addr="${addr%%/*}"
+      if [[ "$addr" == "$bare_ip" ]]; then
+        return 0
+      fi
+    done < <(ip -o addr show dev "$iface" 2>/dev/null || true)
   done <<< "$ifaces"
 
   return 1
@@ -68,13 +113,11 @@ ip_on_trusted_interface() {
 ensure_chain() {
   local ipt="$1"
 
-  # Create chain if it doesn't exist
   if ! $ipt -L "$CHAIN" -n &>/dev/null; then
     $ipt -N "$CHAIN"
     info "created $CHAIN chain ($ipt)"
   fi
 
-  # Ensure INPUT jumps to our chain (idempotent)
   if ! $ipt -C INPUT -j "$CHAIN" &>/dev/null; then
     $ipt -I INPUT -j "$CHAIN"
     info "inserted INPUT -> $CHAIN jump ($ipt)"
@@ -128,22 +171,24 @@ cmd_ban() {
   ensure_chain "$ipt"
   setup_trusted_returns "$ipt"
 
-  # Check if already banned
+  # Check if already banned — remove existing rule and timer before re-adding
   if $ipt -C "$CHAIN" -s "$ip" -j DROP &>/dev/null; then
-    # Already banned — remove existing rule and timer, then re-add with new duration
     $ipt -D "$CHAIN" -s "$ip" -j DROP
     cancel_timer "$ip"
     info "updating existing ban for $ip"
   fi
 
-  # Add the ban rule (append after RETURN rules)
   $ipt -A "$CHAIN" -s "$ip" -j DROP
   info "banned $ip ($ipt) for ${duration}s"
 
-  # Schedule auto-unban
+  # Schedule auto-unban via systemd transient timer
   local sanitized
   sanitized=$(sanitize_ip "$ip")
   local unit_name="remote-ban-expire-${sanitized}"
+
+  # Clean up any stale units before creating
+  systemctl reset-failed "${unit_name}.service" &>/dev/null || true
+  systemctl reset-failed "${unit_name}.timer" &>/dev/null || true
 
   systemd-run \
     --unit="$unit_name" \
@@ -166,7 +211,6 @@ cmd_unban() {
 
   ensure_chain "$ipt"
 
-  # Remove all matching rules for this IP
   while $ipt -D "$CHAIN" -s "$ip" -j DROP &>/dev/null; do
     true
   done
@@ -177,7 +221,6 @@ cmd_unban() {
 
 # Unban all IPs (flush ban rules, preserve trusted interface RETURN rules).
 cmd_unban_all() {
-  # Flush and rebuild: flush the chain, then re-add trusted interface rules
   for ipt in iptables ip6tables; do
     ensure_chain "$ipt"
     $ipt -F "$CHAIN"
@@ -185,7 +228,6 @@ cmd_unban_all() {
     info "flushed all bans ($ipt)"
   done
 
-  # Cancel all pending expiry timers
   cancel_all_timers
   info "all bans removed"
 }
@@ -205,13 +247,11 @@ cmd_list() {
     fi
 
     echo "=== $label Bans ==="
-    # Parse iptables output: show only DROP rules (skip RETURN rules for trusted ifaces)
     $ipt -L "$CHAIN" -n --line-numbers 2>/dev/null | \
       awk 'NR<=2 {next} /DROP/ {print $0}' || true
     echo ""
   done
 
-  # Show pending expiry timers
   echo "=== Pending Expiry Timers ==="
   systemctl list-timers 'remote-ban-expire-*' --no-pager 2>/dev/null || echo "(none)"
 }
@@ -223,9 +263,10 @@ cancel_timer() {
   sanitized=$(sanitize_ip "$ip")
   local unit_name="remote-ban-expire-${sanitized}"
 
-  # Stop the timer if it exists (ignore errors if it doesn't)
   systemctl stop "${unit_name}.timer" &>/dev/null || true
   systemctl stop "${unit_name}.service" &>/dev/null || true
+  systemctl reset-failed "${unit_name}.timer" &>/dev/null || true
+  systemctl reset-failed "${unit_name}.service" &>/dev/null || true
 }
 
 # Cancel all remote-ban expiry timers.
@@ -239,28 +280,44 @@ cancel_all_timers() {
       systemctl stop "$timer" &>/dev/null || true
       local service="${timer%.timer}.service"
       systemctl stop "$service" &>/dev/null || true
+      systemctl reset-failed "$timer" &>/dev/null || true
+      systemctl reset-failed "$service" &>/dev/null || true
     done <<< "$timers"
     info "cancelled all expiry timers"
   fi
 }
 
 # Entry point when called from SSH forced command.
+# Strictly validates the command grammar to prevent abuse.
 cmd_from_ssh() {
   local orig_cmd="${SSH_ORIGINAL_COMMAND:-}"
   [[ -n "$orig_cmd" ]] || die "no command provided (SSH_ORIGINAL_COMMAND is empty)"
 
-  # Parse the original command into an array
-  # shellcheck disable=SC2086
-  set -- $orig_cmd
-  local subcmd="${1:-}"
-  shift || true
+  # Read into an array to avoid glob expansion
+  local -a parts
+  read -ra parts <<< "$orig_cmd"
 
+  local subcmd="${parts[0]:-}"
   case "$subcmd" in
-    ban)     cmd_ban "$@" ;;
-    unban)   cmd_unban "$@" ;;
-    unban-all) cmd_unban_all ;;
-    list)    cmd_list ;;
-    *)       die "unknown command from SSH: $subcmd" ;;
+    ban)
+      [[ ${#parts[@]} -eq 3 ]] || die "usage: ban <ip> <duration>"
+      cmd_ban "${parts[1]}" "${parts[2]}"
+      ;;
+    unban)
+      [[ ${#parts[@]} -eq 2 ]] || die "usage: unban <ip>"
+      cmd_unban "${parts[1]}"
+      ;;
+    unban-all)
+      [[ ${#parts[@]} -eq 1 ]] || die "usage: unban-all (no extra arguments)"
+      cmd_unban_all
+      ;;
+    list)
+      [[ ${#parts[@]} -eq 1 ]] || die "usage: list (no extra arguments)"
+      cmd_list
+      ;;
+    *)
+      die "unknown command from SSH: $subcmd"
+      ;;
   esac
 }
 
