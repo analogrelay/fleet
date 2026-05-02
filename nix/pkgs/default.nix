@@ -5,4 +5,5 @@
   display-switch = pkgs.callPackage ./display-switch {};
   es-de = pkgs.callPackage ./es-de {};
   plannotator = pkgs.callPackage ./plannotator {};
+  remote-ban = pkgs.callPackage ./remote-ban {};
 }
