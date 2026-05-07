@@ -19,8 +19,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     flake-utils.url = "github:numtide/flake-utils";
-    sops-nix.url = "github:Mic92/sops-nix";
-    ssh-to-age.url = "github:Mic92/ssh-to-age";
     nix-darwin = {
       url = "github:LnL7/nix-darwin/nix-darwin-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -43,9 +41,7 @@
       nixpkgs-unstable,
       nixpkgs-analogrelay,
       flake-utils,
-      ssh-to-age,
       nix-darwin,
-      sops-nix,
       home-manager,
       nix-vscode-extensions,
       nixos-wsl,
@@ -65,7 +61,6 @@
       ];
       defaultNixosModules = [
         inputs.authentik-nix.nixosModules.default
-        sops-nix.nixosModules.sops
         home-manager.nixosModules.home-manager
         vscode-server.nixosModule
         ./nix/modules/fleet
