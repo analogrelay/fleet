@@ -9,8 +9,6 @@ in {
     pkgs-unstable.github-copilot-cli
   ];
 
-  home.file.".config/copilot".source = fleetLink "config/copilot";
-
   programs.opencode = {
     package = pkgs-unstable.opencode;
     enable = true;
@@ -40,4 +38,8 @@ in {
       };
     };
   };
+
+  # Link relevant agent instructions into place
+  home.file.".copilot/copilot-instructions.md".source = fleetLink "config/agents/AGENTS.md";
+  home.file.".agents/skills".source = fleetLink "config/agents/skills";
 }
