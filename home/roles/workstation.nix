@@ -27,6 +27,9 @@
 
   home.sessionVariables = {
     GOPRIVATE = "github.com/Azure/azure-cosmos-client-engine";
+    OPENSSL_DIR = "${pkgs.openssl.dev}";
+    OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
+    OPENSSL_INCLUDE_DIR = "${pkgs.openssl.out}/include";
   };
   home.file.".npmrc".text = ''
     prefix=${config.home.homeDirectory}/.npm-global
