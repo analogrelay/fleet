@@ -20,7 +20,6 @@ in {
         "fzf"
         "gh"
         "git"
-        "golang"
         "history"
         "jj"
         "rust"
