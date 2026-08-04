@@ -1,4 +1,1 @@
-require("config.lazy")
-require("config.keymap")
-require("config.lsp")
-require("config.terminal")
+/nix/store/ww9d7fafjyvk4gfh1h0ql84jhiznmwra-home-manager-files/.config/nvim/init.lua
